@@ -8,6 +8,7 @@ use App\Tournament\Domain\Model\Bracket;
 use App\Tournament\Domain\Model\Encounter;
 use App\Tournament\Domain\Model\EncounterId;
 use App\Tournament\Domain\Model\EncounterResult;
+use App\Tournament\Domain\Model\Score;
 use App\Tournament\Domain\Model\Participant;
 use App\Tournament\Domain\Model\Round;
 use App\Tournament\Domain\Model\Team;
@@ -21,7 +22,7 @@ final class BracketProgressTest extends TestCase
     {
         ['bracket' => $bracket, 'teamA' => $teamA] = $this->makeFourTeamBracket();
 
-        $bracket->recordResult(new EncounterId('enc-1'), EncounterResult::regularTime(2, 0));
+        $bracket->recordResult(new EncounterId('enc-1'), EncounterResult::regularTime(Score::of(2, 0)));
 
         $homeParticipant = $bracket->getRound(2)->getEncounters()[0]->getHome();
         self::assertTrue($homeParticipant->isTeam());
@@ -33,7 +34,7 @@ final class BracketProgressTest extends TestCase
     {
         ['bracket' => $bracket, 'teamB' => $teamB] = $this->makeFourTeamBracket();
 
-        $bracket->recordResult(new EncounterId('enc-1'), EncounterResult::regularTime(0, 3));
+        $bracket->recordResult(new EncounterId('enc-1'), EncounterResult::regularTime(Score::of(0, 3)));
 
         $homeParticipant = $bracket->getRound(2)->getEncounters()[0]->getHome();
         self::assertTrue($homeParticipant->isTeam());
@@ -45,7 +46,7 @@ final class BracketProgressTest extends TestCase
     {
         ['bracket' => $bracket] = $this->makeFourTeamBracket();
 
-        $bracket->recordResult(new EncounterId('enc-1'), EncounterResult::regularTime(2, 0));
+        $bracket->recordResult(new EncounterId('enc-1'), EncounterResult::regularTime(Score::of(2, 0)));
 
         // enc-2 not yet played — away participant of the final still pending
         $awayParticipant = $bracket->getRound(2)->getEncounters()[0]->getAway();
@@ -59,7 +60,7 @@ final class BracketProgressTest extends TestCase
 
         $this->expectException(\InvalidArgumentException::class);
 
-        $bracket->recordResult(new EncounterId('enc-999'), EncounterResult::regularTime(1, 0));
+        $bracket->recordResult(new EncounterId('enc-999'), EncounterResult::regularTime(Score::of(1, 0)));
     }
 
     // --- helpers ---

@@ -33,8 +33,9 @@ L'application est structurée autour du namespace `Tournament`. Tout le code mé
 | `Encounter` | Entity (interne à l'agrégat) | Encounter mutable : `EncounterId $id`, `Participant $home/away`, `?EncounterResult $result` — lifecycle via `play()`, `resolveHome/Away()`, `getWinner()` |
 | `Round` | Value Object (interne à l'agrégat) | Tour : numéro + liste d'`Encounter` — `findEncounterById()`, `resolveParticipant()` |
 | `Bracket` | **Aggregate Root** | Tableau complet — **mutable**, liste de `Round` |
+| `Score` | Value Object | Paire de buts `home`/`away` — `readonly class`, `Score::of(int, int)`, valide non-négatif, expose `isDraw()` |
 | `Side` | Enum | `Home` / `Away` — utilisé par `EncounterResult` |
-| `EncounterResult` | Value Object | Score en temps réglementaire — `readonly class` avec named constructor `regularTime(int, int)` et `winner(): Side` |
+| `EncounterResult` | Value Object | Résultat complet d'un encounter — **neutre vis-à-vis du format** : `regularTime(Score)`, `afterExtraTime(Score, Score)`, `afterPenalties(Score, Score, Score)` ; `winner()` lève `LogicException` sur un nul sans ET/penalties |
 
 `Participant` est le concept central : il représente indifféremment une équipe connue, un bye (avance automatique), ou un vainqueur en attente d'un encounter futur. Le terme `Slot` a été explicitement rejeté car sans sens métier dans le domaine football.
 
@@ -60,9 +61,9 @@ L'application est structurée autour du namespace `Tournament`. Tout le code mé
 - Les byes sont résolus **à la génération** dans `nextRoundParticipants()` — pas de `progressBye()` ; l'équipe avançant sur bye est immédiatement `forTeam` dans le round suivant
 - `Bracket::recordResult()` utilise les références PHP : muter l'`Encounter` trouvé propage le changement sans reconstruire les rounds
 - `Round::findEncounterById()` + `Round::resolveParticipant()` : le round gère lui-même sa recherche et sa résolution, `Bracket` orchestre sans tout connaître
+- `EncounterResult` est **neutre vis-à-vis du format** — il n'interdit pas les nuls ; `winner()` lève `LogicException` si nul sans vainqueur désigné ; la règle "pas de nul" est une contrainte du format de tournoi, portée par la couche application
+- `Score` est un VO léger qui valide le non-négatif et expose `isDraw()` — utilisé comme paramètre de tous les named constructors d'`EncounterResult`
 
 ## Prochaine étape prioritaire
 
-`Bracket::isComplete()` — détection de fin de tournoi (toutes les encounters jouées). Ensuite : score enrichi (prolongations + tirs au but).
-
-Le détail complet du plan (priorités 1 à 5) est dans `PROJET.md`.
+Inscription au tournoi (couche application) ou match pour la 3e place. Le détail complet du plan (priorités 1 à 5) est dans `PROJET.md`.

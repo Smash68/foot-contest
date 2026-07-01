@@ -7,6 +7,7 @@ namespace App\Tests\Tournament\Domain;
 use App\Tournament\Domain\Model\Encounter;
 use App\Tournament\Domain\Model\EncounterId;
 use App\Tournament\Domain\Model\EncounterResult;
+use App\Tournament\Domain\Model\Score;
 use App\Tournament\Domain\Model\Participant;
 use App\Tournament\Domain\Model\Team;
 use PHPUnit\Framework\Attributes\Test;
@@ -18,7 +19,7 @@ final class EncounterTest extends TestCase
     public function it_stores_result_when_completed(): void
     {
         $encounter = $this->makeConcreteEncounter();
-        $result = EncounterResult::regularTime(2, 1);
+        $result = EncounterResult::regularTime(Score::of(2, 1));
 
         $encounter->play($result);
 
@@ -36,7 +37,7 @@ final class EncounterTest extends TestCase
             Participant::forTeam(new Team('b', 'Team B')),
         );
 
-        $encounter->play(EncounterResult::regularTime(2, 0));
+        $encounter->play(EncounterResult::regularTime(Score::of(2, 0)));
 
         self::assertSame($teamA->getId(), $encounter->getWinner()->getId());
     }
@@ -51,7 +52,7 @@ final class EncounterTest extends TestCase
             Participant::forTeam($teamB),
         );
 
-        $encounter->play(EncounterResult::regularTime(0, 1));
+        $encounter->play(EncounterResult::regularTime(Score::of(0, 1)));
 
         self::assertSame($teamB->getId(), $encounter->getWinner()->getId());
     }
@@ -68,11 +69,11 @@ final class EncounterTest extends TestCase
     public function it_throws_when_completed_twice(): void
     {
         $encounter = $this->makeConcreteEncounter();
-        $encounter->play(EncounterResult::regularTime(1, 0));
+        $encounter->play(EncounterResult::regularTime(Score::of(1, 0)));
 
         $this->expectException(\LogicException::class);
 
-        $encounter->play(EncounterResult::regularTime(2, 0));
+        $encounter->play(EncounterResult::regularTime(Score::of(2, 0)));
     }
 
     #[Test]
@@ -86,7 +87,7 @@ final class EncounterTest extends TestCase
 
         $this->expectException(\LogicException::class);
 
-        $encounter->play(EncounterResult::regularTime(1, 0));
+        $encounter->play(EncounterResult::regularTime(Score::of(1, 0)));
     }
 
     #[Test]
@@ -100,7 +101,7 @@ final class EncounterTest extends TestCase
 
         $this->expectException(\LogicException::class);
 
-        $encounter->play(EncounterResult::regularTime(1, 0));
+        $encounter->play(EncounterResult::regularTime(Score::of(1, 0)));
     }
 
     #[Test]

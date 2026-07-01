@@ -50,8 +50,9 @@ Interface `BracketGenerator` → les formats futurs (double élimination, poules
 | `Encounter` | **Entity** interne agrégat | Encounter mutable : `EncounterId $id`, `Participant $home/away`, `?EncounterResult $result` — `play()`, `resolveHome/Away()`, `getWinner()` |
 | `Round` | VO interne agrégat | Un tour : numéro + liste d'`Encounter` — `findEncounterById()`, `resolveParticipant()` |
 | `Bracket` | **Aggregate Root** | Le tableau complet — mutable |
+| `Score` | Value Object | Paire de buts — `Score::of(int, int)`, valide non-négatif, `isDraw()` |
 | `Side` | Enum | `Home` / `Away` |
-| `EncounterResult` | Value Object | Score temps réglementaire + `winner(): Side` |
+| `EncounterResult` | Value Object | Résultat complet, **neutre** : `regularTime(Score)`, `afterExtraTime(Score, Score)`, `afterPenalties(Score, Score, Score)` — `winner()` lève `LogicException` sur nul sans vainqueur |
 
 #### Les trois états d'un `Participant`
 
@@ -112,10 +113,12 @@ Round 3 : w5  vs w6                                     (1 encounter — finale)
 
 - `SingleEliminationBracketGeneratorTest` — génération du bracket, byes, rounds, encounters
 - `EncounterTest` — lifecycle d'un `Encounter` : `play()`, `getWinner()`, guards, `resolveHome/Away()`
-- `EncounterResultTest` — `regularTime()`, `winner()`, invariants
-- `BracketProgressTest` — `recordResult()` : propagation du vainqueur, cas simple
+- `ScoreTest` — `Score::of()`, validation non-négatif, `isDraw()`
+- `EncounterResultTest` — `regularTime()`, `afterExtraTime()`, `afterPenalties()`, `winner()`, invariants métier
+- `BracketProgressTest` — `recordResult()` : propagation du vainqueur
+- `BracketIsCompleteTest` — `isComplete()`, `getChampion()`, cas avec byes
 
-37 tests, 66 assertions — tout vert.
+56 tests, 85 assertions — tout vert.
 
 ---
 
@@ -127,18 +130,16 @@ Round 3 : w5  vs w6                                     (1 encounter — finale)
 
 Quand la finale est jouée (`recordResult()` sur le dernier encounter), le bracket est terminé. Exposer `Bracket::isComplete(): bool`.
 
-#### 1b — Score enrichi
-
-Étendre `EncounterResult` pour couvrir :
+#### 1b — Score enrichi ✅ implémenté
 
 ```
 EncounterResult
-  ├── regularTime(int $home, int $away)       → vainqueur direct (implémenté)
-  ├── withExtraTime(...)                       → prolongations
-  └── withPenalties(...)                       → tirs au but
+  ├── regularTime(Score)                    → accepte nul (neutre vis-à-vis du format)
+  ├── afterExtraTime(Score, Score)          → RT nul requis, ET doit avoir vainqueur
+  └── afterPenalties(Score, Score, Score)   → RT nul + ET nul requis, penalties doit avoir vainqueur
 ```
 
-Invariant : un nul en temps réglementaire impose les prolongations ; un nul en prolongations impose les tirs au but.
+`winner()` lève `LogicException` si nul sans ET/penalties — la règle "pas de nul" est portée par le format de tournoi (couche application), pas par `EncounterResult`.
 
 ### Priorité 2 — Match pour la 3e place
 
@@ -175,12 +176,13 @@ src/
         │   └── SingleElimination/
         │       └── SingleEliminationBracketGenerator.php
         ├── Model/
-        │   ├── Bracket.php          ← Aggregate Root (mutable) — recordResult()
+        │   ├── Bracket.php          ← Aggregate Root (mutable) — recordResult(), isComplete(), getChampion()
         │   ├── Encounter.php        ← Entity mutable — play(), resolveHome/Away(), getWinner()
         │   ├── EncounterId.php      ← Value Object avec equals()
-        │   ├── EncounterResult.php  ← Value Object, score enrichi (partiel)
+        │   ├── EncounterResult.php  ← Value Object neutre — regularTime/afterExtraTime/afterPenalties
         │   ├── Participant.php      ← Value Object, 3 états
         │   ├── Round.php            ← findEncounterById(), resolveParticipant()
+        │   ├── Score.php            ← Value Object — Score::of(int, int), isDraw()
         │   ├── Side.php             ← enum Home/Away
         │   └── Team.php
         └── Service/
