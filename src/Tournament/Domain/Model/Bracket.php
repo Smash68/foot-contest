@@ -38,6 +38,24 @@ final class Bracket
         throw new \InvalidArgumentException("Round {$number} not found.");
     }
 
+    public function isComplete(): bool
+    {
+        if (empty($this->rounds)) {
+            return false;
+        }
+
+        return $this->rounds[array_key_last($this->rounds)]->getEncounters()[0]->isCompleted();
+    }
+
+    public function getChampion(): Team
+    {
+        if (!$this->isComplete()) {
+            throw new \LogicException('Tournament is not complete yet.');
+        }
+
+        return $this->rounds[array_key_last($this->rounds)]->getEncounters()[0]->getWinner();
+    }
+
     public function recordResult(EncounterId $encounterId, EncounterResult $result): void
     {
         foreach ($this->rounds as $roundIndex => $round) {
