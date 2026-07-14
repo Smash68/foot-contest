@@ -3,3 +3,6 @@
 /.env.*.local
 /var/
 /public/bundles/
+/.idea/
+/.phpunit.result.cache
+/.claude/
