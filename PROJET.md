@@ -28,7 +28,7 @@ Interface `BracketGenerator` → les formats futurs (double élimination, poules
 | Match nul | Impossible en élimination directe |
 | Conditions de victoire | Portées par le format (configurable) |
 | Score | **Score enrichi** : temps réglementaire + prolongations + tirs au but |
-| Match pour la 3e place | Configurable par l'organisateur |
+| Match pour la 3e place | ✅ Optionnel — activé par composition, pas par flag (voir plus bas) |
 
 ### Nommage
 
@@ -47,9 +47,10 @@ Interface `BracketGenerator` → les formats futurs (double élimination, poules
 | `Team` | Entity | Une équipe : `id` + `name` |
 | `EncounterId` | Value Object | Identifiant typé — `readonly class`, `equals()` |
 | `Participant` | Value Object | Un participant à un encounter — trois états possibles |
-| `Encounter` | **Entity** interne agrégat | Encounter mutable : `EncounterId $id`, `Participant $home/away`, `?EncounterResult $result` — `play()`, `resolveHome/Away()`, `getWinner()` |
+| `Encounter` | **Entity** interne agrégat | Encounter mutable : `EncounterId $id`, `Participant $home/away`, `?EncounterResult $result` — `play()`, `resolveHome/Away()`, `getWinner()`, `getLoser()` |
 | `Round` | VO interne agrégat | Un tour : numéro + liste d'`Encounter` — `findEncounterById()`, `resolveParticipant()` |
-| `Bracket` | **Aggregate Root** | Le tableau complet — mutable |
+| `Bracket` | Interface | Le contrat de l'agrégat — `getRounds()`, `countRounds()`, `countEncounters()`, `getRound()`, `isComplete()`, `getChampion()`, `recordResult()` |
+| `SingleEliminationBracket` | **Aggregate Root** (implémente `Bracket`) | Le tableau complet — mutable |
 | `Score` | Value Object | Paire de buts — `Score::of(int, int)`, valide non-négatif, `isDraw()` |
 | `Side` | Enum | `Home` / `Away` |
 | `EncounterResult` | Value Object | Résultat complet, **neutre** : `regularTime(Score)`, `afterExtraTime(Score, Score)`, `afterPenalties(Score, Score, Score)` — `winner()` lève `LogicException` sur nul sans vainqueur |
@@ -66,7 +67,9 @@ Le 3e état référence un `EncounterId` (valeur immuable) et non un objet `Enco
 
 #### `Bracket` est l'agrégat racine mutable
 
-`Bracket` et `Encounter` sont des Entities (identité, état qui évolue). `Round`, `Participant`, `EncounterResult`, `EncounterId` sont des Value Objects `readonly`.
+`Bracket` est une interface ; `SingleEliminationBracket` en est l'implémentation concrète, une Entity au même titre qu'`Encounter` (identité, état qui évolue). `Round`, `Participant`, `EncounterResult`, `EncounterId` sont des Value Objects `readonly`.
+
+L'interface a été extraite spécifiquement pour permettre de **décorer** l'agrégat (voir la section match pour la 3e place ci-dessous) sans jamais faire grossir le constructeur de `SingleEliminationBracket` avec des paramètres optionnels.
 
 ```php
 $bracket->recordResult(EncounterId $id, EncounterResult $result): void
@@ -109,26 +112,45 @@ Round 2 : w1  vs w2, w3  vs w4                          (2 encounters)
 Round 3 : w5  vs w6                                     (1 encounter — finale)
 ```
 
+### Match pour la 3e place (`Format/SingleElimination/`)
+
+Option **optionnelle et composable**, activée par décoration plutôt que par flag :
+
+```php
+$generator = new BracketGeneratorWithThirdPlaceMatch(new SingleEliminationBracketGenerator());
+$bracket = $generator->generate($teams); // instance de BracketWithThirdPlaceMatch
+```
+
+- `ThirdPlaceFixture` — VO de câblage (3 `EncounterId` : le futur match + les deux demi-finales sources), aucune donnée de jeu
+- `BracketGeneratorWithThirdPlaceMatch` (décore `BracketGenerator`) — repère le round avant la finale à la génération, vérifie qu'il a exactement 2 encounters et qu'aucun n'implique un bye (perdant non déterminable), sinon `InvalidArgumentException`
+- `BracketWithThirdPlaceMatch` (décore `Bracket`) — délègue toutes les méthodes du contrat à l'agrégat enveloppé ; construit **paresseusement** l'`Encounter` de 3e place dès que les deux demi-finales référencées sont `isCompleted()`, avec les vrais perdants (`Encounter::getLoser()`) ; expose `getThirdPlaceEncounter(): ?Encounter` (`null` tant que ce n'est pas jouable)
+
+**Décisions clés :**
+- Aucun nouvel état ajouté à `Participant` (pas de `pendingLoserOf`) — le VO reste à 3 états ; l'`Encounter` de 3e place n'existe qu'une fois les deux perdants réellement connus, avec des `Participant::forTeam()` concrets dès sa construction
+- Décoration plutôt que flag ou sous-classe : une combinaison de règles futures se compose par emboîtement d'instances (`new WithX(new WithY($bracket))`), pas par explosion combinatoire de classes ni par accumulation de paramètres optionnels dans le constructeur de `SingleEliminationBracket`
+
 ### Tests (`tests/Tournament/Domain/`)
 
 - `SingleEliminationBracketGeneratorTest` — génération du bracket, byes, rounds, encounters
-- `EncounterTest` — lifecycle d'un `Encounter` : `play()`, `getWinner()`, guards, `resolveHome/Away()`
+- `EncounterTest` — lifecycle d'un `Encounter` : `play()`, `getWinner()`, `getLoser()`, guards, `resolveHome/Away()`
 - `ScoreTest` — `Score::of()`, validation non-négatif, `isDraw()`
 - `EncounterResultTest` — `regularTime()`, `afterExtraTime()`, `afterPenalties()`, `winner()`, invariants métier
 - `BracketProgressTest` — `recordResult()` : propagation du vainqueur
 - `BracketIsCompleteTest` — `isComplete()`, `getChampion()`, cas avec byes
+- `Format/SingleElimination/BracketWithThirdPlaceMatchTest` — construction paresseuse, résolution des perdants, non-impact sur `isComplete()`
+- `Format/SingleElimination/BracketGeneratorWithThirdPlaceMatchTest` — bout-en-bout, cas d'exception (pas de demi-finale, bye en demi-finale)
 
-56 tests, 85 assertions — tout vert.
+69 tests, 104 assertions — tout vert.
 
 ---
 
 ## Plan — ce qui reste à faire
 
-### Priorité 1 — Avancement du bracket (suite)
+### Priorité 1 — Avancement du bracket (suite) ✅ implémenté
 
-#### 1a — Détection de fin de tournoi ✦ prochaine étape
+#### 1a — Détection de fin de tournoi ✅ implémenté
 
-Quand la finale est jouée (`recordResult()` sur le dernier encounter), le bracket est terminé. Exposer `Bracket::isComplete(): bool`.
+Quand la finale est jouée (`recordResult()` sur le dernier encounter), le bracket est terminé. Exposé via `Bracket::isComplete(): bool` et `Bracket::getChampion(): Team`.
 
 #### 1b — Score enrichi ✅ implémenté
 
@@ -141,11 +163,11 @@ EncounterResult
 
 `winner()` lève `LogicException` si nul sans ET/penalties — la règle "pas de nul" est portée par le format de tournoi (couche application), pas par `EncounterResult`.
 
-### Priorité 2 — Match pour la 3e place
+### Priorité 2 — Match pour la 3e place ✅ implémenté
 
-Configurable par l'organisateur. À intégrer dans le générateur ou dans une étape post-finale.
+Optionnel, activé par composition (`BracketGeneratorWithThirdPlaceMatch` / `BracketWithThirdPlaceMatch`) — voir la section dédiée plus haut.
 
-### Priorité 3 — Inscription au tournoi
+### Priorité 3 — Inscription au tournoi ✦ prochaine étape
 
 - Création d'un tournoi par un organisateur (format, min/max équipes, règles)
 - Inscription d'une équipe par un capitaine
@@ -174,16 +196,20 @@ src/
     └── Domain/
         ├── Format/
         │   └── SingleElimination/
-        │       └── SingleEliminationBracketGenerator.php
+        │       ├── SingleEliminationBracketGenerator.php
+        │       ├── ThirdPlaceFixture.php               ← VO de câblage (3 EncounterId)
+        │       ├── BracketWithThirdPlaceMatch.php       ← décore Bracket
+        │       └── BracketGeneratorWithThirdPlaceMatch.php ← décore BracketGenerator
         ├── Model/
-        │   ├── Bracket.php          ← Aggregate Root (mutable) — recordResult(), isComplete(), getChampion()
-        │   ├── Encounter.php        ← Entity mutable — play(), resolveHome/Away(), getWinner()
-        │   ├── EncounterId.php      ← Value Object avec equals()
-        │   ├── EncounterResult.php  ← Value Object neutre — regularTime/afterExtraTime/afterPenalties
-        │   ├── Participant.php      ← Value Object, 3 états
-        │   ├── Round.php            ← findEncounterById(), resolveParticipant()
-        │   ├── Score.php            ← Value Object — Score::of(int, int), isDraw()
-        │   ├── Side.php             ← enum Home/Away
+        │   ├── Bracket.php               ← Interface — contrat de l'agrégat
+        │   ├── SingleEliminationBracket.php ← Aggregate Root (mutable), implémente Bracket
+        │   ├── Encounter.php             ← Entity mutable — play(), resolveHome/Away(), getWinner(), getLoser()
+        │   ├── EncounterId.php           ← Value Object avec equals()
+        │   ├── EncounterResult.php       ← Value Object neutre — regularTime/afterExtraTime/afterPenalties
+        │   ├── Participant.php           ← Value Object, 3 états
+        │   ├── Round.php                 ← findEncounterById(), resolveParticipant()
+        │   ├── Score.php                 ← Value Object — Score::of(int, int), isDraw()
+        │   ├── Side.php                  ← enum Home/Away
         │   └── Team.php
         └── Service/
             └── BracketGenerator.php  (interface)
@@ -192,6 +218,13 @@ tests/
 └── Tournament/
     └── Domain/
         ├── BracketProgressTest.php
+        ├── BracketIsCompleteTest.php
+        ├── EncounterTest.php
         ├── EncounterResultTest.php
-        └── SingleEliminationBracketGeneratorTest.php
+        ├── ScoreTest.php
+        ├── SingleEliminationBracketGeneratorTest.php
+        └── Format/
+            └── SingleElimination/
+                ├── BracketWithThirdPlaceMatchTest.php
+                └── BracketGeneratorWithThirdPlaceMatchTest.php
 ```

@@ -9,6 +9,7 @@ use App\Tournament\Domain\Model\Encounter;
 use App\Tournament\Domain\Model\EncounterId;
 use App\Tournament\Domain\Model\Participant;
 use App\Tournament\Domain\Model\Round;
+use App\Tournament\Domain\Model\SingleEliminationBracket;
 use App\Tournament\Domain\Model\Team;
 use App\Tournament\Domain\Service\BracketGenerator;
 use InvalidArgumentException;
@@ -37,7 +38,7 @@ final class SingleEliminationBracketGenerator implements BracketGenerator
             $participants = $this->nextRoundParticipants($round);
         }
 
-        return new Bracket($rounds);
+        return new SingleEliminationBracket($rounds);
     }
 
     /**

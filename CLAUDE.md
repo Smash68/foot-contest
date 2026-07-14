@@ -30,20 +30,31 @@ L'application est structurée autour du namespace `Tournament`. Tout le code mé
 | `Team` | Entity | Équipe : `id` + `name` |
 | `EncounterId` | Value Object | Identifiant typé d'un encounter — `readonly class` avec `equals()` |
 | `Participant` | Value Object | Participant à un encounter — 3 états : `forTeam`, `bye`, `pendingWinnerOf(EncounterId)` |
-| `Encounter` | Entity (interne à l'agrégat) | Encounter mutable : `EncounterId $id`, `Participant $home/away`, `?EncounterResult $result` — lifecycle via `play()`, `resolveHome/Away()`, `getWinner()` |
+| `Encounter` | Entity (interne à l'agrégat) | Encounter mutable : `EncounterId $id`, `Participant $home/away`, `?EncounterResult $result` — lifecycle via `play()`, `resolveHome/Away()`, `getWinner()`, `getLoser()` |
 | `Round` | Value Object (interne à l'agrégat) | Tour : numéro + liste d'`Encounter` — `findEncounterById()`, `resolveParticipant()` |
-| `Bracket` | **Aggregate Root** | Tableau complet — **mutable**, liste de `Round` |
+| `Bracket` | Interface (contrat d'agrégat) | `getRounds()`, `countRounds()`, `countEncounters()`, `getRound()`, `isComplete()`, `getChampion()`, `recordResult()` |
+| `SingleEliminationBracket` | **Aggregate Root** (implémente `Bracket`) | Tableau complet — **mutable**, liste de `Round` |
 | `Score` | Value Object | Paire de buts `home`/`away` — `readonly class`, `Score::of(int, int)`, valide non-négatif, expose `isDraw()` |
 | `Side` | Enum | `Home` / `Away` — utilisé par `EncounterResult` |
 | `EncounterResult` | Value Object | Résultat complet d'un encounter — **neutre vis-à-vis du format** : `regularTime(Score)`, `afterExtraTime(Score, Score)`, `afterPenalties(Score, Score, Score)` ; `winner()` lève `LogicException` sur un nul sans ET/penalties |
 
-`Participant` est le concept central : il représente indifféremment une équipe connue, un bye (avance automatique), ou un vainqueur en attente d'un encounter futur. Le terme `Slot` a été explicitement rejeté car sans sens métier dans le domaine football.
+`Participant` est le concept central : il représente indifféremment une équipe connue, un bye (avance automatique), ou un vainqueur en attente d'un encounter futur. Le terme `Slot` a été explicitement rejeté car sans sens métier dans le domaine football. Il compte volontairement **3 états, pas plus** — voir plus bas pourquoi le match pour la 3e place n'en a pas ajouté un 4e.
 
-`Bracket` est l'agrégat racine — seule classe mutable. `Round` et `Participant` sont des value objects `readonly`. `Encounter` est une Entity interne mutable (elle porte son propre résultat).
+`Bracket` est une interface — le contrat de l'agrégat racine. `SingleEliminationBracket` en est l'implémentation concrète et mutable. `Round` et `Participant` sont des value objects `readonly`. `Encounter` est une Entity interne mutable (elle porte son propre résultat).
 
 **Interface de format** (`Service/BracketGenerator.php`) — contrat unique `generate(Team[] $teams): Bracket`. Tous les formats futurs (double élimination, poules, round-robin) implémentent cette interface.
 
 **Format coupe simple** (`Format/SingleElimination/SingleEliminationBracketGenerator.php`) — seul format implémenté. Algorithme : validation → tirage aléatoire → calcul des byes (`2^n - totalTeams`) → appairage des participants en `Encounter` round par round → `nextRoundParticipants()` résout les byes **à la génération** (l'équipe qui avance est déjà connue, pas `pendingWinnerOf`) ; seuls les vrais encounters restent `pendingWinnerOf`.
+
+**Match pour la 3e place** (`Format/SingleElimination/`) — option **composée**, pas configurée par flag :
+
+```php
+new BracketGeneratorWithThirdPlaceMatch(new SingleEliminationBracketGenerator())
+```
+
+- `ThirdPlaceFixture` — VO de câblage : 3 `EncounterId` (celui du futur match + les deux demi-finales sources), aucune donnée de jeu
+- `BracketGeneratorWithThirdPlaceMatch` — décore `BracketGenerator` : repère le round avant la finale, valide l'éligibilité (exactement 2 encounters, aucun bye), lève `InvalidArgumentException` sinon
+- `BracketWithThirdPlaceMatch` — décore `Bracket` : délègue toutes les méthodes du contrat à l'agrégat enveloppé ; construit **paresseusement** l'`Encounter` de 3e place (avec deux `Participant::forTeam()` concrets, jamais de nouvel état pending) dès que les deux demi-finales référencées sont `isCompleted()` ; expose `getThirdPlaceEncounter(): ?Encounter`
 
 ### Conventions de nommage
 
@@ -54,7 +65,9 @@ L'application est structurée autour du namespace `Tournament`. Tout le code mé
 
 ### Décisions d'architecture notables
 
-- `Bracket` est une **Entity mutable** (agrégat racine), pas un VO — elle évolue au fil des résultats
+- `Bracket` est une **Entity mutable** (agrégat racine), pas un VO — elle évolue au fil des résultats. `Bracket` est une interface (contrat), `SingleEliminationBracket` son implémentation concrète — extraction motivée par le besoin de décorer l'agrégat (voir match 3e place) sans modifier son constructeur
+- Les règles optionnelles du format élimination directe (ex: match pour la 3e place) sont ajoutées par **décoration** (`BracketGeneratorWithThirdPlaceMatch` / `BracketWithThirdPlaceMatch`), pas par flag booléen ni sous-classe : un flag grossit indéfiniment à chaque nouvelle règle, une sous-classe explose combinatoirement dès que deux règles doivent se cumuler (`WithThirdPlaceAndX`...). La décoration compose : `new WithRegleA(new WithRegleB($bracket))`, un nombre de classes linéaire au nombre de règles, jamais aux combinaisons. Un système d'extensions/hooks a été envisagé (liste injectée dans `Bracket`) mais écarté pour l'instant : une seule règle optionnelle existe aujourd'hui, construire ce mécanisme maintenant serait de la généralité spéculative — à réévaluer si une 2e règle apparaît et que le passe-plat des décorateurs devient réellement pénible
+- Le match pour la 3e place ne référence **jamais** les perdants de demi-finale via un 4e état de `Participant` (type `pendingLoserOf`) — ça aurait pollué un concept central déjà stable à 3 états pour un besoin très localisé. À la place, `BracketWithThirdPlaceMatch` construit l'`Encounter` de 3e place **paresseusement**, seulement une fois les deux perdants réellement connus (`Encounter::getLoser()`), avec des `Participant::forTeam()` concrets dès la construction
 - `Participant` avec 3 états est le choix DDD correct : référencer un `EncounterId` (valeur) plutôt qu'un objet `Encounter` mutable (qui violerait l'immutabilité du VO)
 - `Encounter` est une **Entity mutable** (pas un VO) — elle porte son propre `?EncounterResult`, lifecycle via `play()` / `resolveHome()` / `resolveAway()` ; getters explicites
 - `EncounterId::equals()` pour toutes les comparaisons d'ID
@@ -66,4 +79,4 @@ L'application est structurée autour du namespace `Tournament`. Tout le code mé
 
 ## Prochaine étape prioritaire
 
-Inscription au tournoi (couche application) ou match pour la 3e place. Le détail complet du plan (priorités 1 à 5) est dans `PROJET.md`.
+Inscription au tournoi (couche application) — création d'un tournoi par un organisateur, inscription d'une équipe par un capitaine, déclenchement de la génération du bracket. Le détail complet du plan (priorités 1 à 5) est dans `PROJET.md`.

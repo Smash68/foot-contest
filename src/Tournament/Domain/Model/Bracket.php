@@ -4,70 +4,20 @@ declare(strict_types=1);
 
 namespace App\Tournament\Domain\Model;
 
-final class Bracket
+interface Bracket
 {
-    /** @param Round[] $rounds */
-    public function __construct(
-        private array $rounds,
-    ) {}
-
     /** @return Round[] */
-    public function getRounds(): array
-    {
-        return $this->rounds;
-    }
+    public function getRounds(): array;
 
-    public function countRounds(): int
-    {
-        return count($this->rounds);
-    }
+    public function countRounds(): int;
 
-    public function countEncounters(): int
-    {
-        return array_sum(array_map(fn(Round $r) => $r->countEncounters(), $this->rounds));
-    }
+    public function countEncounters(): int;
 
-    public function getRound(int $number): Round
-    {
-        foreach ($this->rounds as $round) {
-            if ($round->getNumber() === $number) {
-                return $round;
-            }
-        }
+    public function getRound(int $number): Round;
 
-        throw new \InvalidArgumentException("Round {$number} not found.");
-    }
+    public function isComplete(): bool;
 
-    public function isComplete(): bool
-    {
-        if (empty($this->rounds)) {
-            return false;
-        }
+    public function getChampion(): Team;
 
-        return $this->rounds[array_key_last($this->rounds)]->getEncounters()[0]->isCompleted();
-    }
-
-    public function getChampion(): Team
-    {
-        if (!$this->isComplete()) {
-            throw new \LogicException('Tournament is not complete yet.');
-        }
-
-        return $this->rounds[array_key_last($this->rounds)]->getEncounters()[0]->getWinner();
-    }
-
-    public function recordResult(EncounterId $encounterId, EncounterResult $result): void
-    {
-        foreach ($this->rounds as $roundIndex => $round) {
-            $encounter = $round->findEncounterById($encounterId);
-            if ($encounter === null) {
-                continue;
-            }
-            $encounter->play($result);
-            ($this->rounds[$roundIndex + 1] ?? null)?->resolveParticipant($encounterId, $encounter->getWinner());
-            return;
-        }
-
-        throw new \InvalidArgumentException("Encounter '{$encounterId->value}' not found in bracket.");
-    }
+    public function recordResult(EncounterId $encounterId, EncounterResult $result): void;
 }

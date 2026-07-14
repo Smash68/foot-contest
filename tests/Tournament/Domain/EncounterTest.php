@@ -66,6 +66,44 @@ final class EncounterTest extends TestCase
     }
 
     #[Test]
+    public function it_exposes_away_loser(): void
+    {
+        $teamB = new Team('b', 'Team B');
+        $encounter = new Encounter(
+            new EncounterId('e1'),
+            Participant::forTeam(new Team('a', 'Team A')),
+            Participant::forTeam($teamB),
+        );
+
+        $encounter->play(EncounterResult::regularTime(Score::of(2, 0)));
+
+        self::assertSame($teamB->getId(), $encounter->getLoser()->getId());
+    }
+
+    #[Test]
+    public function it_exposes_home_loser(): void
+    {
+        $teamA = new Team('a', 'Team A');
+        $encounter = new Encounter(
+            new EncounterId('e1'),
+            Participant::forTeam($teamA),
+            Participant::forTeam(new Team('b', 'Team B')),
+        );
+
+        $encounter->play(EncounterResult::regularTime(Score::of(0, 1)));
+
+        self::assertSame($teamA->getId(), $encounter->getLoser()->getId());
+    }
+
+    #[Test]
+    public function it_throws_when_getting_loser_before_completion(): void
+    {
+        $this->expectException(\LogicException::class);
+
+        $this->makeConcreteEncounter()->getLoser();
+    }
+
+    #[Test]
     public function it_throws_when_completed_twice(): void
     {
         $encounter = $this->makeConcreteEncounter();

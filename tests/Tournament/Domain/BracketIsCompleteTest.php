@@ -11,6 +11,7 @@ use App\Tournament\Domain\Model\EncounterResult;
 use App\Tournament\Domain\Model\Score;
 use App\Tournament\Domain\Model\Participant;
 use App\Tournament\Domain\Model\Round;
+use App\Tournament\Domain\Model\SingleEliminationBracket;
 use App\Tournament\Domain\Model\Team;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -96,7 +97,7 @@ final class BracketIsCompleteTest extends TestCase
             Participant::pendingWinnerOf(new EncounterId('enc-2')),
         );
 
-        $bracket = new Bracket([
+        $bracket = new SingleEliminationBracket([
             new Round(1, [$enc1, $enc2]),
             new Round(2, [$enc3]),
         ]);
@@ -118,7 +119,7 @@ final class BracketIsCompleteTest extends TestCase
             Participant::pendingWinnerOf(new EncounterId('enc-2')),
         );
 
-        return new Bracket([
+        return new SingleEliminationBracket([
             new Round(1, [$enc1, $enc2]),
             new Round(2, [$enc3]),
         ]);

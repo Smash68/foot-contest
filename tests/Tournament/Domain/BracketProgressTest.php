@@ -11,6 +11,7 @@ use App\Tournament\Domain\Model\EncounterResult;
 use App\Tournament\Domain\Model\Score;
 use App\Tournament\Domain\Model\Participant;
 use App\Tournament\Domain\Model\Round;
+use App\Tournament\Domain\Model\SingleEliminationBracket;
 use App\Tournament\Domain\Model\Team;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -77,7 +78,7 @@ final class BracketProgressTest extends TestCase
         $enc2 = new Encounter(new EncounterId('enc-2'), Participant::forTeam($teamC), Participant::forTeam($teamD));
         $enc3 = new Encounter(new EncounterId('enc-3'), Participant::pendingWinnerOf(new EncounterId('enc-1')), Participant::pendingWinnerOf(new EncounterId('enc-2')));
 
-        $bracket = new Bracket([
+        $bracket = new SingleEliminationBracket([
             new Round(1, [$enc1, $enc2]),
             new Round(2, [$enc3]),
         ]);
