@@ -63,20 +63,26 @@ new BracketGeneratorWithThirdPlaceMatch(new SingleEliminationBracketGenerator())
 - `getEncounters()` / `countEncounters()` — jamais `getMatches()` / `countMatches()`
 - Les IDs sont toujours des Value Objects typés (ex: `EncounterId`), jamais des `string` nus
 
-### Décisions d'architecture notables
+### Décisions d'architecture
 
-- `Bracket` est une **Entity mutable** (agrégat racine), pas un VO — elle évolue au fil des résultats. `Bracket` est une interface (contrat), `SingleEliminationBracket` son implémentation concrète — extraction motivée par le besoin de décorer l'agrégat (voir match 3e place) sans modifier son constructeur
-- Les règles optionnelles du format élimination directe (ex: match pour la 3e place) sont ajoutées par **décoration** (`BracketGeneratorWithThirdPlaceMatch` / `BracketWithThirdPlaceMatch`), pas par flag booléen ni sous-classe : un flag grossit indéfiniment à chaque nouvelle règle, une sous-classe explose combinatoirement dès que deux règles doivent se cumuler (`WithThirdPlaceAndX`...). La décoration compose : `new WithRegleA(new WithRegleB($bracket))`, un nombre de classes linéaire au nombre de règles, jamais aux combinaisons. Un système d'extensions/hooks a été envisagé (liste injectée dans `Bracket`) mais écarté pour l'instant : une seule règle optionnelle existe aujourd'hui, construire ce mécanisme maintenant serait de la généralité spéculative — à réévaluer si une 2e règle apparaît et que le passe-plat des décorateurs devient réellement pénible
-- Le match pour la 3e place ne référence **jamais** les perdants de demi-finale via un 4e état de `Participant` (type `pendingLoserOf`) — ça aurait pollué un concept central déjà stable à 3 états pour un besoin très localisé. À la place, `BracketWithThirdPlaceMatch` construit l'`Encounter` de 3e place **paresseusement**, seulement une fois les deux perdants réellement connus (`Encounter::getLoser()`), avec des `Participant::forTeam()` concrets dès la construction
-- `Participant` avec 3 états est le choix DDD correct : référencer un `EncounterId` (valeur) plutôt qu'un objet `Encounter` mutable (qui violerait l'immutabilité du VO)
-- `Encounter` est une **Entity mutable** (pas un VO) — elle porte son propre `?EncounterResult`, lifecycle via `play()` / `resolveHome()` / `resolveAway()` ; getters explicites
-- `EncounterId::equals()` pour toutes les comparaisons d'ID
-- Les byes sont résolus **à la génération** dans `nextRoundParticipants()` — pas de `progressBye()` ; l'équipe avançant sur bye est immédiatement `forTeam` dans le round suivant
-- `Bracket::recordResult()` utilise les références PHP : muter l'`Encounter` trouvé propage le changement sans reconstruire les rounds
-- `Round::findEncounterById()` + `Round::resolveParticipant()` : le round gère lui-même sa recherche et sa résolution, `Bracket` orchestre sans tout connaître
-- `EncounterResult` est **neutre vis-à-vis du format** — il n'interdit pas les nuls ; `winner()` lève `LogicException` si nul sans vainqueur désigné ; la règle "pas de nul" est une contrainte du format de tournoi, portée par la couche application
-- `Score` est un VO léger qui valide le non-négatif et expose `isDraw()` — utilisé comme paramètre de tous les named constructors d'`EncounterResult`
+Le raisonnement complet de chaque décision structurante (contexte, alternatives rejetées, conséquences) vit dans `docs/adr/` — ne pas le dupliquer ici, seulement y renvoyer :
+
+- ADR 001 — `Encounter` est une Entity mutable, pas un Value Object
+- ADR 002 — `Participant` à 3 états (`forTeam` / `bye` / `pendingWinnerOf`)
+- ADR 003 — Les byes sont résolus à la génération du bracket, pas de `progressBye()`
+- ADR 004 — `Bracket` est l'unique point de mutation de l'agrégat, pas de service séparé
+- ADR 005 — `EncounterResult` est neutre vis-à-vis du format de tournoi ; `Score` VO
+- ADR 006 — Match 3e place : `Bracket` devient une interface, règles optionnelles par décoration (pas flag, pas sous-classe, pas de 4e état sur `Participant`)
+
+## Workflow
+
+- **TDD strict, pas test-first** : cycle red-green-refactor, un comportement à la fois. Écrire un test qui échoue pour la bonne raison avant tout code de production, le code minimal pour le faire passer, refactor avant le test suivant. Jamais de test écrit après coup ; jamais plusieurs comportements dans un seul test. Le nombre d'allers-retours peut être allégé sur les étapes triviales, mais le red-before-green n'est jamais sauté.
+- **Tests comportementaux** : vérifier un comportement observable via l'API publique, jamais en miroir de l'implémentation interne. Pas de mock pour vérifier qu'une méthode interne a été appelée. Récupérer les valeurs générées dynamiquement (IDs, etc.) depuis l'API publique plutôt que de les coder en dur — un détail d'implémentation ne doit jamais faire échouer un test.
+- **Design avant implémentation** : pour toute tâche architecturalement significative (nouvel agrégat, nouveau pattern, décision de modélisation DDD ambiguë), valider explicitement l'approche avec l'utilisateur avant le premier `Write`/`Edit`. Pas nécessaire pour les tâches mécaniques (bug fix évident, renommage local).
+- **Challenge DDD, pas exécution passive** : le domaine est modélisé en DDD par choix, pas par défaut. Questionner activement le vocabulaire (ubiquitous language), la cohérence d'une règle métier proposée, et l'impact d'une demande sur les invariants du domaine — même quand l'implémentation semble simple à exécuter telle quelle. Signaler un terme sans sens métier ou une règle qui semble incomplète/contradictoire avant d'implémenter, pas après.
+- **ADR pour les décisions impactantes** : toute décision qui change un contrat, introduit un pattern, ou avait une alternative sérieusement envisagée puis rejetée, est documentée dans `docs/adr/NNN-titre.md` (Contexte / Décision / Conséquences) — pas seulement actée en conversation ou résumée ici. Écrire l'ADR fait partie du travail, pas une étape à rattraper plus tard.
+- **Commits** : format Conventional Commits (`<type>(<scope>): <description>`), toujours avec un corps en français qui explique le pourquoi. Types courants : `feat`, `fix`, `refactor`, `test`, `docs`, `chore`.
 
 ## Prochaine étape prioritaire
 
-Inscription au tournoi (couche application) — création d'un tournoi par un organisateur, inscription d'une équipe par un capitaine, déclenchement de la génération du bracket. Le détail complet du plan (priorités 1 à 5) est dans `PROJET.md`.
+Inscription au tournoi (couche application) — création d'un tournoi par un organisateur, inscription d'une équipe par un capitaine, déclenchement de la génération du bracket. Le détail complet du plan (priorités 1 à 5) est dans `ROADMAP.md`.

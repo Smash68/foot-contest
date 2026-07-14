@@ -27,24 +27,11 @@ vendor/bin/phpunit tests/Tournament/Domain/SingleEliminationBracketGeneratorTest
 vendor/bin/phpunit --filter testMethodName
 ```
 
-## Structure
-
-```
-src/
-└── Tournament/
-    └── Domain/
-        ├── Format/SingleElimination/   # Générateur de bracket en élimination directe
-        ├── Model/                      # Agrégat Bracket + entités et value objects
-        └── Service/                    # Interfaces de domaine (BracketGenerator)
-
-tests/
-└── Tournament/Domain/
-```
-
 ## Documentation
 
-- [`PROJET.md`](PROJET.md) — vision produit, modèle de domaine, plan d'implémentation
+- [`ROADMAP.md`](ROADMAP.md) — roadmap et plan d'implémentation
 - [`docs/adr/`](docs/adr/) — décisions d'architecture (ADR)
+- [`CLAUDE.md`](CLAUDE.md) — modèle de domaine, conventions, workflow
 
 ## Acteurs
 
