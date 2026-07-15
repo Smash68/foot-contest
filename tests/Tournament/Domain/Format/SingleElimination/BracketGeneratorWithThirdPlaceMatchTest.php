@@ -11,6 +11,7 @@ use App\Tournament\Domain\Model\EncounterId;
 use App\Tournament\Domain\Model\EncounterResult;
 use App\Tournament\Domain\Model\Score;
 use App\Tournament\Domain\Model\Team;
+use App\Tournament\Domain\Model\TeamId;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
@@ -68,6 +69,6 @@ final class BracketGeneratorWithThirdPlaceMatchTest extends TestCase
     /** @return Team[] */
     private function makeTeams(int $count): array
     {
-        return array_map(fn(int $i) => new Team("t{$i}", "Team {$i}"), range(1, $count));
+        return array_map(fn(int $i) => new Team(new TeamId("t{$i}"), "Team {$i}"), range(1, $count));
     }
 }

@@ -13,6 +13,7 @@ use App\Tournament\Domain\Model\Participant;
 use App\Tournament\Domain\Model\Round;
 use App\Tournament\Domain\Model\SingleEliminationBracket;
 use App\Tournament\Domain\Model\Team;
+use App\Tournament\Domain\Model\TeamId;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
@@ -69,10 +70,10 @@ final class BracketProgressTest extends TestCase
     /** @return array{bracket: Bracket, teamA: Team, teamB: Team, teamC: Team, teamD: Team} */
     private function makeFourTeamBracket(): array
     {
-        $teamA = new Team('a', 'Team A');
-        $teamB = new Team('b', 'Team B');
-        $teamC = new Team('c', 'Team C');
-        $teamD = new Team('d', 'Team D');
+        $teamA = new Team(new TeamId('a'), 'Team A');
+        $teamB = new Team(new TeamId('b'), 'Team B');
+        $teamC = new Team(new TeamId('c'), 'Team C');
+        $teamD = new Team(new TeamId('d'), 'Team D');
 
         $enc1 = new Encounter(new EncounterId('enc-1'), Participant::forTeam($teamA), Participant::forTeam($teamB));
         $enc2 = new Encounter(new EncounterId('enc-2'), Participant::forTeam($teamC), Participant::forTeam($teamD));

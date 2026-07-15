@@ -6,6 +6,7 @@ namespace App\Tests\Tournament\Domain;
 
 use App\Tournament\Domain\Format\SingleElimination\SingleEliminationBracketGenerator;
 use App\Tournament\Domain\Model\Team;
+use App\Tournament\Domain\Model\TeamId;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -155,8 +156,8 @@ final class SingleEliminationBracketGeneratorTest extends TestCase
 
         $seenIds = [];
         foreach ($bracket->getRound(1)->getEncounters() as $encounter) {
-            $seenIds[] = $encounter->getHome()->getTeam()->getId();
-            $seenIds[] = $encounter->getAway()->getTeam()->getId();
+            $seenIds[] = $encounter->getHome()->getTeam()->getId()->value;
+            $seenIds[] = $encounter->getAway()->getTeam()->getId()->value;
         }
 
         self::assertCount(count($seenIds), array_unique($seenIds), 'Duplicate team in round 1');
@@ -172,6 +173,6 @@ final class SingleEliminationBracketGeneratorTest extends TestCase
 
     private function team(string $name): Team
     {
-        return new Team($name, $name);
+        return new Team(new TeamId($name), $name);
     }
 }

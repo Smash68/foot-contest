@@ -14,6 +14,7 @@ use App\Tournament\Domain\Model\Round;
 use App\Tournament\Domain\Model\Score;
 use App\Tournament\Domain\Model\SingleEliminationBracket;
 use App\Tournament\Domain\Model\Team;
+use App\Tournament\Domain\Model\TeamId;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
@@ -96,10 +97,10 @@ final class BracketWithThirdPlaceMatchTest extends TestCase
     /** @return array{bracket: BracketWithThirdPlaceMatch, teamA: Team, teamB: Team, teamC: Team, teamD: Team} */
     private function makeFourTeamBracketWithThirdPlaceMatch(): array
     {
-        $teamA = new Team('a', 'Team A');
-        $teamB = new Team('b', 'Team B');
-        $teamC = new Team('c', 'Team C');
-        $teamD = new Team('d', 'Team D');
+        $teamA = new Team(new TeamId('a'), 'Team A');
+        $teamB = new Team(new TeamId('b'), 'Team B');
+        $teamC = new Team(new TeamId('c'), 'Team C');
+        $teamD = new Team(new TeamId('d'), 'Team D');
 
         $semiFinal1 = new Encounter(new EncounterId('semi-1'), Participant::forTeam($teamA), Participant::forTeam($teamB));
         $semiFinal2 = new Encounter(new EncounterId('semi-2'), Participant::forTeam($teamC), Participant::forTeam($teamD));
