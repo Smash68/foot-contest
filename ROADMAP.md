@@ -16,11 +16,11 @@ Voir ADR 005 (`EncounterResult` neutre, `Score` VO, `afterExtraTime()`, `afterPe
 
 Optionnel, activé par composition (`BracketGeneratorWithThirdPlaceMatch` / `BracketWithThirdPlaceMatch`) — voir ADR 006.
 
-## Priorité 3 — Inscription au tournoi ✦ prochaine étape
+## Priorité 3 — Inscription au tournoi ✅ implémenté (couche domaine)
 
-- Création d'un tournoi par un organisateur (format, min/max équipes, règles)
-- Inscription d'une équipe par un capitaine
-- Déclenchement de la génération du bracket quand le nombre d'équipes est atteint
+Agrégat `Tournament` : création (`TeamCapacity` valide min/max), inscription/désistement d'une équipe (`Registration` = `Team` + `Player` capitaine), clôture et génération du bracket comme deux actions manuelles et distinctes de l'organisateur — voir ADR 007.
+
+Couche `Application/` volontairement reportée à la priorité 5 : sans repository, un use case n'aurait aucune orchestration réelle à faire au-delà d'un appel direct à l'agrégat.
 
 ## Priorité 4 — Autres formats de tournoi
 

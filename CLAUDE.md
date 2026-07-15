@@ -37,6 +37,13 @@ L'application est structurée autour du namespace `Tournament`. Tout le code mé
 | `Score` | Value Object | Paire de buts `home`/`away` — `readonly class`, `Score::of(int, int)`, valide non-négatif, expose `isDraw()` |
 | `Side` | Enum | `Home` / `Away` — utilisé par `EncounterResult` |
 | `EncounterResult` | Value Object | Résultat complet d'un encounter — **neutre vis-à-vis du format** : `regularTime(Score)`, `afterExtraTime(Score, Score)`, `afterPenalties(Score, Score, Score)` ; `winner()` lève `LogicException` sur un nul sans ET/penalties |
+| `TeamId` | Value Object | Identifiant typé d'une équipe — `readonly class` avec `equals()` |
+| `PlayerId` | Value Object | Identifiant typé d'un joueur — **valeur = email** (`readonly class`, valide via `FILTER_VALIDATE_EMAIL`) ; compromis assumé en l'absence de couche compte/auth, voir ADR 007 |
+| `Player` | Entity | Joueur : `PlayerId` + `name` — même forme minimale que `Team` ; un capitaine **est** un `Player`, pas un type à part |
+| `Registration` | Value Object | Inscription d'une équipe à un tournoi — `Team` + `Player` (nommé `captain` dans les signatures) |
+| `TeamCapacity` | Value Object | Jauge min/max d'équipes d'un tournoi — `readonly class`, `TeamCapacity::of(int, int)`, valide `min >= 2` et `min <= max` |
+| `TournamentId` | Value Object | Identifiant typé d'un tournoi — `readonly class` avec `equals()` |
+| `Tournament` | **Aggregate Root** | Inscription au tournoi — mutable, distinct de `Bracket` (voir ADR 007). `create()`, `register()`/`withdraw()` (uniquement tant que l'inscription est ouverte), `closeRegistration()` (échoue sous `minTeams`), `generateBracket(BracketGenerator)` (action manuelle et distincte de la clôture, échoue si l'inscription est encore ouverte ou déjà générée) |
 
 `Participant` est le concept central : il représente indifféremment une équipe connue, un bye (avance automatique), ou un vainqueur en attente d'un encounter futur. Le terme `Slot` a été explicitement rejeté car sans sens métier dans le domaine football. Il compte volontairement **3 états, pas plus** — voir plus bas pourquoi le match pour la 3e place n'en a pas ajouté un 4e.
 
@@ -73,6 +80,7 @@ Le raisonnement complet de chaque décision structurante (contexte, alternatives
 - ADR 004 — `Bracket` est l'unique point de mutation de l'agrégat, pas de service séparé
 - ADR 005 — `EncounterResult` est neutre vis-à-vis du format de tournoi ; `Score` VO
 - ADR 006 — Match 3e place : `Bracket` devient une interface, règles optionnelles par décoration (pas flag, pas sous-classe, pas de 4e état sur `Participant`)
+- ADR 007 — Inscription au tournoi : `Tournament` agrégat séparé de `Bracket`, `Player` distinct de `Team` (capitaine = joueur, pas un type à part), `PlayerId` = email, `TeamId` rétrofité en VO typé, clôture/génération manuelles et distinctes
 
 ## Workflow
 
@@ -85,4 +93,4 @@ Le raisonnement complet de chaque décision structurante (contexte, alternatives
 
 ## Prochaine étape prioritaire
 
-Inscription au tournoi (couche application) — création d'un tournoi par un organisateur, inscription d'une équipe par un capitaine, déclenchement de la génération du bracket. Le détail complet du plan (priorités 1 à 5) est dans `ROADMAP.md`.
+Couche domaine de l'inscription au tournoi (`Tournament`) implémentée — voir ADR 007. La couche `Application/` associée est volontairement reportée à la priorité 5 (persistance), faute de repository à orchestrer. Prochaine étape : priorité 4 (autres formats de tournoi) ou priorité 5 (infrastructure), à trancher avec l'utilisateur. Le détail complet du plan (priorités 1 à 5) est dans `ROADMAP.md`.
