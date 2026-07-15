@@ -87,6 +87,7 @@ final class TournamentTest extends TestCase
     {
         $tournament = Tournament::create(new TournamentId('t1'), 'Summer Cup', TeamCapacity::of(2, 4));
         $tournament->register($this->registration('a', 'Team A'));
+        $tournament->register($this->registration('b', 'Team B'));
         $tournament->closeRegistration();
 
         $this->expectException(\LogicException::class);
@@ -103,6 +104,17 @@ final class TournamentTest extends TestCase
         $this->expectException(\LogicException::class);
 
         $tournament->register($this->registration('a', 'Team A'));
+    }
+
+    #[Test]
+    public function it_rejects_closing_registration_below_the_minimum(): void
+    {
+        $tournament = Tournament::create(new TournamentId('t1'), 'Summer Cup', TeamCapacity::of(2, 4));
+        $tournament->register($this->registration('a', 'Team A'));
+
+        $this->expectException(\LogicException::class);
+
+        $tournament->closeRegistration();
     }
 
     private function registration(string $teamId, string $teamName): Registration

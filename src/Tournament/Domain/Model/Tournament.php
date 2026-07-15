@@ -49,6 +49,10 @@ final class Tournament
 
     public function closeRegistration(): void
     {
+        if ($this->countRegistrations() < $this->capacity->min) {
+            throw new \LogicException("Tournament '{$this->id->value}' has not reached its minimum number of teams.");
+        }
+
         $this->closed = true;
     }
 
