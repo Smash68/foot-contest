@@ -21,7 +21,7 @@ composer install
 vendor/bin/phpunit
 
 # Un fichier spécifique
-vendor/bin/phpunit tests/Tournament/Domain/SingleEliminationBracketGeneratorTest.php
+vendor/bin/phpunit tests/Competition/Domain/SingleEliminationBracketGeneratorTest.php
 
 # Un test spécifique
 vendor/bin/phpunit --filter testMethodName

@@ -9,7 +9,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 vendor/bin/phpunit
 
 # Run a single test file
-vendor/bin/phpunit tests/Tournament/Domain/SingleEliminationBracketGeneratorTest.php
+vendor/bin/phpunit tests/Competition/Domain/SingleEliminationBracketGeneratorTest.php
 
 # Run a single test method
 vendor/bin/phpunit --filter testMethodName
@@ -19,9 +19,9 @@ vendor/bin/phpunit --filter testMethodName
 
 SaaS multi-tenant de gestion de tournois de football. PHP 8.4 / Symfony, architecture **hexagonale** (DDD), approche TDD.
 
-L'application est structurée autour du namespace `Tournament`. Tout le code métier actuel vit dans la couche domaine — aucune couche application ni infrastructure n'existe encore.
+L'application est structurée autour du namespace `Competition`. Tout le code métier actuel vit dans la couche domaine — aucune couche application ni infrastructure n'existe encore.
 
-### Couche domaine (`src/Tournament/Domain/`)
+### Couche domaine (`src/Competition/Domain/`)
 
 **Modèle** (`Model/`) — `strict_types=1` partout :
 
@@ -42,8 +42,8 @@ L'application est structurée autour du namespace `Tournament`. Tout le code mé
 | `Player` | Entity | Joueur : `PlayerId` + `name` — même forme minimale que `Team` ; un capitaine **est** un `Player`, pas un type à part |
 | `Registration` | Value Object | Inscription d'une équipe à un tournoi — `Team` + `Player` (nommé `captain` dans les signatures) |
 | `TeamCapacity` | Value Object | Jauge min/max d'équipes d'un tournoi — `readonly class`, `TeamCapacity::of(int, int)`, valide `min >= 2` et `min <= max` |
-| `TournamentId` | Value Object | Identifiant typé d'un tournoi — `readonly class` avec `equals()` |
-| `Tournament` | **Aggregate Root** | Inscription au tournoi — mutable, distinct de `Bracket` (voir ADR 007). `create()`, `register()`/`withdraw()` (uniquement tant que l'inscription est ouverte), `closeRegistration()` (échoue sous `minTeams`), `generateBracket(BracketGenerator)` (action manuelle et distincte de la clôture, échoue si l'inscription est encore ouverte ou déjà générée) |
+| `CompetitionId` | Value Object | Identifiant typé d'une compétition — `readonly class` avec `equals()` |
+| `Competition` | **Aggregate Root** | Inscription à une compétition — mutable, distinct de `Bracket` (voir ADR 007). `create()`, `register()`/`withdraw()` (uniquement tant que l'inscription est ouverte), `closeRegistration()` (échoue sous `minTeams`), `generateBracket(BracketGenerator)` (action manuelle et distincte de la clôture, échoue si l'inscription est encore ouverte ou déjà générée) |
 
 `Participant` est le concept central : il représente indifféremment une équipe connue, un bye (avance automatique), ou un vainqueur en attente d'un encounter futur. Le terme `Slot` a été explicitement rejeté car sans sens métier dans le domaine football. Il compte volontairement **3 états, pas plus** — voir plus bas pourquoi le match pour la 3e place n'en a pas ajouté un 4e.
 
@@ -80,7 +80,7 @@ Le raisonnement complet de chaque décision structurante (contexte, alternatives
 - ADR 004 — `Bracket` est l'unique point de mutation de l'agrégat, pas de service séparé
 - ADR 005 — `EncounterResult` est neutre vis-à-vis du format de tournoi ; `Score` VO
 - ADR 006 — Match 3e place : `Bracket` devient une interface, règles optionnelles par décoration (pas flag, pas sous-classe, pas de 4e état sur `Participant`)
-- ADR 007 — Inscription au tournoi : `Tournament` agrégat séparé de `Bracket`, `Player` distinct de `Team` (capitaine = joueur, pas un type à part), `PlayerId` = email, `TeamId` rétrofité en VO typé, clôture/génération manuelles et distinctes
+- ADR 007 — Inscription au tournoi : `Competition` agrégat séparé de `Bracket` (nommage `Competition` plutôt que `Tournament`/`Contest` — voir ADR), `Player` distinct de `Team` (capitaine = joueur, pas un type à part), `PlayerId` = email, `TeamId` rétrofité en VO typé, clôture/génération manuelles et distinctes
 
 ## Workflow
 
@@ -96,4 +96,4 @@ Le raisonnement complet de chaque décision structurante (contexte, alternatives
 
 ## Prochaine étape prioritaire
 
-Couche domaine de l'inscription au tournoi (`Tournament`) implémentée — voir ADR 007. La couche `Application/` associée est volontairement reportée à la priorité 5 (persistance), faute de repository à orchestrer. Prochaine étape : priorité 4 (autres formats de tournoi) ou priorité 5 (infrastructure), à trancher avec l'utilisateur. Le détail complet du plan (priorités 1 à 5) est dans `ROADMAP.md`.
+Couche domaine de l'inscription au tournoi (`Competition`) implémentée — voir ADR 007. La couche `Application/` associée est volontairement reportée à la priorité 5 (persistance), faute de repository à orchestrer. Prochaine étape : priorité 4 (autres formats de tournoi) ou priorité 5 (infrastructure), à trancher avec l'utilisateur. Le détail complet du plan (priorités 1 à 5) est dans `ROADMAP.md`.

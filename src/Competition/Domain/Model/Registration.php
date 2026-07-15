@@ -1,0 +1,33 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Competition\Domain\Model;
+
+final readonly class Registration
+{
+    public function __construct(
+        private Team $team,
+        private Player $captain,
+    ) {}
+
+    public function getTeam(): Team
+    {
+        return $this->team;
+    }
+
+    public function getCaptain(): Player
+    {
+        return $this->captain;
+    }
+
+    public function getTeamId(): TeamId
+    {
+        return $this->team->getId();
+    }
+
+    public function isForTeam(TeamId $teamId): bool
+    {
+        return $this->getTeamId()->equals($teamId);
+    }
+}

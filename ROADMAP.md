@@ -18,7 +18,7 @@ Optionnel, activé par composition (`BracketGeneratorWithThirdPlaceMatch` / `Bra
 
 ## Priorité 3 — Inscription au tournoi ✅ implémenté (couche domaine)
 
-Agrégat `Tournament` : création (`TeamCapacity` valide min/max), inscription/désistement d'une équipe (`Registration` = `Team` + `Player` capitaine), clôture et génération du bracket comme deux actions manuelles et distinctes de l'organisateur — voir ADR 007.
+Agrégat `Competition` : création (`TeamCapacity` valide min/max), inscription/désistement d'une équipe (`Registration` = `Team` + `Player` capitaine), clôture et génération du bracket comme deux actions manuelles et distinctes de l'organisateur — voir ADR 007.
 
 Couche `Application/` volontairement reportée à la priorité 5 : sans repository, un use case n'aurait aucune orchestration réelle à faire au-delà d'un appel direct à l'agrégat.
 
