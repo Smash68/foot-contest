@@ -20,4 +20,14 @@ final readonly class Registration
     {
         return $this->captain;
     }
+
+    public function getTeamId(): TeamId
+    {
+        return $this->team->getId();
+    }
+
+    public function isForTeam(TeamId $teamId): bool
+    {
+        return $this->getTeamId()->equals($teamId);
+    }
 }

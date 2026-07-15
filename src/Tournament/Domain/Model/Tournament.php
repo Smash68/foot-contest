@@ -44,8 +44,8 @@ final class Tournament
             throw new \LogicException("Tournament '{$this->id->value}' has reached its maximum number of teams.");
         }
 
-        if ($this->findRegistrationIndex($registration->getTeam()->getId()) !== null) {
-            throw new \LogicException("Team '{$registration->getTeam()->getId()->value}' is already registered in tournament '{$this->id->value}'.");
+        if ($this->findRegistrationIndex($registration->getTeamId()) !== null) {
+            throw new \LogicException("Team '{$registration->getTeamId()->value}' is already registered in tournament '{$this->id->value}'.");
         }
 
         $this->registrations[] = $registration;
@@ -83,7 +83,7 @@ final class Tournament
     private function findRegistrationIndex(TeamId $teamId): ?int
     {
         foreach ($this->registrations as $index => $registration) {
-            if ($registration->getTeam()->getId()->equals($teamId)) {
+            if ($registration->isForTeam($teamId)) {
                 return $index;
             }
         }
