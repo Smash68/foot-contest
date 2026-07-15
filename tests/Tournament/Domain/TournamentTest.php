@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Tournament\Domain;
 
+use App\Tournament\Domain\Format\SingleElimination\SingleEliminationBracketGenerator;
 use App\Tournament\Domain\Model\Player;
 use App\Tournament\Domain\Model\PlayerId;
 use App\Tournament\Domain\Model\Registration;
@@ -115,6 +116,45 @@ final class TournamentTest extends TestCase
         $this->expectException(\LogicException::class);
 
         $tournament->closeRegistration();
+    }
+
+    #[Test]
+    public function it_rejects_generating_the_bracket_while_open(): void
+    {
+        $tournament = Tournament::create(new TournamentId('t1'), 'Summer Cup', TeamCapacity::of(2, 4));
+        $tournament->register($this->registration('a', 'Team A'));
+        $tournament->register($this->registration('b', 'Team B'));
+
+        $this->expectException(\LogicException::class);
+
+        $tournament->generateBracket(new SingleEliminationBracketGenerator());
+    }
+
+    #[Test]
+    public function it_generates_the_bracket_from_registered_teams(): void
+    {
+        $tournament = Tournament::create(new TournamentId('t1'), 'Summer Cup', TeamCapacity::of(2, 4));
+        $tournament->register($this->registration('a', 'Team A'));
+        $tournament->register($this->registration('b', 'Team B'));
+        $tournament->closeRegistration();
+
+        $tournament->generateBracket(new SingleEliminationBracketGenerator());
+
+        self::assertSame(1, $tournament->getBracket()->countEncounters());
+    }
+
+    #[Test]
+    public function it_rejects_generating_the_bracket_twice(): void
+    {
+        $tournament = Tournament::create(new TournamentId('t1'), 'Summer Cup', TeamCapacity::of(2, 4));
+        $tournament->register($this->registration('a', 'Team A'));
+        $tournament->register($this->registration('b', 'Team B'));
+        $tournament->closeRegistration();
+        $tournament->generateBracket(new SingleEliminationBracketGenerator());
+
+        $this->expectException(\LogicException::class);
+
+        $tournament->generateBracket(new SingleEliminationBracketGenerator());
     }
 
     private function registration(string $teamId, string $teamName): Registration

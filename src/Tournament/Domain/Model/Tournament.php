@@ -4,12 +4,16 @@ declare(strict_types=1);
 
 namespace App\Tournament\Domain\Model;
 
+use App\Tournament\Domain\Service\BracketGenerator;
+
 final class Tournament
 {
     /** @var Registration[] */
     private array $registrations = [];
 
     private bool $closed = false;
+
+    private ?Bracket $bracket = null;
 
     private function __construct(
         private readonly TournamentId $id,
@@ -85,5 +89,28 @@ final class Tournament
         }
 
         return null;
+    }
+
+    public function generateBracket(BracketGenerator $generator): void
+    {
+        if ($this->isOpenForRegistration()) {
+            throw new \LogicException("Tournament '{$this->id->value}' registration must be closed before generating the bracket.");
+        }
+
+        if ($this->bracket !== null) {
+            throw new \LogicException("Tournament '{$this->id->value}' bracket has already been generated.");
+        }
+
+        $teams = array_map(
+            fn(Registration $registration) => $registration->getTeam(),
+            $this->registrations,
+        );
+
+        $this->bracket = $generator->generate($teams);
+    }
+
+    public function getBracket(): ?Bracket
+    {
+        return $this->bracket;
     }
 }
