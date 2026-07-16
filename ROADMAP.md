@@ -30,7 +30,26 @@ Couche `Application/` volontairement reportée à la priorité 5 : sans reposito
 
 ## Priorité 5 — Infrastructure
 
-- Persistance (base de données)
-- API REST ou GraphQL
+#### 5a — Premier use case bout-en-bout : création d'une compétition ✅ implémenté
+
+`POST /competitions` → contrôleur → Command CQRS dispatchée sur le bus Messenger → Handler (génère l'id via le repository, persiste, retourne l'id créé) → réponse 201. Bootstrap Symfony complet via `symfony/flex`. Voir ADR 008 (couche Application/CQRS) et ADR 009 (bootstrap infrastructure). Persistance actuelle : `InMemoryCompetitionRepository`.
+
+#### 5b — Persistance réelle
+
+Remplacer `InMemoryCompetitionRepository` par une vraie base de données. Choix du mapping (Doctrine ORM ou non) à trancher.
+
+#### 5c — Reste à faire
+
+- API REST ou GraphQL (autres use cases : inscription/désistement d'équipe, clôture, génération du bracket)
 - Multi-tenancy
 - Front (Vue 3 ou Twig — à décider)
+
+## Priorité 6 — Gestion des équipes et des utilisateurs
+
+- CRUD équipe (`Team`) : création, modification, suppression, consultation — indépendant de l'inscription à une compétition (`Registration`)
+- Gestion des utilisateurs : rôles et droits (organisateur / capitaine / joueur, cf. acteurs dans `README.md`)
+
+## Priorité 7 — Gestion de la compétition en cours
+
+- Mise à jour des scores / résultats d'un encounter (exposer `Bracket::recordResult()`)
+- Consultation des matchs et rounds (exposer `getRounds()`, `getRound()`, `countEncounters()`, `isComplete()`, `getChampion()`)

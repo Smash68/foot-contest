@@ -19,7 +19,7 @@ vendor/bin/phpunit --filter testMethodName
 
 SaaS multi-tenant de gestion de tournois de football. PHP 8.4 / Symfony, architecture **hexagonale** (DDD), approche TDD.
 
-L'application est structurée autour du namespace `Competition`. Tout le code métier actuel vit dans la couche domaine — aucune couche application ni infrastructure n'existe encore.
+L'application est structurée autour du namespace `Competition`, en trois couches : `Domain/`, `Application/` (use cases) et `Infrastructure/` (adapters).
 
 ### Couche domaine (`src/Competition/Domain/`)
 
@@ -63,6 +63,22 @@ new BracketGeneratorWithThirdPlaceMatch(new SingleEliminationBracketGenerator())
 - `BracketGeneratorWithThirdPlaceMatch` — décore `BracketGenerator` : repère le round avant la finale, valide l'éligibilité (exactement 2 encounters, aucun bye), lève `InvalidArgumentException` sinon
 - `BracketWithThirdPlaceMatch` — décore `Bracket` : délègue toutes les méthodes du contrat à l'agrégat enveloppé ; construit **paresseusement** l'`Encounter` de 3e place (avec deux `Participant::forTeam()` concrets, jamais de nouvel état pending) dès que les deux demi-finales référencées sont `isCompleted()` ; expose `getThirdPlaceEncounter(): ?Encounter`
 
+### Couche application (`src/Competition/Application/`)
+
+Un dossier par use case, en CQRS via `symfony/messenger` (voir ADR 008) :
+
+- `CreateCompetition/CreateCompetitionCommand` — DTO immuable, ne porte que les données nécessaires à la création (`name`, `minTeams`, `maxTeams`) ; pas d'id, généré côté persistance (voir plus bas)
+- `CreateCompetition/CreateCompetitionHandler` — orchestration : génère l'id via `CompetitionRepository::nextIdentity()`, construit l'agrégat (`Competition::create()`), le persiste (`repository->save()`), et **retourne** le `CompetitionId` créé — entorse assumée à "une Command ne retourne rien", nécessaire pour qu'un appelant synchrone (contrôleur HTTP) connaisse l'id généré. Le Handler est déclaré handler Messenger par tag en config (`services.yaml`), jamais par l'attribut `#[AsMessageHandler]`, pour rester 100% PHP sans dépendance au framework.
+
+**Port repository** (`Domain/Repository/CompetitionRepository.php`) — contrat `nextIdentity(): CompetitionId`, `save(Competition): void`, `ofId(CompetitionId): ?Competition`.
+
+### Couche infrastructure (`src/Competition/Infrastructure/`)
+
+- `Persistence/InMemory/InMemoryCompetitionRepository` — implémente `CompetitionRepository`, stockage en `array` ; sert à la fois d'adapter réel (faute de vraie persistance) et de test double dans les tests d'Application, sans mock
+- `Http/CreateCompetitionController` — route `POST /competitions` (attribut `#[Route]`), construit la Command depuis un DTO validé (`Http/CreateCompetitionRequest` + `#[MapRequestPayload]`), dispatch sur le bus, lit le résultat via `$envelope->last(HandledStamp::class)->getResult()`, répond 201 + id. Vit sous `Infrastructure/Http/` du module, pas `src/Controller/` — voir ADR 009 sur pourquoi l'auto-découverte des routes ne dépend pas d'un dossier fixe.
+
+Bootstrap Symfony (Kernel, `config/`, `public/index.php`, `bin/console`) posé via `symfony/flex` et ses recipes officielles, pas assemblé à la main — voir ADR 009, notamment le scope de l'auto-discovery des services (`config/services.yaml`) et pourquoi il exclut tout le Domain.
+
 ### Conventions de nommage
 
 - `Encounter` à la place de `Match` (mot-clé réservé PHP 8) et `Fixture` (sans sens métier)
@@ -81,6 +97,8 @@ Le raisonnement complet de chaque décision structurante (contexte, alternatives
 - ADR 005 — `EncounterResult` est neutre vis-à-vis du format de tournoi ; `Score` VO
 - ADR 006 — Match 3e place : `Bracket` devient une interface, règles optionnelles par décoration (pas flag, pas sous-classe, pas de 4e état sur `Participant`)
 - ADR 007 — Inscription au tournoi : `Competition` agrégat séparé de `Bracket` (nommage `Competition` plutôt que `Tournament`/`Contest` — voir ADR), `Player` distinct de `Team` (capitaine = joueur, pas un type à part), `PlayerId` = email, `TeamId` rétrofité en VO typé, clôture/génération manuelles et distinctes
+- ADR 008 — Couche Application : CQRS via `symfony/messenger` (pas de bus fait main), Handler taggé en config (pas `#[AsMessageHandler]`), id généré par `CompetitionRepository::nextIdentity()` et retourné par le Handler (lu via `HandledStamp`)
+- ADR 009 — Bootstrap infrastructure via `symfony/flex` et ses recipes officielles (pas de squelette fait main), auto-discovery des services scopée par module avec exclusion de tout `Domain/`, contrôleurs sous `Infrastructure/Http/` du module
 
 ## Workflow
 
@@ -96,4 +114,4 @@ Le raisonnement complet de chaque décision structurante (contexte, alternatives
 
 ## Prochaine étape prioritaire
 
-Couche domaine de l'inscription au tournoi (`Competition`) implémentée — voir ADR 007. La couche `Application/` associée est volontairement reportée à la priorité 5 (persistance), faute de repository à orchestrer. Prochaine étape : priorité 4 (autres formats de tournoi) ou priorité 5 (infrastructure), à trancher avec l'utilisateur. Le détail complet du plan (priorités 1 à 5) est dans `ROADMAP.md`.
+Priorité 5 (infrastructure) entamée : premier use case complet bout-en-bout, `POST /competitions` (voir ADR 008 et ADR 009). Persistance actuelle en mémoire (`InMemoryCompetitionRepository`). Prochaine étape : remplacer par une vraie persistance — choix Doctrine ou non encore à trancher. Le détail complet du plan (priorités 1 à 5) est dans `ROADMAP.md`.
