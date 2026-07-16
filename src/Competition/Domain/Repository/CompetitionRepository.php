@@ -9,6 +9,8 @@ use App\Competition\Domain\Model\CompetitionId;
 
 interface CompetitionRepository
 {
+    public function nextIdentity(): CompetitionId;
+
     public function save(Competition $competition): void;
 
     public function ofId(CompetitionId $id): ?Competition;

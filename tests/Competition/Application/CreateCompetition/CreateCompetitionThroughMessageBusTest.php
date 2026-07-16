@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace App\Tests\Competition\Application\CreateCompetition;
 
 use App\Competition\Application\CreateCompetition\CreateCompetitionCommand;
-use App\Competition\Domain\Model\CompetitionId;
 use App\Competition\Domain\Repository\CompetitionRepository;
 use PHPUnit\Framework\Attributes\Test;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Messenger\MessageBusInterface;
+use Symfony\Component\Messenger\Stamp\HandledStamp;
 
 final class CreateCompetitionThroughMessageBusTest extends KernelTestCase
 {
@@ -18,11 +18,13 @@ final class CreateCompetitionThroughMessageBusTest extends KernelTestCase
     {
         $container = self::getContainer();
 
-        $container->get(MessageBusInterface::class)->dispatch(
-            new CreateCompetitionCommand('c1', 'Summer Cup', 2, 4),
+        $envelope = $container->get(MessageBusInterface::class)->dispatch(
+            new CreateCompetitionCommand('Summer Cup', 2, 4),
         );
 
-        $competition = $container->get(CompetitionRepository::class)->ofId(new CompetitionId('c1'));
+        $id = $envelope->last(HandledStamp::class)->getResult();
+
+        $competition = $container->get(CompetitionRepository::class)->ofId($id);
 
         self::assertNotNull($competition);
         self::assertTrue($competition->isOpenForRegistration());

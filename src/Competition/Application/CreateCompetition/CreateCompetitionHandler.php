@@ -13,14 +13,16 @@ final readonly class CreateCompetitionHandler
 {
     public function __construct(private CompetitionRepository $repository) {}
 
-    public function __invoke(CreateCompetitionCommand $command): void
+    public function __invoke(CreateCompetitionCommand $command): CompetitionId
     {
         $competition = Competition::create(
-            new CompetitionId($command->id),
+            $this->repository->nextIdentity(),
             $command->name,
             TeamCapacity::of($command->minTeams, $command->maxTeams),
         );
 
         $this->repository->save($competition);
+
+        return $competition->getId();
     }
 }
