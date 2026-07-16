@@ -19,6 +19,15 @@ use PHPUnit\Framework\TestCase;
 final class CompetitionTest extends TestCase
 {
     #[Test]
+    public function it_exposes_its_id(): void
+    {
+        $id = new CompetitionId('t1');
+        $competition = Competition::create($id, 'Summer Cup', TeamCapacity::of(2, 4));
+
+        self::assertTrue($competition->getId()->equals($id));
+    }
+
+    #[Test]
     public function it_starts_open_for_registration_with_no_teams(): void
     {
         $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4));

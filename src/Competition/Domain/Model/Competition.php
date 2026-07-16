@@ -26,6 +26,11 @@ final class Competition
         return new self($id, $name, $capacity);
     }
 
+    public function getId(): CompetitionId
+    {
+        return $this->id;
+    }
+
     public function isOpenForRegistration(): bool
     {
         return !$this->closed;
