@@ -3,6 +3,21 @@
 /.env.*.local
 /var/
 /public/bundles/
+/config/reference.php
 /.idea/
 /.phpunit.result.cache
 /.claude/
+###> symfony/framework-bundle ###
+/.env.local
+/.env.local.php
+/.env.*.local
+/config/secrets/prod/prod.decrypt.private.php
+/public/bundles/
+/var/
+/vendor/
+###< symfony/framework-bundle ###
+
+###> phpunit/phpunit ###
+/phpunit.xml
+/.phpunit.cache/
+###< phpunit/phpunit ###
