@@ -7,6 +7,7 @@
     <entity name="App\Competition\Domain\Model\Competition" table="competition">
         <id name="id" type="competition_id" column="id" />
 
+        <field name="name" type="string" column="name" />
         <field name="closed" type="boolean" column="closed" />
 
         <embedded name="capacity" class="App\Competition\Domain\Model\TeamCapacity" />
