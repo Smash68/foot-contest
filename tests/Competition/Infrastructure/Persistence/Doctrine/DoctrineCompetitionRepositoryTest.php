@@ -56,6 +56,28 @@ final class DoctrineCompetitionRepositoryTest extends KernelTestCase
         self::assertFalse($found->isOpenForRegistration());
     }
 
+    #[Test]
+    public function it_persists_the_team_capacity(): void
+    {
+        $entityManager = self::getContainer()->get(EntityManagerInterface::class);
+        $repository = new DoctrineCompetitionRepository($entityManager);
+
+        $id = $repository->nextIdentity();
+        $competition = Competition::create($id, 'Summer Cup', TeamCapacity::of(2, 3));
+
+        $repository->save($competition);
+        $entityManager->clear();
+
+        $found = $repository->ofId($id);
+        $found->register($this->registration('a', 'Team A'));
+        $found->register($this->registration('b', 'Team B'));
+        $found->register($this->registration('c', 'Team C'));
+
+        $this->expectException(\LogicException::class);
+
+        $found->register($this->registration('d', 'Team D'));
+    }
+
     private function registration(string $teamId, string $teamName): Registration
     {
         $team = new Team(new TeamId($teamId), $teamName);

@@ -4,12 +4,9 @@
                    xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping
                    https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
 
-    <entity name="App\Competition\Domain\Model\Competition" table="competition">
-        <id name="id" type="competition_id" column="id" />
-
-        <field name="closed" type="boolean" column="closed" />
-
-        <embedded name="capacity" class="App\Competition\Domain\Model\TeamCapacity" />
-    </entity>
+    <embeddable name="App\Competition\Domain\Model\TeamCapacity">
+        <field name="min" type="integer" column="min_teams" />
+        <field name="max" type="integer" column="max_teams" />
+    </embeddable>
 
 </doctrine-mapping>
