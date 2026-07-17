@@ -31,6 +31,11 @@ final class Competition
         return $this->id;
     }
 
+    public function getName(): string
+    {
+        return $this->name;
+    }
+
     public function isOpenForRegistration(): bool
     {
         return !$this->closed;

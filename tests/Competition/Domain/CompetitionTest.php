@@ -28,6 +28,14 @@ final class CompetitionTest extends TestCase
     }
 
     #[Test]
+    public function it_exposes_its_name(): void
+    {
+        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4));
+
+        self::assertSame('Summer Cup', $competition->getName());
+    }
+
+    #[Test]
     public function it_starts_open_for_registration_with_no_teams(): void
     {
         $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4));
