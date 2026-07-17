@@ -34,9 +34,14 @@ Couche `Application/` volontairement reportée à la priorité 5 : sans reposito
 
 `POST /competitions` → contrôleur → Command CQRS dispatchée sur le bus Messenger → Handler (génère l'id via le repository, persiste, retourne l'id créé) → réponse 201. Bootstrap Symfony complet via `symfony/flex`. Voir ADR 008 (couche Application/CQRS) et ADR 009 (bootstrap infrastructure). Persistance actuelle : `InMemoryCompetitionRepository`.
 
-#### 5b — Persistance réelle
+#### 5b — Persistance réelle 🚧 en cours
 
-Remplacer `InMemoryCompetitionRepository` par une vraie base de données. Choix du mapping (Doctrine ORM ou non) à trancher.
+Remplacer `InMemoryCompetitionRepository` par une vraie base de données. Choix retenu : Doctrine ORM + PostgreSQL, bootstrappé via Flex. Voir ADR 010 : mapping XML de `Competition` fait pour `id`/`name`/`capacity`/`closed` (`DoctrineCompetitionRepository`, testé par aller-retour réel sur PostgreSQL), `registrations` et `bracket` volontairement pas encore mappés (collection de VOs et polymorphisme d'agrégat, décisions à part entière).
+
+Reste à faire :
+- Rebrancher `services.yaml` : `CompetitionRepository` pointe encore vers `InMemoryCompetitionRepository`, pas encore vers `DoctrineCompetitionRepository`
+- Mapper `registrations` (collection de `Registration` = `Team` + `Player`)
+- Mapper `bracket` (interface polymorphe `Bracket`/`SingleEliminationBracket`/décorateur)
 
 #### 5c — Reste à faire
 

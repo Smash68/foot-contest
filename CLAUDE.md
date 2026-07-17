@@ -115,4 +115,4 @@ Le raisonnement complet de chaque décision structurante (contexte, alternatives
 
 ## Prochaine étape prioritaire
 
-Priorité 5 (infrastructure) entamée : premier use case complet bout-en-bout, `POST /competitions` (voir ADR 008 et ADR 009). Persistance actuelle en mémoire (`InMemoryCompetitionRepository`). Prochaine étape : remplacer par une vraie persistance — choix Doctrine ou non encore à trancher. Le détail complet du plan (priorités 1 à 5) est dans `ROADMAP.md`.
+Priorité 5b (persistance réelle) en cours : mapping Doctrine de `Competition` fait pour `id`/`name`/`capacity`/`closed` (voir ADR 010), `DoctrineCompetitionRepository` existe et est testé contre PostgreSQL, mais `services.yaml` lie encore `CompetitionRepository` à `InMemoryCompetitionRepository`. Prochaine étape : rebrancher le port vers `DoctrineCompetitionRepository`, puis mapper `registrations` et `bracket`. Le détail complet du plan (priorités 1 à 5) est dans `ROADMAP.md`.
