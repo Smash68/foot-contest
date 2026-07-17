@@ -13,13 +13,6 @@ doctrine:
         identity_generation_preferences:
             Doctrine\DBAL\Platforms\PostgreSQLPlatform: identity
         auto_mapping: false
-        mappings:
-            Competition:
-                type: xml
-                is_bundle: false
-                dir: '%kernel.project_dir%/src/Competition/Infrastructure/Persistence/Doctrine/mapping'
-                prefix: 'App\Competition\Domain\Model'
-                alias: Competition
 
 when@test:
     doctrine:

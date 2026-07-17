@@ -1,0 +1,12 @@
+doctrine:
+    dbal:
+        types:
+            competition_id: App\Competition\Infrastructure\Persistence\Doctrine\Type\CompetitionIdType
+    orm:
+        mappings:
+            Competition:
+                type: xml
+                is_bundle: false
+                dir: '%kernel.project_dir%/src/Competition/Infrastructure/Persistence/Doctrine/mapping'
+                prefix: 'App\Competition\Domain\Model'
+                alias: Competition
