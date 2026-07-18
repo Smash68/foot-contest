@@ -42,7 +42,7 @@ Reste à faire :
 - ✅ Environnement Docker (container `app` PHP-CLI + `database` PostgreSQL) — voir ADR 011
 - ✅ Reset de la base de données entre chaque test (`DAMADoctrineTestBundle`, transaction + rollback automatique par test) — voir ADR 012
 - ✅ Rebrancher `services.yaml` : `CompetitionRepository` pointe désormais vers `DoctrineCompetitionRepository`
-- `services_test.yaml` : garder `InMemoryCompetitionRepository` pour `CreateCompetitionControllerTest` (test de contrat HTTP, pas de persistance — la couverture Doctrine vit déjà dans `DoctrineCompetitionRepositoryTest`)
+- ✅ `services_test.yaml` : garde `InMemoryCompetitionRepository` pour `CreateCompetitionControllerTest` (test de contrat HTTP, pas de persistance — la couverture Doctrine vit déjà dans `DoctrineCompetitionRepositoryTest`) — voir ADR 013
 - Smoke tests e2e contre la stack réelle (Docker + Doctrine branché + reset entre tests)
 - Mapper `registrations` (collection de `Registration` = `Team` + `Player`)
 - Mapper `bracket` (interface polymorphe `Bracket`/`SingleEliminationBracket`/décorateur)

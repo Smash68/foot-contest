@@ -1,0 +1,2 @@
+services:
+    App\Competition\Domain\Repository\CompetitionRepository: '@App\Competition\Infrastructure\Persistence\InMemory\InMemoryCompetitionRepository'
