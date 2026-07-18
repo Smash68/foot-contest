@@ -134,6 +134,7 @@ Le raisonnement complet de chaque décision structurante (contexte, alternatives
 - ADR 018 — PHPStan niveau `max` (extensions Symfony/Doctrine) ; les 6 erreurs réelles dans `src/` corrigées (`assert()` pour narrower les frontières framework/Doctrine, un override ne peut pas restreindre le type `mixed` hérité de `Doctrine\DBAL\Types\Type`) ; les 43 erreurs de `tests/` (types génériques non affinables) mises en `phpstan-baseline.neon` plutôt que de réécrire les tests dans cet incrément
 - ADR 019 — PHP-CS-Fixer `@Symfony` (pas `:risky`, formatage seulement) ; `php_unit_method_casing` forcé en `snake_case` (convention déjà établie pour les noms de tests) ; `yoda_style`/`concat_space`/`increment_style` désactivées par préférence explicite après revue règle par règle ; CI en vérification seule (`cs-check`), jamais d'auto-fix
 - ADR 020 — `Makefile` (pas `just`, pas d'alias shell personnels) pour raccourcir les commandes `docker compose` déjà documentées ; `make help` liste les cibles
+- ADR 021 — CI : cache des layers Docker via `docker/build-push-action` (`type=gha`) plutôt que `docker compose build` seul (aucun cache entre runs) ; build de l'image 3m14s → 28s une fois le cache chaud
 
 ## Workflow
 
