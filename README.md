@@ -29,6 +29,10 @@ docker compose exec app vendor/bin/phpunit tests/Competition/Domain/SingleElimin
 docker compose exec app vendor/bin/phpunit --filter testMethodName
 ```
 
+## Raccourcis
+
+Un `Makefile` raccourcit les commandes `docker compose` les plus courantes — `make help` liste les cibles disponibles (`make test`, `make stan`, `make cs-fix`, etc.).
+
 ## Documentation
 
 - [`ROADMAP.md`](ROADMAP.md) — roadmap et plan d'implémentation

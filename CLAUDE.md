@@ -6,6 +6,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 L'app tourne sous Docker (voir ADR 011) — aucune dépendance locale à PHP/Composer requise, seulement Docker. `docker compose up -d app` démarre le container `app` (PHP 8.4 CLI + extensions) et sa dépendance `database` (PostgreSQL), et exécute `composer install` à chaque démarrage.
 
+Un `Makefile` raccourcit les commandes ci-dessous (`make test`, `make stan`, `make cs-fix`, etc.) — `make help` liste les cibles disponibles. Les commandes `docker compose` complètes restent valides, le Makefile n'est qu'un alias.
+
 ```bash
 # Démarrer l'environnement (app + base de données)
 docker compose up -d app
@@ -131,6 +133,7 @@ Le raisonnement complet de chaque décision structurante (contexte, alternatives
 - ADR 017 — CI GitHub Actions rejoue `docker compose` (pas de setup PHP natif GitHub Actions) pour un seul chemin d'exécution CI/local ; tests uniquement pour l'instant (pas d'analyse statique) ; attente explicite de `vendor/autoload.php` plutôt qu'un `sleep` fixe ; cache `vendor/` via `actions/cache`
 - ADR 018 — PHPStan niveau `max` (extensions Symfony/Doctrine) ; les 6 erreurs réelles dans `src/` corrigées (`assert()` pour narrower les frontières framework/Doctrine, un override ne peut pas restreindre le type `mixed` hérité de `Doctrine\DBAL\Types\Type`) ; les 43 erreurs de `tests/` (types génériques non affinables) mises en `phpstan-baseline.neon` plutôt que de réécrire les tests dans cet incrément
 - ADR 019 — PHP-CS-Fixer `@Symfony` (pas `:risky`, formatage seulement) ; `php_unit_method_casing` forcé en `snake_case` (convention déjà établie pour les noms de tests) ; `yoda_style`/`concat_space`/`increment_style` désactivées par préférence explicite après revue règle par règle ; CI en vérification seule (`cs-check`), jamais d'auto-fix
+- ADR 020 — `Makefile` (pas `just`, pas d'alias shell personnels) pour raccourcir les commandes `docker compose` déjà documentées ; `make help` liste les cibles
 
 ## Workflow
 
