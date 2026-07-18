@@ -19,7 +19,8 @@ final class BracketWithThirdPlaceMatch implements Bracket
     public function __construct(
         private readonly Bracket $inner,
         private readonly ThirdPlaceFixture $fixture,
-    ) {}
+    ) {
+    }
 
     public function getRounds(): array
     {
@@ -60,6 +61,7 @@ final class BracketWithThirdPlaceMatch implements Bracket
     {
         if ($this->thirdPlaceEncounter !== null && $this->thirdPlaceEncounter->id->equals($encounterId)) {
             $this->thirdPlaceEncounter->play($result);
+
             return;
         }
 

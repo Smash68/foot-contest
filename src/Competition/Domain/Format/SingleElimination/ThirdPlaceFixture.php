@@ -12,5 +12,6 @@ final readonly class ThirdPlaceFixture
         public EncounterId $id,
         public EncounterId $semiFinalOneId,
         public EncounterId $semiFinalTwoId,
-    ) {}
+    ) {
+    }
 }

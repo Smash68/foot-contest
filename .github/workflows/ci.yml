@@ -30,6 +30,9 @@ jobs:
       - name: Run static analysis
         run: docker compose exec -T app composer stan
 
+      - name: Check code style
+        run: docker compose exec -T app composer cs-check
+
       - name: Create the test database and run migrations
         run: |
           docker compose exec -T app php bin/console doctrine:database:create --env=test --if-not-exists

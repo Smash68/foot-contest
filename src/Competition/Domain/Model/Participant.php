@@ -10,7 +10,8 @@ final readonly class Participant
         private ?Team $team,
         private bool $isBye,
         private ?EncounterId $pendingWinnerOfEncounterId,
-    ) {}
+    ) {
+    }
 
     public static function forTeam(Team $team): self
     {

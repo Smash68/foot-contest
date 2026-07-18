@@ -12,7 +12,6 @@ use App\Competition\Domain\Model\Round;
 use App\Competition\Domain\Model\SingleEliminationBracket;
 use App\Competition\Domain\Model\Team;
 use App\Competition\Domain\Service\BracketGenerator;
-use InvalidArgumentException;
 
 final class SingleEliminationBracketGenerator implements BracketGenerator
 {
@@ -24,7 +23,7 @@ final class SingleEliminationBracketGenerator implements BracketGenerator
         $this->encounterCounter = 0;
 
         if (count($teams) < 2) {
-            throw new InvalidArgumentException('At least 2 teams are required.');
+            throw new \InvalidArgumentException('At least 2 teams are required.');
         }
 
         shuffle($teams);
@@ -43,6 +42,7 @@ final class SingleEliminationBracketGenerator implements BracketGenerator
 
     /**
      * @param Team[] $teams
+     *
      * @return Participant[]
      */
     private function buildFirstRoundParticipants(array $teams): array
@@ -51,7 +51,7 @@ final class SingleEliminationBracketGenerator implements BracketGenerator
         $numByes = 2 ** $numRounds - count($teams);
 
         $byeParticipants = array_fill(0, $numByes, Participant::bye());
-        $teamParticipants = array_map(fn(Team $t) => Participant::forTeam($t), $teams);
+        $teamParticipants = array_map(fn (Team $t) => Participant::forTeam($t), $teams);
 
         return array_merge($byeParticipants, $teamParticipants);
     }
@@ -71,7 +71,7 @@ final class SingleEliminationBracketGenerator implements BracketGenerator
     private function nextRoundParticipants(Round $round): array
     {
         return array_map(
-            fn(Encounter $e) => $this->participantAdvancingFrom($e),
+            fn (Encounter $e) => $this->participantAdvancingFrom($e),
             $round->getEncounters(),
         );
     }

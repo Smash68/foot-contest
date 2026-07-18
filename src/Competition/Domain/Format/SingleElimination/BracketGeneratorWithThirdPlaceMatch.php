@@ -9,13 +9,13 @@ use App\Competition\Domain\Model\EncounterId;
 use App\Competition\Domain\Model\Round;
 use App\Competition\Domain\Model\Team;
 use App\Competition\Domain\Service\BracketGenerator;
-use InvalidArgumentException;
 
 final class BracketGeneratorWithThirdPlaceMatch implements BracketGenerator
 {
     public function __construct(
         private readonly BracketGenerator $inner,
-    ) {}
+    ) {
+    }
 
     /** @param Team[] $teams */
     public function generate(array $teams): Bracket
@@ -23,7 +23,7 @@ final class BracketGeneratorWithThirdPlaceMatch implements BracketGenerator
         $bracket = $this->inner->generate($teams);
 
         if ($bracket->countRounds() < 2) {
-            throw new InvalidArgumentException('A third place match requires a semi-final round.');
+            throw new \InvalidArgumentException('A third place match requires a semi-final round.');
         }
 
         $semiFinalRound = $bracket->getRound($bracket->countRounds() - 1);
@@ -44,12 +44,12 @@ final class BracketGeneratorWithThirdPlaceMatch implements BracketGenerator
         $semiFinals = $semiFinalRound->getEncounters();
 
         if (count($semiFinals) !== 2) {
-            throw new InvalidArgumentException('A third place match requires exactly two semi-final encounters.');
+            throw new \InvalidArgumentException('A third place match requires exactly two semi-final encounters.');
         }
 
         foreach ($semiFinals as $semiFinal) {
             if ($semiFinal->getHome()->isBye() || $semiFinal->getAway()->isBye()) {
-                throw new InvalidArgumentException('A third place match cannot be generated when a semi-final involves a bye.');
+                throw new \InvalidArgumentException('A third place match cannot be generated when a semi-final involves a bye.');
             }
         }
     }

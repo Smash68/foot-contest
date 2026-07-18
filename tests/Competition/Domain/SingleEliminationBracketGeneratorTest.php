@@ -46,12 +46,12 @@ final class SingleEliminationBracketGeneratorTest extends TestCase
     public static function teamCountProvider(): array
     {
         return [
-            '2 teams'  => [2, 1, 1],
-            '3 teams'  => [3, 2, 3],
-            '4 teams'  => [4, 2, 3],
-            '5 teams'  => [5, 3, 7],
-            '6 teams'  => [6, 3, 7],
-            '8 teams'  => [8, 3, 7],
+            '2 teams' => [2, 1, 1],
+            '3 teams' => [3, 2, 3],
+            '4 teams' => [4, 2, 3],
+            '5 teams' => [5, 3, 7],
+            '6 teams' => [6, 3, 7],
+            '8 teams' => [8, 3, 7],
             '16 teams' => [16, 4, 15],
         ];
     }
@@ -72,12 +72,12 @@ final class SingleEliminationBracketGeneratorTest extends TestCase
     public static function byeCountProvider(): array
     {
         return [
-            '2 teams → 1 R1 encounter, 0 byes'  => [2, 1],
-            '3 teams → 2 R1 encounters, 1 bye'   => [3, 2],
-            '4 teams → 2 R1 encounters, 0 byes'  => [4, 2],
-            '5 teams → 4 R1 encounters, 3 byes'  => [5, 4],
-            '6 teams → 4 R1 encounters, 2 byes'  => [6, 4],
-            '8 teams → 4 R1 encounters, 0 byes'  => [8, 4],
+            '2 teams → 1 R1 encounter, 0 byes' => [2, 1],
+            '3 teams → 2 R1 encounters, 1 bye' => [3, 2],
+            '4 teams → 2 R1 encounters, 0 byes' => [4, 2],
+            '5 teams → 4 R1 encounters, 3 byes' => [5, 4],
+            '6 teams → 4 R1 encounters, 2 byes' => [6, 4],
+            '8 teams → 4 R1 encounters, 0 byes' => [8, 4],
         ];
     }
 
@@ -137,7 +137,7 @@ final class SingleEliminationBracketGeneratorTest extends TestCase
     public function all_round_one_teams_are_from_the_provided_list(): void
     {
         $teams = $this->makeTeams(4);
-        $teamIds = array_map(fn(Team $t) => $t->getId(), $teams);
+        $teamIds = array_map(fn (Team $t) => $t->getId(), $teams);
 
         $bracket = $this->generator->generate($teams);
 
@@ -168,7 +168,7 @@ final class SingleEliminationBracketGeneratorTest extends TestCase
     /** @return Team[] */
     private function makeTeams(int $count): array
     {
-        return array_map(fn(int $i) => $this->team("Team-{$i}"), range(1, $count));
+        return array_map(fn (int $i) => $this->team("Team-{$i}"), range(1, $count));
     }
 
     private function team(string $name): Team

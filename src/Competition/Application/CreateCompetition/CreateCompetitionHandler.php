@@ -11,7 +11,9 @@ use App\Competition\Domain\Repository\CompetitionRepository;
 
 final readonly class CreateCompetitionHandler
 {
-    public function __construct(private CompetitionRepository $repository) {}
+    public function __construct(private CompetitionRepository $repository)
+    {
+    }
 
     public function __invoke(CreateCompetitionCommand $command): CompetitionId
     {

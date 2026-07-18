@@ -10,5 +10,6 @@ final readonly class CreateCompetitionCommand
         public string $name,
         public int $minTeams,
         public int $maxTeams,
-    ) {}
+    ) {
+    }
 }

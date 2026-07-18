@@ -53,6 +53,7 @@ Reste à faire :
 - ✅ Xdebug (couverture de tests + debug PhpStorm), désactivé par défaut — voir ADR 016
 - ✅ CI GitHub Actions (`docker compose`, tests uniquement) — voir ADR 017
 - ✅ PHPStan niveau max, `src/` propre, `tests/` en baseline, intégré à la CI — voir ADR 018
+- ✅ PHP-CS-Fixer `@Symfony` (revue règle par règle), intégré à la CI en vérification seule — voir ADR 019
 
 #### 5c — Reste à faire
 

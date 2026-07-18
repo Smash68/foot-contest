@@ -25,6 +25,10 @@ docker compose exec app composer test:coverage
 # Analyse statique (PHPStan niveau max — voir ADR 018)
 docker compose exec app composer stan
 
+# Style de code (PHP-CS-Fixer @Symfony — voir ADR 019)
+docker compose exec app composer cs-check   # vérifie seulement
+docker compose exec app composer cs-fix     # applique
+
 # Console Symfony (ex: migrations)
 docker compose exec app php bin/console doctrine:migrations:migrate
 
@@ -126,6 +130,7 @@ Le raisonnement complet de chaque décision structurante (contexte, alternatives
 - ADR 016 — Xdebug (pas PCOV) pour la couverture de tests + debug PhpStorm, désactivé par défaut (`XDEBUG_MODE=off`) pour ne pas ralentir le run quotidien ; pas de rapport de couverture déclaré dans `phpunit.dist.xml` (rendrait un driver obligatoire pour tout run) ; script `composer test:coverage` pour l'usage ponctuel
 - ADR 017 — CI GitHub Actions rejoue `docker compose` (pas de setup PHP natif GitHub Actions) pour un seul chemin d'exécution CI/local ; tests uniquement pour l'instant (pas d'analyse statique) ; attente explicite de `vendor/autoload.php` plutôt qu'un `sleep` fixe ; cache `vendor/` via `actions/cache`
 - ADR 018 — PHPStan niveau `max` (extensions Symfony/Doctrine) ; les 6 erreurs réelles dans `src/` corrigées (`assert()` pour narrower les frontières framework/Doctrine, un override ne peut pas restreindre le type `mixed` hérité de `Doctrine\DBAL\Types\Type`) ; les 43 erreurs de `tests/` (types génériques non affinables) mises en `phpstan-baseline.neon` plutôt que de réécrire les tests dans cet incrément
+- ADR 019 — PHP-CS-Fixer `@Symfony` (pas `:risky`, formatage seulement) ; `php_unit_method_casing` forcé en `snake_case` (convention déjà établie pour les noms de tests) ; `yoda_style`/`concat_space`/`increment_style` désactivées par préférence explicite après revue règle par règle ; CI en vérification seule (`cs-check`), jamais d'auto-fix
 
 ## Workflow
 

@@ -19,7 +19,8 @@ final class Competition
         private readonly CompetitionId $id,
         private readonly string $name,
         private readonly TeamCapacity $capacity,
-    ) {}
+    ) {
+    }
 
     public static function create(CompetitionId $id, string $name, TeamCapacity $capacity): self
     {
@@ -112,7 +113,7 @@ final class Competition
         }
 
         $teams = array_map(
-            fn(Registration $registration) => $registration->getTeam(),
+            fn (Registration $registration) => $registration->getTeam(),
             $this->registrations,
         );
 

@@ -7,7 +7,6 @@ namespace App\Tests\Competition\Domain\Format\SingleElimination;
 use App\Competition\Domain\Format\SingleElimination\BracketGeneratorWithThirdPlaceMatch;
 use App\Competition\Domain\Format\SingleElimination\BracketWithThirdPlaceMatch;
 use App\Competition\Domain\Format\SingleElimination\SingleEliminationBracketGenerator;
-use App\Competition\Domain\Model\EncounterId;
 use App\Competition\Domain\Model\EncounterResult;
 use App\Competition\Domain\Model\Score;
 use App\Competition\Domain\Model\Team;
@@ -69,6 +68,6 @@ final class BracketGeneratorWithThirdPlaceMatchTest extends TestCase
     /** @return Team[] */
     private function makeTeams(int $count): array
     {
-        return array_map(fn(int $i) => new Team(new TeamId("t{$i}"), "Team {$i}"), range(1, $count));
+        return array_map(fn (int $i) => new Team(new TeamId("t{$i}"), "Team {$i}"), range(1, $count));
     }
 }

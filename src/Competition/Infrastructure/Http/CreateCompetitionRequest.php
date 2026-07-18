@@ -10,5 +10,6 @@ final readonly class CreateCompetitionRequest
         public string $name,
         public int $minTeams,
         public int $maxTeams,
-    ) {}
+    ) {
+    }
 }

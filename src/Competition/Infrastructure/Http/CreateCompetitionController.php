@@ -14,7 +14,9 @@ use Symfony\Component\Routing\Attribute\Route;
 
 final class CreateCompetitionController
 {
-    public function __construct(private MessageBusInterface $bus) {}
+    public function __construct(private MessageBusInterface $bus)
+    {
+    }
 
     #[Route('/competitions', methods: ['POST'])]
     public function __invoke(#[MapRequestPayload] CreateCompetitionRequest $request): JsonResponse

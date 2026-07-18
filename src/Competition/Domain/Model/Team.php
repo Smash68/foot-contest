@@ -9,7 +9,8 @@ final class Team
     public function __construct(
         private readonly TeamId $id,
         private readonly string $name,
-    ) {}
+    ) {
+    }
 
     public function getId(): TeamId
     {

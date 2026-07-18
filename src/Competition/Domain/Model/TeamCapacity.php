@@ -9,7 +9,8 @@ final readonly class TeamCapacity
     private function __construct(
         public int $min,
         public int $max,
-    ) {}
+    ) {
+    }
 
     public static function of(int $min, int $max): self
     {

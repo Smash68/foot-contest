@@ -9,7 +9,8 @@ final class SingleEliminationBracket implements Bracket
     /** @param Round[] $rounds */
     public function __construct(
         private array $rounds,
-    ) {}
+    ) {
+    }
 
     /** @return Round[] */
     public function getRounds(): array
@@ -24,7 +25,7 @@ final class SingleEliminationBracket implements Bracket
 
     public function countEncounters(): int
     {
-        return array_sum(array_map(fn(Round $r) => $r->countEncounters(), $this->rounds));
+        return array_sum(array_map(fn (Round $r) => $r->countEncounters(), $this->rounds));
     }
 
     public function getRound(int $number): Round
@@ -65,6 +66,7 @@ final class SingleEliminationBracket implements Bracket
             }
             $encounter->play($result);
             ($this->rounds[$roundIndex + 1] ?? null)?->resolveParticipant($encounterId, $encounter->getWinner());
+
             return;
         }
 

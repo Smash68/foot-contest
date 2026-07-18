@@ -10,7 +10,8 @@ final readonly class EncounterResult
         public Score $regularTime,
         public ?Score $extraTime = null,
         public ?Score $penalties = null,
-    ) {}
+    ) {
+    }
 
     public static function regularTime(Score $score): self
     {

@@ -9,7 +9,8 @@ final readonly class Registration
     public function __construct(
         private Team $team,
         private Player $captain,
-    ) {}
+    ) {
+    }
 
     public function getTeam(): Team
     {

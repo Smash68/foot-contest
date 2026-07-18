@@ -12,7 +12,9 @@ use Symfony\Component\Uid\Uuid;
 
 final class DoctrineCompetitionRepository implements CompetitionRepository
 {
-    public function __construct(private readonly EntityManagerInterface $entityManager) {}
+    public function __construct(private readonly EntityManagerInterface $entityManager)
+    {
+    }
 
     public function nextIdentity(): CompetitionId
     {
