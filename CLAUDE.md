@@ -22,6 +22,9 @@ docker compose exec app vendor/bin/phpunit --filter testMethodName
 # Couverture de tests (Xdebug désactivé par défaut pour un run rapide — voir ADR 016)
 docker compose exec app composer test:coverage
 
+# Analyse statique (PHPStan niveau max — voir ADR 018)
+docker compose exec app composer stan
+
 # Console Symfony (ex: migrations)
 docker compose exec app php bin/console doctrine:migrations:migrate
 
@@ -122,6 +125,7 @@ Le raisonnement complet de chaque décision structurante (contexte, alternatives
 - ADR 015 — Violations de règles métier (`\InvalidArgumentException`) mappées en 422 JSON via un listener `kernel.exception` global (`InvalidArgumentExceptionListener`), pas de try/catch par contrôleur ; `\LogicException` volontairement pas encore intercepté (pas encore atteignable en HTTP)
 - ADR 016 — Xdebug (pas PCOV) pour la couverture de tests + debug PhpStorm, désactivé par défaut (`XDEBUG_MODE=off`) pour ne pas ralentir le run quotidien ; pas de rapport de couverture déclaré dans `phpunit.dist.xml` (rendrait un driver obligatoire pour tout run) ; script `composer test:coverage` pour l'usage ponctuel
 - ADR 017 — CI GitHub Actions rejoue `docker compose` (pas de setup PHP natif GitHub Actions) pour un seul chemin d'exécution CI/local ; tests uniquement pour l'instant (pas d'analyse statique) ; attente explicite de `vendor/autoload.php` plutôt qu'un `sleep` fixe ; cache `vendor/` via `actions/cache`
+- ADR 018 — PHPStan niveau `max` (extensions Symfony/Doctrine) ; les 6 erreurs réelles dans `src/` corrigées (`assert()` pour narrower les frontières framework/Doctrine, un override ne peut pas restreindre le type `mixed` hérité de `Doctrine\DBAL\Types\Type`) ; les 43 erreurs de `tests/` (types génériques non affinables) mises en `phpstan-baseline.neon` plutôt que de réécrire les tests dans cet incrément
 
 ## Workflow
 

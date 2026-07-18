@@ -27,6 +27,9 @@ jobs:
       - name: Wait for dependencies to be installed
         run: timeout 120 sh -c 'until docker compose exec -T app test -f vendor/autoload.php; do sleep 2; done'
 
+      - name: Run static analysis
+        run: docker compose exec -T app composer stan
+
       - name: Create the test database and run migrations
         run: |
           docker compose exec -T app php bin/console doctrine:database:create --env=test --if-not-exists

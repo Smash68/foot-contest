@@ -17,14 +17,26 @@ final class CompetitionIdType extends Type
         return $platform->getStringTypeDeclarationSQL($column);
     }
 
-    public function convertToPHPValue($value, AbstractPlatform $platform): ?CompetitionId
+    public function convertToPHPValue(mixed $value, AbstractPlatform $platform): ?CompetitionId
     {
-        return $value === null ? null : new CompetitionId($value);
+        if ($value === null) {
+            return null;
+        }
+
+        assert(is_string($value));
+
+        return new CompetitionId($value);
     }
 
-    public function convertToDatabaseValue($value, AbstractPlatform $platform): ?string
+    public function convertToDatabaseValue(mixed $value, AbstractPlatform $platform): ?string
     {
-        return $value === null ? null : $value->value;
+        if ($value === null) {
+            return null;
+        }
+
+        assert($value instanceof CompetitionId);
+
+        return $value->value;
     }
 
     public function getName(): string

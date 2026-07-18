@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Competition\Infrastructure\Http;
 
 use App\Competition\Application\CreateCompetition\CreateCompetitionCommand;
+use App\Competition\Domain\Model\CompetitionId;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Messenger\MessageBusInterface;
@@ -24,7 +25,11 @@ final class CreateCompetitionController
             $request->maxTeams,
         ));
 
-        $id = $envelope->last(HandledStamp::class)->getResult();
+        $handledStamp = $envelope->last(HandledStamp::class);
+        assert($handledStamp instanceof HandledStamp);
+
+        $id = $handledStamp->getResult();
+        assert($id instanceof CompetitionId);
 
         return new JsonResponse(['id' => $id->value], 201);
     }

@@ -52,6 +52,7 @@ Reste à faire :
 
 - ✅ Xdebug (couverture de tests + debug PhpStorm), désactivé par défaut — voir ADR 016
 - ✅ CI GitHub Actions (`docker compose`, tests uniquement) — voir ADR 017
+- ✅ PHPStan niveau max, `src/` propre, `tests/` en baseline, intégré à la CI — voir ADR 018
 
 #### 5c — Reste à faire
 
