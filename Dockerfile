@@ -1,8 +1,11 @@
 FROM php:8.4-cli-alpine
 
-RUN apk add --no-cache icu-dev postgresql-dev $PHPIZE_DEPS \
+RUN apk add --no-cache icu-dev postgresql-dev linux-headers $PHPIZE_DEPS \
     && docker-php-ext-install intl pdo_pgsql opcache \
-    && apk del $PHPIZE_DEPS
+    && pecl install xdebug \
+    && apk del linux-headers $PHPIZE_DEPS
+
+COPY docker/xdebug.ini /usr/local/etc/php/conf.d/xdebug.ini
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 

@@ -42,6 +42,7 @@
         "auto-scripts": {
             "cache:clear": "symfony-cmd",
             "assets:install %PUBLIC_DIR%": "symfony-cmd"
-        }
+        },
+        "test:coverage": "XDEBUG_MODE=coverage vendor/bin/phpunit --coverage-text"
     }
 }
