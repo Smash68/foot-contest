@@ -43,7 +43,8 @@ Reste à faire :
 - ✅ Reset de la base de données entre chaque test (`DAMADoctrineTestBundle`, transaction + rollback automatique par test) — voir ADR 012
 - ✅ Rebrancher `services.yaml` : `CompetitionRepository` pointe désormais vers `DoctrineCompetitionRepository`
 - ✅ `services_test.yaml` : garde `InMemoryCompetitionRepository` pour `CreateCompetitionControllerTest` (test de contrat HTTP, pas de persistance — la couverture Doctrine vit déjà dans `DoctrineCompetitionRepositoryTest`) — voir ADR 013
-- ✅ Smoke test e2e contre la stack réelle (`CreateCompetitionEndToEndTest`, un seul happy path — voir ADR 014) — reste à vérifier que `CreateCompetitionControllerTest` couvre bien les autres codes HTTP
+- ✅ Smoke test e2e contre la stack réelle (`CreateCompetitionEndToEndTest`, un seul happy path — voir ADR 014)
+- ✅ `CreateCompetitionControllerTest` couvre les 4 réponses de la route (201/422×3/400) ; violation de règle métier mappée en 422 JSON au lieu d'un 500 qui fuitait le message d'exception — voir ADR 015
 - Mapper `registrations` (collection de `Registration` = `Team` + `Player`)
 - Mapper `bracket` (interface polymorphe `Bracket`/`SingleEliminationBracket`/décorateur)
 

@@ -87,6 +87,7 @@ Un dossier par use case, en CQRS via `symfony/messenger` (voir ADR 008) :
 
 - `Persistence/InMemory/InMemoryCompetitionRepository` — implémente `CompetitionRepository`, stockage en `array` ; sert à la fois d'adapter réel (faute de vraie persistance) et de test double dans les tests d'Application, sans mock
 - `Http/CreateCompetitionController` — route `POST /competitions` (attribut `#[Route]`), construit la Command depuis un DTO validé (`Http/CreateCompetitionRequest` + `#[MapRequestPayload]`), dispatch sur le bus, lit le résultat via `$envelope->last(HandledStamp::class)->getResult()`, répond 201 + id. Vit sous `Infrastructure/Http/` du module, pas `src/Controller/` — voir ADR 009 sur pourquoi l'auto-découverte des routes ne dépend pas d'un dossier fixe.
+- `Http/InvalidArgumentExceptionListener` — écouteur `kernel.exception` global du module : désencapsule `HandlerFailedException` (Messenger), mappe toute `\InvalidArgumentException` du domaine en `JsonResponse(['error' => ...], 422)`. Voir ADR 015.
 
 Bootstrap Symfony (Kernel, `config/`, `public/index.php`, `bin/console`) posé via `symfony/flex` et ses recipes officielles, pas assemblé à la main — voir ADR 009, notamment le scope de l'auto-discovery des services (`config/services.yaml`) et pourquoi il exclut tout le Domain.
 
@@ -115,6 +116,7 @@ Le raisonnement complet de chaque décision structurante (contexte, alternatives
 - ADR 012 — Reset de la base entre chaque test : `DAMADoctrineTestBundle` (transaction + rollback automatique par test, actif uniquement en env `test`) plutôt qu'un truncate/delete manuel en `tearDown()`
 - ADR 013 — `services_test.yaml` réécrit `CompetitionRepository` vers `InMemoryCompetitionRepository` pour les tests HTTP contrôleur (contrat HTTP seulement, pas de persistance à re-tester — déjà couverte par `DoctrineCompetitionRepositoryTest`)
 - ADR 014 — Smoke test e2e : un seul happy path (les codes d'erreur HTTP restent dans `CreateCompetitionControllerTest`, pas de signal supplémentaire à les re-tester contre une vraie base), surcharge locale de `CompetitionRepository` via `self::getContainer()->set()` plutôt que `services_test.yaml`
+- ADR 015 — Violations de règles métier (`\InvalidArgumentException`) mappées en 422 JSON via un listener `kernel.exception` global (`InvalidArgumentExceptionListener`), pas de try/catch par contrôleur ; `\LogicException` volontairement pas encore intercepté (pas encore atteignable en HTTP)
 
 ## Workflow
 
@@ -131,4 +133,4 @@ Le raisonnement complet de chaque décision structurante (contexte, alternatives
 
 ## Prochaine étape prioritaire
 
-Priorité 5b (persistance réelle) en cours : mapping Doctrine de `Competition` fait pour `id`/`name`/`capacity`/`closed` (voir ADR 010), `services.yaml` branché sur `DoctrineCompetitionRepository` (persistance réelle en prod comme en dev), `services_test.yaml` ramène `CompetitionRepository` sur l'InMemory pour les tests HTTP contrôleur (ADR 013). L'environnement Docker (ADR 011), le reset automatique de la base entre chaque test (`DAMADoctrineTestBundle`, ADR 012) et un smoke test e2e (`CreateCompetitionEndToEndTest`, ADR 014) sont en place. Reste à faire : vérifier que `CreateCompetitionControllerTest` couvre bien les autres codes HTTP de la route, puis mapper `registrations` et `bracket`. Le détail complet du plan (priorités 1 à 5) est dans `ROADMAP.md`.
+Priorité 5b (persistance réelle) en cours : mapping Doctrine de `Competition` fait pour `id`/`name`/`capacity`/`closed` (voir ADR 010), `services.yaml` branché sur `DoctrineCompetitionRepository` (persistance réelle en prod comme en dev), `services_test.yaml` ramène `CompetitionRepository` sur l'InMemory pour les tests HTTP contrôleur (ADR 013). L'environnement Docker (ADR 011), le reset automatique de la base entre chaque test (`DAMADoctrineTestBundle`, ADR 012), un smoke test e2e (`CreateCompetitionEndToEndTest`, ADR 014) et la couverture complète des codes HTTP de `POST /competitions` (ADR 015) sont en place. Reste à faire : mapper `registrations` et `bracket`. Le détail complet du plan (priorités 1 à 5) est dans `ROADMAP.md`.
