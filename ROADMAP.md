@@ -39,7 +39,11 @@ Couche `Application/` volontairement reportée à la priorité 5 : sans reposito
 Remplacer `InMemoryCompetitionRepository` par une vraie base de données. Choix retenu : Doctrine ORM + PostgreSQL, bootstrappé via Flex. Voir ADR 010 : mapping XML de `Competition` fait pour `id`/`name`/`capacity`/`closed` (`DoctrineCompetitionRepository`, testé par aller-retour réel sur PostgreSQL), `registrations` et `bracket` volontairement pas encore mappés (collection de VOs et polymorphisme d'agrégat, décisions à part entière).
 
 Reste à faire :
+- ✅ Environnement Docker (container `app` PHP-CLI + `database` PostgreSQL) — voir ADR 011
+- Reset de la base de données entre chaque test (`DAMADoctrineTestBundle`, transaction + rollback automatique par test)
 - Rebrancher `services.yaml` : `CompetitionRepository` pointe encore vers `InMemoryCompetitionRepository`, pas encore vers `DoctrineCompetitionRepository`
+- `services_test.yaml` : garder `InMemoryCompetitionRepository` pour `CreateCompetitionControllerTest` (test de contrat HTTP, pas de persistance — la couverture Doctrine vit déjà dans `DoctrineCompetitionRepositoryTest`)
+- Smoke tests e2e contre la stack réelle (Docker + Doctrine branché + reset entre tests)
 - Mapper `registrations` (collection de `Registration` = `Team` + `Player`)
 - Mapper `bracket` (interface polymorphe `Bracket`/`SingleEliminationBracket`/décorateur)
 

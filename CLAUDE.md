@@ -4,15 +4,26 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Commands
 
+L'app tourne sous Docker (voir ADR 011) — aucune dépendance locale à PHP/Composer requise, seulement Docker. `docker compose up -d app` démarre le container `app` (PHP 8.4 CLI + extensions) et sa dépendance `database` (PostgreSQL), et exécute `composer install` à chaque démarrage.
+
 ```bash
+# Démarrer l'environnement (app + base de données)
+docker compose up -d app
+
 # Run all tests
-vendor/bin/phpunit
+docker compose exec app vendor/bin/phpunit
 
 # Run a single test file
-vendor/bin/phpunit tests/Competition/Domain/SingleEliminationBracketGeneratorTest.php
+docker compose exec app vendor/bin/phpunit tests/Competition/Domain/SingleEliminationBracketGeneratorTest.php
 
 # Run a single test method
-vendor/bin/phpunit --filter testMethodName
+docker compose exec app vendor/bin/phpunit --filter testMethodName
+
+# Console Symfony (ex: migrations)
+docker compose exec app php bin/console doctrine:migrations:migrate
+
+# Servir l'app en HTTP à la demande (http://localhost:8000)
+docker compose exec -d app php -S 0.0.0.0:8000 -t public
 ```
 
 ## Architecture
@@ -99,6 +110,8 @@ Le raisonnement complet de chaque décision structurante (contexte, alternatives
 - ADR 007 — Inscription au tournoi : `Competition` agrégat séparé de `Bracket` (nommage `Competition` plutôt que `Tournament`/`Contest` — voir ADR), `Player` distinct de `Team` (capitaine = joueur, pas un type à part), `PlayerId` = email, `TeamId` rétrofité en VO typé, clôture/génération manuelles et distinctes
 - ADR 008 — Couche Application : CQRS via `symfony/messenger` (pas de bus fait main), Handler taggé en config (pas `#[AsMessageHandler]`), id généré par `CompetitionRepository::nextIdentity()` et retourné par le Handler (lu via `HandledStamp`)
 - ADR 009 — Bootstrap infrastructure via `symfony/flex` et ses recipes officielles (pas de squelette fait main), auto-discovery des services scopée par module avec exclusion de tout `Domain/`, contrôleurs sous `Infrastructure/Http/` du module
+- ADR 010 — Mapping Doctrine de `Competition` : périmètre du premier mapping (`id`/`name`/`capacity`/`closed`, pas `registrations` ni `bracket`), VOs identifiants via Doctrine Type dédié (pas embeddable) + `Stringable` requis sur tout VO identifiant, `TeamCapacity` en embeddable, config Doctrine scopée par module (`config/packages/doctrine_competition.yaml`), convention de nommage des fichiers XML de mapping
+- ADR 011 — Environnement Docker : container `app` PHP-CLI seul (pas de serveur web dédié type FrankenPHP tant qu'aucun besoin d'exposition continue), bind-mount du repo entier + `composer install` relancé à chaque démarrage via `entrypoint.sh` (plutôt qu'un volume nommé pour `vendor/`) pour que `vendor/` reste indexable par l'IDE sans dépendance locale à PHP/Composer
 
 ## Workflow
 
@@ -115,4 +128,4 @@ Le raisonnement complet de chaque décision structurante (contexte, alternatives
 
 ## Prochaine étape prioritaire
 
-Priorité 5b (persistance réelle) en cours : mapping Doctrine de `Competition` fait pour `id`/`name`/`capacity`/`closed` (voir ADR 010), `DoctrineCompetitionRepository` existe et est testé contre PostgreSQL, mais `services.yaml` lie encore `CompetitionRepository` à `InMemoryCompetitionRepository`. Prochaine étape : rebrancher le port vers `DoctrineCompetitionRepository`, puis mapper `registrations` et `bracket`. Le détail complet du plan (priorités 1 à 5) est dans `ROADMAP.md`.
+Priorité 5b (persistance réelle) en cours : mapping Doctrine de `Competition` fait pour `id`/`name`/`capacity`/`closed` (voir ADR 010), `DoctrineCompetitionRepository` existe et est testé contre PostgreSQL, mais `services.yaml` lie encore `CompetitionRepository` à `InMemoryCompetitionRepository`. L'environnement Docker est en place (voir ADR 011) pour fiabiliser la suite : reste à mettre en place le reset de la base entre chaque test (`DAMADoctrineTestBundle`), rebrancher le port vers `DoctrineCompetitionRepository`, garder `InMemoryCompetitionRepository` pour les tests HTTP contrôleur (`services_test.yaml`), ajouter des smoke tests e2e contre la stack réelle, puis mapper `registrations` et `bracket`. Le détail complet du plan (priorités 1 à 5) est dans `ROADMAP.md`.

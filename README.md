@@ -10,21 +10,23 @@ Application SAAS multi-tenant de gestion de tournois de football, destinée aux 
 
 ## Installation
 
+Seul Docker est requis (pas de PHP/Composer local nécessaire) — voir ADR 011.
+
 ```bash
-composer install
+docker compose up -d app
 ```
 
 ## Lancer les tests
 
 ```bash
 # Tous les tests
-vendor/bin/phpunit
+docker compose exec app vendor/bin/phpunit
 
 # Un fichier spécifique
-vendor/bin/phpunit tests/Competition/Domain/SingleEliminationBracketGeneratorTest.php
+docker compose exec app vendor/bin/phpunit tests/Competition/Domain/SingleEliminationBracketGeneratorTest.php
 
 # Un test spécifique
-vendor/bin/phpunit --filter testMethodName
+docker compose exec app vendor/bin/phpunit --filter testMethodName
 ```
 
 ## Documentation
