@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: composer-${{ hashFiles('composer.lock') }}
+
+      - name: Build the app image
+        run: docker compose build app
+
+      - name: Start the environment
+        run: docker compose up -d app
+
+      - name: Wait for dependencies to be installed
+        run: timeout 120 sh -c 'until docker compose exec -T app test -f vendor/autoload.php; do sleep 2; done'
+
+      - name: Create the test database and run migrations
+        run: |
+          docker compose exec -T app php bin/console doctrine:database:create --env=test --if-not-exists
+          docker compose exec -T app php bin/console doctrine:migrations:migrate --env=test --no-interaction
+
+      - name: Run tests
+        run: docker compose exec -T app vendor/bin/phpunit

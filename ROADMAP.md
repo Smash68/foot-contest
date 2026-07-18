@@ -48,6 +48,11 @@ Reste à faire :
 - Mapper `registrations` (collection de `Registration` = `Team` + `Player`)
 - Mapper `bracket` (interface polymorphe `Bracket`/`SingleEliminationBracket`/décorateur)
 
+#### 5c bis — Outillage transverse
+
+- ✅ Xdebug (couverture de tests + debug PhpStorm), désactivé par défaut — voir ADR 016
+- ✅ CI GitHub Actions (`docker compose`, tests uniquement) — voir ADR 017
+
 #### 5c — Reste à faire
 
 - API REST ou GraphQL (autres use cases : inscription/désistement d'équipe, clôture, génération du bracket)

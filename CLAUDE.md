@@ -121,6 +121,7 @@ Le raisonnement complet de chaque décision structurante (contexte, alternatives
 - ADR 014 — Smoke test e2e : un seul happy path (les codes d'erreur HTTP restent dans `CreateCompetitionControllerTest`, pas de signal supplémentaire à les re-tester contre une vraie base), surcharge locale de `CompetitionRepository` via `self::getContainer()->set()` plutôt que `services_test.yaml`
 - ADR 015 — Violations de règles métier (`\InvalidArgumentException`) mappées en 422 JSON via un listener `kernel.exception` global (`InvalidArgumentExceptionListener`), pas de try/catch par contrôleur ; `\LogicException` volontairement pas encore intercepté (pas encore atteignable en HTTP)
 - ADR 016 — Xdebug (pas PCOV) pour la couverture de tests + debug PhpStorm, désactivé par défaut (`XDEBUG_MODE=off`) pour ne pas ralentir le run quotidien ; pas de rapport de couverture déclaré dans `phpunit.dist.xml` (rendrait un driver obligatoire pour tout run) ; script `composer test:coverage` pour l'usage ponctuel
+- ADR 017 — CI GitHub Actions rejoue `docker compose` (pas de setup PHP natif GitHub Actions) pour un seul chemin d'exécution CI/local ; tests uniquement pour l'instant (pas d'analyse statique) ; attente explicite de `vendor/autoload.php` plutôt qu'un `sleep` fixe ; cache `vendor/` via `actions/cache`
 
 ## Workflow
 
