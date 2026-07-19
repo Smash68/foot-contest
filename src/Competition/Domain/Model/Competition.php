@@ -8,8 +8,8 @@ use App\Competition\Domain\Service\BracketGenerator;
 
 final class Competition
 {
-    /** @var Registration[] */
-    private array $registrations = [];
+    /** @var Team[] */
+    private array $teams = [];
 
     private bool $closed = false;
 
@@ -44,10 +44,10 @@ final class Competition
 
     public function countRegistrations(): int
     {
-        return count($this->registrations);
+        return count($this->teams);
     }
 
-    public function register(Registration $registration): void
+    public function register(Team $team): void
     {
         $this->assertOpenForRegistration();
 
@@ -55,11 +55,11 @@ final class Competition
             throw new \LogicException("Competition '{$this->id->value}' has reached its maximum number of teams.");
         }
 
-        if ($this->findRegistrationIndex($registration->getTeamId()) !== null) {
-            throw new \LogicException("Team '{$registration->getTeamId()->value}' is already registered in competition '{$this->id->value}'.");
+        if ($this->findTeamIndex($team->getId()) !== null) {
+            throw new \LogicException("Team '{$team->getId()->value}' is already registered in competition '{$this->id->value}'.");
         }
 
-        $this->registrations[] = $registration;
+        $this->teams[] = $team;
     }
 
     public function closeRegistration(): void
@@ -75,13 +75,13 @@ final class Competition
     {
         $this->assertOpenForRegistration();
 
-        $index = $this->findRegistrationIndex($teamId);
+        $index = $this->findTeamIndex($teamId);
 
         if ($index === null) {
             throw new \InvalidArgumentException("Team '{$teamId->value}' is not registered in competition '{$this->id->value}'.");
         }
 
-        unset($this->registrations[$index]);
+        unset($this->teams[$index]);
     }
 
     private function assertOpenForRegistration(): void
@@ -91,10 +91,10 @@ final class Competition
         }
     }
 
-    private function findRegistrationIndex(TeamId $teamId): ?int
+    private function findTeamIndex(TeamId $teamId): ?int
     {
-        foreach ($this->registrations as $index => $registration) {
-            if ($registration->isForTeam($teamId)) {
+        foreach ($this->teams as $index => $team) {
+            if ($team->getId()->equals($teamId)) {
                 return $index;
             }
         }
@@ -113,8 +113,8 @@ final class Competition
         }
 
         $teamIds = array_map(
-            fn (Registration $registration) => $registration->getTeamId(),
-            $this->registrations,
+            fn (Team $team) => $team->getId(),
+            $this->teams,
         );
 
         $this->bracket = $generator->generate($teamIds);

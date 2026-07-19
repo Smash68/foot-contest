@@ -5,9 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Competition\Infrastructure\Persistence\Doctrine;
 
 use App\Competition\Domain\Model\Competition;
-use App\Competition\Domain\Model\Player;
 use App\Competition\Domain\Model\PlayerId;
-use App\Competition\Domain\Model\Registration;
 use App\Competition\Domain\Model\Team;
 use App\Competition\Domain\Model\TeamCapacity;
 use App\Competition\Domain\Model\TeamId;
@@ -44,8 +42,8 @@ final class DoctrineCompetitionRepositoryTest extends KernelTestCase
 
         $id = $repository->nextIdentity();
         $competition = Competition::create($id, 'Summer Cup', TeamCapacity::of(2, 4));
-        $competition->register($this->registration('a', 'Team A'));
-        $competition->register($this->registration('b', 'Team B'));
+        $competition->register($this->team('a', 'Team A'));
+        $competition->register($this->team('b', 'Team B'));
         $competition->closeRegistration();
 
         $repository->save($competition);
@@ -86,20 +84,17 @@ final class DoctrineCompetitionRepositoryTest extends KernelTestCase
         $entityManager->clear();
 
         $found = $repository->ofId($id);
-        $found->register($this->registration('a', 'Team A'));
-        $found->register($this->registration('b', 'Team B'));
-        $found->register($this->registration('c', 'Team C'));
+        $found->register($this->team('a', 'Team A'));
+        $found->register($this->team('b', 'Team B'));
+        $found->register($this->team('c', 'Team C'));
 
         $this->expectException(\LogicException::class);
 
-        $found->register($this->registration('d', 'Team D'));
+        $found->register($this->team('d', 'Team D'));
     }
 
-    private function registration(string $teamId, string $teamName): Registration
+    private function team(string $teamId, string $teamName): Team
     {
-        $team = new Team(new TeamId($teamId), $teamName);
-        $captain = new Player(new PlayerId("{$teamId}@example.com"), 'Captain ' . $teamName);
-
-        return new Registration($team, $captain);
+        return Team::create(new TeamId($teamId), $teamName, new PlayerId("{$teamId}@example.com"));
     }
 }
