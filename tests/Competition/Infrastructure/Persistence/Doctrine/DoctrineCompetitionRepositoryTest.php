@@ -112,6 +112,23 @@ final class DoctrineCompetitionRepositoryTest extends KernelTestCase
         $found->register($this->team('d', 'Team D'));
     }
 
+    #[Test]
+    public function it_persists_that_no_bracket_has_been_generated_yet(): void
+    {
+        $entityManager = self::getContainer()->get(EntityManagerInterface::class);
+        $repository = new DoctrineCompetitionRepository($entityManager);
+
+        $id = $repository->nextIdentity();
+        $competition = Competition::create($id, 'Summer Cup', TeamCapacity::of(2, 4));
+
+        $repository->save($competition);
+        $entityManager->clear();
+
+        $found = $repository->ofId($id);
+
+        self::assertNull($found->getBracket());
+    }
+
     private function team(string $teamId, string $teamName): Team
     {
         return Team::create(new TeamId($teamId), $teamName, new PlayerId("{$teamId}@example.com"));

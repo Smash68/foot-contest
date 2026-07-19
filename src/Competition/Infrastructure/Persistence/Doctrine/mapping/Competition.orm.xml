@@ -10,6 +10,7 @@
         <field name="name" type="string" column="name" />
         <field name="closed" type="boolean" column="closed" />
         <field name="teams" type="registrations" column="registrations" />
+        <field name="bracket" type="bracket" column="bracket" nullable="true" />
 
         <embedded name="capacity" class="App\Competition\Domain\Model\TeamCapacity" />
     </entity>
