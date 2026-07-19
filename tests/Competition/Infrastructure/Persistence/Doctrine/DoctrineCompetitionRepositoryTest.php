@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Competition\Infrastructure\Persistence\Doctrine;
 
+use App\Competition\Domain\Format\SingleElimination\SingleEliminationBracketGenerator;
 use App\Competition\Domain\Model\Competition;
 use App\Competition\Domain\Model\PlayerId;
 use App\Competition\Domain\Model\Team;
@@ -127,6 +128,32 @@ final class DoctrineCompetitionRepositoryTest extends KernelTestCase
         $found = $repository->ofId($id);
 
         self::assertNull($found->getBracket());
+    }
+
+    #[Test]
+    public function it_persists_a_freshly_generated_bracket(): void
+    {
+        $entityManager = self::getContainer()->get(EntityManagerInterface::class);
+        $repository = new DoctrineCompetitionRepository($entityManager);
+
+        $id = $repository->nextIdentity();
+        $competition = Competition::create($id, 'Summer Cup', TeamCapacity::of(2, 4));
+        $competition->register($this->team('a', 'Team A'));
+        $competition->register($this->team('b', 'Team B'));
+        $competition->register($this->team('c', 'Team C'));
+        $competition->closeRegistration();
+        $competition->generateBracket(new SingleEliminationBracketGenerator());
+
+        $repository->save($competition);
+        $entityManager->clear();
+
+        $found = $repository->ofId($id);
+        $bracket = $found->getBracket();
+
+        self::assertNotNull($bracket);
+        self::assertSame(2, $bracket->countRounds());
+        self::assertSame(2, $bracket->getRound(1)->countEncounters());
+        self::assertSame(1, $bracket->getRound(2)->countEncounters());
     }
 
     private function team(string $teamId, string $teamName): Team
