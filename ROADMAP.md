@@ -47,7 +47,7 @@ Reste à faire :
 - ✅ `CreateCompetitionControllerTest` couvre les 4 réponses de la route (201/422×3/400) ; violation de règle métier mappée en 422 JSON au lieu d'un 500 qui fuitait le message d'exception — voir ADR 015
 - ✅ Persistance de `Player` en agrégat indépendant (table `id`/`name`, `PlayerRepository`) — un joueur existe indépendamment de toute compétition — voir ADR 022
 - `Bracket` référence les équipes par `TeamId` (pas par `Team` complète) ; `Team` absorbe `Registration` (`name`/`captainId`/`roster`), reste une entité interne à `Competition` sans repository dédié — voir ADR 022 (corrige ADR 007 §2)
-- Mapper `registrations` : colonne JSON auto-suffisante (`team_id`/`team_name`/`captain_id`/`roster` de `PlayerId`), pas de lookup repository nécessaire à l'hydratation — voir ADR 022
+- ✅ Mapper `registrations` : colonne JSON auto-suffisante (`team_id`/`team_name`/`captain_id`), pas de lookup repository nécessaire à l'hydratation — voir ADR 022
 - Mapper `bracket` (interface polymorphe `Bracket`/`SingleEliminationBracket`/décorateur)
 
 #### 5c bis — Outillage transverse
