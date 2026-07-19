@@ -3,6 +3,7 @@ doctrine:
         types:
             competition_id: App\Competition\Infrastructure\Persistence\Doctrine\Type\CompetitionIdType
             player_id: App\Competition\Infrastructure\Persistence\Doctrine\Type\PlayerIdType
+            registrations: App\Competition\Infrastructure\Persistence\Doctrine\Type\RegistrationsType
     orm:
         mappings:
             Competition:

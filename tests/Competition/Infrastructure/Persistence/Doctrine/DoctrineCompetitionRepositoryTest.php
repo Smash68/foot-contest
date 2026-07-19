@@ -55,6 +55,25 @@ final class DoctrineCompetitionRepositoryTest extends KernelTestCase
     }
 
     #[Test]
+    public function it_persists_registered_teams(): void
+    {
+        $entityManager = self::getContainer()->get(EntityManagerInterface::class);
+        $repository = new DoctrineCompetitionRepository($entityManager);
+
+        $id = $repository->nextIdentity();
+        $competition = Competition::create($id, 'Summer Cup', TeamCapacity::of(2, 4));
+        $competition->register($this->team('a', 'Team A'));
+        $competition->register($this->team('b', 'Team B'));
+
+        $repository->save($competition);
+        $entityManager->clear();
+
+        $found = $repository->ofId($id);
+
+        self::assertSame(2, $found->countRegistrations());
+    }
+
+    #[Test]
     public function it_persists_the_competition_name(): void
     {
         $entityManager = self::getContainer()->get(EntityManagerInterface::class);
