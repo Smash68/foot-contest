@@ -7,7 +7,7 @@ namespace App\Competition\Domain\Format\SingleElimination;
 use App\Competition\Domain\Model\Bracket;
 use App\Competition\Domain\Model\EncounterId;
 use App\Competition\Domain\Model\Round;
-use App\Competition\Domain\Model\Team;
+use App\Competition\Domain\Model\TeamId;
 use App\Competition\Domain\Service\BracketGenerator;
 
 final class BracketGeneratorWithThirdPlaceMatch implements BracketGenerator
@@ -17,10 +17,10 @@ final class BracketGeneratorWithThirdPlaceMatch implements BracketGenerator
     ) {
     }
 
-    /** @param Team[] $teams */
-    public function generate(array $teams): Bracket
+    /** @param TeamId[] $teamIds */
+    public function generate(array $teamIds): Bracket
     {
-        $bracket = $this->inner->generate($teams);
+        $bracket = $this->inner->generate($teamIds);
 
         if ($bracket->countRounds() < 2) {
             throw new \InvalidArgumentException('A third place match requires a semi-final round.');

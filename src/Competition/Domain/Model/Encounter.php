@@ -62,7 +62,7 @@ final class Encounter
         return $this->result !== null;
     }
 
-    public function getWinner(): Team
+    public function getWinner(): TeamId
     {
         if ($this->result === null) {
             throw new \LogicException("Encounter '{$this->id->value}' has no result yet.");
@@ -70,10 +70,10 @@ final class Encounter
 
         $participant = $this->result->winner() === Side::Home ? $this->home : $this->away;
 
-        return $participant->getTeam();
+        return $participant->getTeamId();
     }
 
-    public function getLoser(): Team
+    public function getLoser(): TeamId
     {
         if ($this->result === null) {
             throw new \LogicException("Encounter '{$this->id->value}' has no result yet.");
@@ -81,6 +81,6 @@ final class Encounter
 
         $participant = $this->result->winner() === Side::Home ? $this->away : $this->home;
 
-        return $participant->getTeam();
+        return $participant->getTeamId();
     }
 }

@@ -9,7 +9,6 @@ use App\Competition\Domain\Format\SingleElimination\BracketWithThirdPlaceMatch;
 use App\Competition\Domain\Format\SingleElimination\SingleEliminationBracketGenerator;
 use App\Competition\Domain\Model\EncounterResult;
 use App\Competition\Domain\Model\Score;
-use App\Competition\Domain\Model\Team;
 use App\Competition\Domain\Model\TeamId;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -26,7 +25,7 @@ final class BracketGeneratorWithThirdPlaceMatchTest extends TestCase
     #[Test]
     public function it_generates_a_bracket_with_third_place_match_capability(): void
     {
-        $bracket = $this->generator->generate($this->makeTeams(4));
+        $bracket = $this->generator->generate($this->makeTeamIds(4));
 
         self::assertInstanceOf(BracketWithThirdPlaceMatch::class, $bracket);
         self::assertNull($bracket->getThirdPlaceEncounter());
@@ -35,7 +34,7 @@ final class BracketGeneratorWithThirdPlaceMatchTest extends TestCase
     #[Test]
     public function third_place_encounter_becomes_available_once_both_semi_finals_are_played(): void
     {
-        $bracket = $this->generator->generate($this->makeTeams(4));
+        $bracket = $this->generator->generate($this->makeTeamIds(4));
         $semiFinals = $bracket->getRound(1)->getEncounters();
 
         $bracket->recordResult($semiFinals[0]->id, EncounterResult::regularTime(Score::of(2, 0)));
@@ -52,7 +51,7 @@ final class BracketGeneratorWithThirdPlaceMatchTest extends TestCase
     {
         $this->expectException(\InvalidArgumentException::class);
 
-        $this->generator->generate($this->makeTeams(2));
+        $this->generator->generate($this->makeTeamIds(2));
     }
 
     #[Test]
@@ -60,14 +59,14 @@ final class BracketGeneratorWithThirdPlaceMatchTest extends TestCase
     {
         $this->expectException(\InvalidArgumentException::class);
 
-        $this->generator->generate($this->makeTeams(3));
+        $this->generator->generate($this->makeTeamIds(3));
     }
 
     // --- helpers ---
 
-    /** @return Team[] */
-    private function makeTeams(int $count): array
+    /** @return TeamId[] */
+    private function makeTeamIds(int $count): array
     {
-        return array_map(fn (int $i) => new Team(new TeamId("t{$i}"), "Team {$i}"), range(1, $count));
+        return array_map(fn (int $i) => new TeamId("t{$i}"), range(1, $count));
     }
 }

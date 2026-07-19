@@ -12,7 +12,6 @@ use App\Competition\Domain\Model\Participant;
 use App\Competition\Domain\Model\Round;
 use App\Competition\Domain\Model\Score;
 use App\Competition\Domain\Model\SingleEliminationBracket;
-use App\Competition\Domain\Model\Team;
 use App\Competition\Domain\Model\TeamId;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -28,7 +27,7 @@ final class BracketProgressTest extends TestCase
 
         $homeParticipant = $bracket->getRound(2)->getEncounters()[0]->getHome();
         self::assertTrue($homeParticipant->isTeam());
-        self::assertSame($teamA->getId(), $homeParticipant->getTeam()->getId());
+        self::assertSame($teamA, $homeParticipant->getTeamId());
     }
 
     #[Test]
@@ -40,7 +39,7 @@ final class BracketProgressTest extends TestCase
 
         $homeParticipant = $bracket->getRound(2)->getEncounters()[0]->getHome();
         self::assertTrue($homeParticipant->isTeam());
-        self::assertSame($teamB->getId(), $homeParticipant->getTeam()->getId());
+        self::assertSame($teamB, $homeParticipant->getTeamId());
     }
 
     #[Test]
@@ -67,13 +66,13 @@ final class BracketProgressTest extends TestCase
 
     // --- helpers ---
 
-    /** @return array{bracket: Bracket, teamA: Team, teamB: Team, teamC: Team, teamD: Team} */
+    /** @return array{bracket: Bracket, teamA: TeamId, teamB: TeamId, teamC: TeamId, teamD: TeamId} */
     private function makeFourTeamBracket(): array
     {
-        $teamA = new Team(new TeamId('a'), 'Team A');
-        $teamB = new Team(new TeamId('b'), 'Team B');
-        $teamC = new Team(new TeamId('c'), 'Team C');
-        $teamD = new Team(new TeamId('d'), 'Team D');
+        $teamA = new TeamId('a');
+        $teamB = new TeamId('b');
+        $teamC = new TeamId('c');
+        $teamD = new TeamId('d');
 
         $enc1 = new Encounter(new EncounterId('enc-1'), Participant::forTeam($teamA), Participant::forTeam($teamB));
         $enc2 = new Encounter(new EncounterId('enc-2'), Participant::forTeam($teamC), Participant::forTeam($teamD));

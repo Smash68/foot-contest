@@ -13,7 +13,6 @@ use App\Competition\Domain\Model\Participant;
 use App\Competition\Domain\Model\Round;
 use App\Competition\Domain\Model\Score;
 use App\Competition\Domain\Model\SingleEliminationBracket;
-use App\Competition\Domain\Model\Team;
 use App\Competition\Domain\Model\TeamId;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -49,8 +48,8 @@ final class BracketWithThirdPlaceMatchTest extends TestCase
         $thirdPlaceEncounter = $bracket->getThirdPlaceEncounter();
 
         self::assertNotNull($thirdPlaceEncounter);
-        self::assertSame($teamB->getId(), $thirdPlaceEncounter->getHome()->getTeam()->getId());
-        self::assertSame($teamC->getId(), $thirdPlaceEncounter->getAway()->getTeam()->getId());
+        self::assertSame($teamB, $thirdPlaceEncounter->getHome()->getTeamId());
+        self::assertSame($teamC, $thirdPlaceEncounter->getAway()->getTeamId());
     }
 
     #[Test]
@@ -63,7 +62,7 @@ final class BracketWithThirdPlaceMatchTest extends TestCase
 
         $bracket->recordResult($thirdPlaceId, EncounterResult::regularTime(Score::of(3, 1)));
 
-        self::assertSame($teamB->getId(), $bracket->getThirdPlaceEncounter()->getWinner()->getId());
+        self::assertSame($teamB, $bracket->getThirdPlaceEncounter()->getWinner());
     }
 
     #[Test]
@@ -76,7 +75,7 @@ final class BracketWithThirdPlaceMatchTest extends TestCase
         $bracket->recordResult(new EncounterId('final'), EncounterResult::regularTime(Score::of(1, 0)));
 
         self::assertTrue($bracket->isComplete());
-        self::assertSame($teamA->getId(), $bracket->getChampion()->getId());
+        self::assertSame($teamA, $bracket->getChampion());
     }
 
     #[Test]
@@ -94,13 +93,13 @@ final class BracketWithThirdPlaceMatchTest extends TestCase
 
     // --- helpers ---
 
-    /** @return array{bracket: BracketWithThirdPlaceMatch, teamA: Team, teamB: Team, teamC: Team, teamD: Team} */
+    /** @return array{bracket: BracketWithThirdPlaceMatch, teamA: TeamId, teamB: TeamId, teamC: TeamId, teamD: TeamId} */
     private function makeFourTeamBracketWithThirdPlaceMatch(): array
     {
-        $teamA = new Team(new TeamId('a'), 'Team A');
-        $teamB = new Team(new TeamId('b'), 'Team B');
-        $teamC = new Team(new TeamId('c'), 'Team C');
-        $teamD = new Team(new TeamId('d'), 'Team D');
+        $teamA = new TeamId('a');
+        $teamB = new TeamId('b');
+        $teamC = new TeamId('c');
+        $teamD = new TeamId('d');
 
         $semiFinal1 = new Encounter(new EncounterId('semi-1'), Participant::forTeam($teamA), Participant::forTeam($teamB));
         $semiFinal2 = new Encounter(new EncounterId('semi-2'), Participant::forTeam($teamC), Participant::forTeam($teamD));

@@ -9,7 +9,6 @@ use App\Competition\Domain\Model\EncounterId;
 use App\Competition\Domain\Model\EncounterResult;
 use App\Competition\Domain\Model\Participant;
 use App\Competition\Domain\Model\Score;
-use App\Competition\Domain\Model\Team;
 use App\Competition\Domain\Model\TeamId;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -31,31 +30,31 @@ final class EncounterTest extends TestCase
     #[Test]
     public function it_exposes_home_winner(): void
     {
-        $teamA = new Team(new TeamId('a'), 'Team A');
+        $teamA = new TeamId('a');
         $encounter = new Encounter(
             new EncounterId('e1'),
             Participant::forTeam($teamA),
-            Participant::forTeam(new Team(new TeamId('b'), 'Team B')),
+            Participant::forTeam(new TeamId('b')),
         );
 
         $encounter->play(EncounterResult::regularTime(Score::of(2, 0)));
 
-        self::assertSame($teamA->getId(), $encounter->getWinner()->getId());
+        self::assertSame($teamA, $encounter->getWinner());
     }
 
     #[Test]
     public function it_exposes_away_winner(): void
     {
-        $teamB = new Team(new TeamId('b'), 'Team B');
+        $teamB = new TeamId('b');
         $encounter = new Encounter(
             new EncounterId('e1'),
-            Participant::forTeam(new Team(new TeamId('a'), 'Team A')),
+            Participant::forTeam(new TeamId('a')),
             Participant::forTeam($teamB),
         );
 
         $encounter->play(EncounterResult::regularTime(Score::of(0, 1)));
 
-        self::assertSame($teamB->getId(), $encounter->getWinner()->getId());
+        self::assertSame($teamB, $encounter->getWinner());
     }
 
     #[Test]
@@ -69,31 +68,31 @@ final class EncounterTest extends TestCase
     #[Test]
     public function it_exposes_away_loser(): void
     {
-        $teamB = new Team(new TeamId('b'), 'Team B');
+        $teamB = new TeamId('b');
         $encounter = new Encounter(
             new EncounterId('e1'),
-            Participant::forTeam(new Team(new TeamId('a'), 'Team A')),
+            Participant::forTeam(new TeamId('a')),
             Participant::forTeam($teamB),
         );
 
         $encounter->play(EncounterResult::regularTime(Score::of(2, 0)));
 
-        self::assertSame($teamB->getId(), $encounter->getLoser()->getId());
+        self::assertSame($teamB, $encounter->getLoser());
     }
 
     #[Test]
     public function it_exposes_home_loser(): void
     {
-        $teamA = new Team(new TeamId('a'), 'Team A');
+        $teamA = new TeamId('a');
         $encounter = new Encounter(
             new EncounterId('e1'),
             Participant::forTeam($teamA),
-            Participant::forTeam(new Team(new TeamId('b'), 'Team B')),
+            Participant::forTeam(new TeamId('b')),
         );
 
         $encounter->play(EncounterResult::regularTime(Score::of(0, 1)));
 
-        self::assertSame($teamA->getId(), $encounter->getLoser()->getId());
+        self::assertSame($teamA, $encounter->getLoser());
     }
 
     #[Test]
@@ -121,7 +120,7 @@ final class EncounterTest extends TestCase
         $encounter = new Encounter(
             new EncounterId('e1'),
             Participant::pendingWinnerOf(new EncounterId('prev-1')),
-            Participant::forTeam(new Team(new TeamId('b'), 'Team B')),
+            Participant::forTeam(new TeamId('b')),
         );
 
         $this->expectException(\LogicException::class);
@@ -134,7 +133,7 @@ final class EncounterTest extends TestCase
     {
         $encounter = new Encounter(
             new EncounterId('e1'),
-            Participant::forTeam(new Team(new TeamId('a'), 'Team A')),
+            Participant::forTeam(new TeamId('a')),
             Participant::pendingWinnerOf(new EncounterId('prev-2')),
         );
 
@@ -146,33 +145,33 @@ final class EncounterTest extends TestCase
     #[Test]
     public function it_can_resolve_home_participant(): void
     {
-        $winner = new Team(new TeamId('w'), 'Winner');
+        $winner = new TeamId('w');
         $encounter = new Encounter(
             new EncounterId('e1'),
             Participant::pendingWinnerOf(new EncounterId('prev-1')),
-            Participant::forTeam(new Team(new TeamId('b'), 'Team B')),
+            Participant::forTeam(new TeamId('b')),
         );
 
         $encounter->resolveHome(Participant::forTeam($winner));
 
         self::assertTrue($encounter->getHome()->isTeam());
-        self::assertSame($winner->getId(), $encounter->getHome()->getTeam()->getId());
+        self::assertSame($winner, $encounter->getHome()->getTeamId());
     }
 
     #[Test]
     public function it_can_resolve_away_participant(): void
     {
-        $winner = new Team(new TeamId('w'), 'Winner');
+        $winner = new TeamId('w');
         $encounter = new Encounter(
             new EncounterId('e1'),
-            Participant::forTeam(new Team(new TeamId('a'), 'Team A')),
+            Participant::forTeam(new TeamId('a')),
             Participant::pendingWinnerOf(new EncounterId('prev-2')),
         );
 
         $encounter->resolveAway(Participant::forTeam($winner));
 
         self::assertTrue($encounter->getAway()->isTeam());
-        self::assertSame($winner->getId(), $encounter->getAway()->getTeam()->getId());
+        self::assertSame($winner, $encounter->getAway()->getTeamId());
     }
 
     // --- helpers ---
@@ -181,8 +180,8 @@ final class EncounterTest extends TestCase
     {
         return new Encounter(
             new EncounterId('e1'),
-            Participant::forTeam(new Team(new TeamId('a'), 'Team A')),
-            Participant::forTeam(new Team(new TeamId('b'), 'Team B')),
+            Participant::forTeam(new TeamId('a')),
+            Participant::forTeam(new TeamId('b')),
         );
     }
 }

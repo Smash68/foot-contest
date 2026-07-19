@@ -112,12 +112,12 @@ final class Competition
             throw new \LogicException("Competition '{$this->id->value}' bracket has already been generated.");
         }
 
-        $teams = array_map(
-            fn (Registration $registration) => $registration->getTeam(),
+        $teamIds = array_map(
+            fn (Registration $registration) => $registration->getTeamId(),
             $this->registrations,
         );
 
-        $this->bracket = $generator->generate($teams);
+        $this->bracket = $generator->generate($teamIds);
     }
 
     public function getBracket(): ?Bracket

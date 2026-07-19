@@ -7,15 +7,15 @@ namespace App\Competition\Domain\Model;
 final readonly class Participant
 {
     private function __construct(
-        private ?Team $team,
+        private ?TeamId $teamId,
         private bool $isBye,
         private ?EncounterId $pendingWinnerOfEncounterId,
     ) {
     }
 
-    public static function forTeam(Team $team): self
+    public static function forTeam(TeamId $teamId): self
     {
-        return new self($team, false, null);
+        return new self($teamId, false, null);
     }
 
     public static function bye(): self
@@ -30,7 +30,7 @@ final readonly class Participant
 
     public function isTeam(): bool
     {
-        return $this->team !== null;
+        return $this->teamId !== null;
     }
 
     public function isBye(): bool
@@ -43,13 +43,13 @@ final readonly class Participant
         return $this->pendingWinnerOfEncounterId !== null;
     }
 
-    public function getTeam(): Team
+    public function getTeamId(): TeamId
     {
-        if ($this->team === null) {
+        if ($this->teamId === null) {
             throw new \LogicException('Participant does not hold a team.');
         }
 
-        return $this->team;
+        return $this->teamId;
     }
 
     public function getPendingWinnerOfEncounterId(): EncounterId

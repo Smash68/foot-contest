@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Tests\Competition\Domain;
 
 use App\Competition\Domain\Format\SingleElimination\SingleEliminationBracketGenerator;
-use App\Competition\Domain\Model\Team;
 use App\Competition\Domain\Model\TeamId;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
@@ -25,7 +24,7 @@ final class SingleEliminationBracketGeneratorTest extends TestCase
     {
         $this->expectException(\InvalidArgumentException::class);
 
-        $this->generator->generate([$this->team('A')]);
+        $this->generator->generate([new TeamId('a')]);
     }
 
     #[Test]
@@ -35,9 +34,9 @@ final class SingleEliminationBracketGeneratorTest extends TestCase
         int $expectedRounds,
         int $expectedTotalEncounters,
     ): void {
-        $teams = $this->makeTeams($teamCount);
+        $teamIds = $this->makeTeamIds($teamCount);
 
-        $bracket = $this->generator->generate($teams);
+        $bracket = $this->generator->generate($teamIds);
 
         self::assertSame($expectedRounds, $bracket->countRounds());
         self::assertSame($expectedTotalEncounters, $bracket->countEncounters());
@@ -62,9 +61,9 @@ final class SingleEliminationBracketGeneratorTest extends TestCase
         int $teamCount,
         int $expectedRound1Encounters,
     ): void {
-        $teams = $this->makeTeams($teamCount);
+        $teamIds = $this->makeTeamIds($teamCount);
 
-        $bracket = $this->generator->generate($teams);
+        $bracket = $this->generator->generate($teamIds);
 
         self::assertSame($expectedRound1Encounters, $bracket->getRound(1)->countEncounters());
     }
@@ -84,7 +83,7 @@ final class SingleEliminationBracketGeneratorTest extends TestCase
     #[Test]
     public function round_one_slots_are_all_concrete_teams(): void
     {
-        $bracket = $this->generator->generate($this->makeTeams(4));
+        $bracket = $this->generator->generate($this->makeTeamIds(4));
 
         foreach ($bracket->getRound(1)->getEncounters() as $encounter) {
             self::assertTrue($encounter->getHome()->isTeam());
@@ -95,7 +94,7 @@ final class SingleEliminationBracketGeneratorTest extends TestCase
     #[Test]
     public function subsequent_rounds_reference_winners_of_previous_encounters(): void
     {
-        $bracket = $this->generator->generate($this->makeTeams(4));
+        $bracket = $this->generator->generate($this->makeTeamIds(4));
 
         // Round 2 (the final) must reference winners of round 1 encounters
         $round2Encounter = $bracket->getRound(2)->getEncounters()[0];
@@ -110,7 +109,7 @@ final class SingleEliminationBracketGeneratorTest extends TestCase
         // 3 teams: 1 bye encounter + 1 real encounter in R1
         // → the team with a bye is already known in R2 (not pending)
         // → the winner of the real encounter is still pending in R2
-        $bracket = $this->generator->generate($this->makeTeams(3));
+        $bracket = $this->generator->generate($this->makeTeamIds(3));
 
         $round2Encounter = $bracket->getRound(2)->getEncounters()[0];
 
@@ -122,7 +121,7 @@ final class SingleEliminationBracketGeneratorTest extends TestCase
     public function total_encounters_always_equals_next_power_of_two_minus_one(): void
     {
         foreach ([2, 3, 4, 5, 6, 7, 8, 9, 12, 16] as $count) {
-            $bracket = $this->generator->generate($this->makeTeams($count));
+            $bracket = $this->generator->generate($this->makeTeamIds($count));
             $expectedEncounters = 2 ** (int) ceil(log($count, 2)) - 1;
 
             self::assertSame(
@@ -136,28 +135,27 @@ final class SingleEliminationBracketGeneratorTest extends TestCase
     #[Test]
     public function all_round_one_teams_are_from_the_provided_list(): void
     {
-        $teams = $this->makeTeams(4);
-        $teamIds = array_map(fn (Team $t) => $t->getId(), $teams);
+        $teamIds = $this->makeTeamIds(4);
 
-        $bracket = $this->generator->generate($teams);
+        $bracket = $this->generator->generate($teamIds);
 
         foreach ($bracket->getRound(1)->getEncounters() as $encounter) {
-            self::assertContains($encounter->getHome()->getTeam()->getId(), $teamIds);
-            self::assertContains($encounter->getAway()->getTeam()->getId(), $teamIds);
+            self::assertContains($encounter->getHome()->getTeamId(), $teamIds);
+            self::assertContains($encounter->getAway()->getTeamId(), $teamIds);
         }
     }
 
     #[Test]
     public function each_team_appears_exactly_once_in_round_one(): void
     {
-        $teams = $this->makeTeams(8);
+        $teamIds = $this->makeTeamIds(8);
 
-        $bracket = $this->generator->generate($teams);
+        $bracket = $this->generator->generate($teamIds);
 
         $seenIds = [];
         foreach ($bracket->getRound(1)->getEncounters() as $encounter) {
-            $seenIds[] = $encounter->getHome()->getTeam()->getId()->value;
-            $seenIds[] = $encounter->getAway()->getTeam()->getId()->value;
+            $seenIds[] = $encounter->getHome()->getTeamId()->value;
+            $seenIds[] = $encounter->getAway()->getTeamId()->value;
         }
 
         self::assertCount(count($seenIds), array_unique($seenIds), 'Duplicate team in round 1');
@@ -165,14 +163,9 @@ final class SingleEliminationBracketGeneratorTest extends TestCase
 
     // --- helpers ---
 
-    /** @return Team[] */
-    private function makeTeams(int $count): array
+    /** @return TeamId[] */
+    private function makeTeamIds(int $count): array
     {
-        return array_map(fn (int $i) => $this->team("Team-{$i}"), range(1, $count));
-    }
-
-    private function team(string $name): Team
-    {
-        return new Team(new TeamId($name), $name);
+        return array_map(fn (int $i) => new TeamId("Team-{$i}"), range(1, $count));
     }
 }

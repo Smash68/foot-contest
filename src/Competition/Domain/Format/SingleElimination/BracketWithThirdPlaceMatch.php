@@ -10,7 +10,7 @@ use App\Competition\Domain\Model\EncounterId;
 use App\Competition\Domain\Model\EncounterResult;
 use App\Competition\Domain\Model\Participant;
 use App\Competition\Domain\Model\Round;
-use App\Competition\Domain\Model\Team;
+use App\Competition\Domain\Model\TeamId;
 
 final class BracketWithThirdPlaceMatch implements Bracket
 {
@@ -47,7 +47,7 @@ final class BracketWithThirdPlaceMatch implements Bracket
         return $this->inner->isComplete();
     }
 
-    public function getChampion(): Team
+    public function getChampion(): TeamId
     {
         return $this->inner->getChampion();
     }

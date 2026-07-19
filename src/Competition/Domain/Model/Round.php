@@ -40,7 +40,7 @@ final class Round
         return null;
     }
 
-    public function resolveParticipant(EncounterId $sourceId, Team $winner): void
+    public function resolveParticipant(EncounterId $sourceId, TeamId $winner): void
     {
         foreach ($this->encounters as $encounter) {
             if ($encounter->getHome()->isPending() && $encounter->getHome()->getPendingWinnerOfEncounterId()->equals($sourceId)) {

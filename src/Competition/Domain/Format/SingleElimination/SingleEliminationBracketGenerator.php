@@ -10,25 +10,25 @@ use App\Competition\Domain\Model\EncounterId;
 use App\Competition\Domain\Model\Participant;
 use App\Competition\Domain\Model\Round;
 use App\Competition\Domain\Model\SingleEliminationBracket;
-use App\Competition\Domain\Model\Team;
+use App\Competition\Domain\Model\TeamId;
 use App\Competition\Domain\Service\BracketGenerator;
 
 final class SingleEliminationBracketGenerator implements BracketGenerator
 {
     private int $encounterCounter = 0;
 
-    /** @param Team[] $teams */
-    public function generate(array $teams): Bracket
+    /** @param TeamId[] $teamIds */
+    public function generate(array $teamIds): Bracket
     {
         $this->encounterCounter = 0;
 
-        if (count($teams) < 2) {
+        if (count($teamIds) < 2) {
             throw new \InvalidArgumentException('At least 2 teams are required.');
         }
 
-        shuffle($teams);
+        shuffle($teamIds);
 
-        $participants = $this->buildFirstRoundParticipants($teams);
+        $participants = $this->buildFirstRoundParticipants($teamIds);
         $rounds = [];
 
         for ($roundNumber = 1; count($participants) > 1; $roundNumber++) {
@@ -41,17 +41,17 @@ final class SingleEliminationBracketGenerator implements BracketGenerator
     }
 
     /**
-     * @param Team[] $teams
+     * @param TeamId[] $teamIds
      *
      * @return Participant[]
      */
-    private function buildFirstRoundParticipants(array $teams): array
+    private function buildFirstRoundParticipants(array $teamIds): array
     {
-        $numRounds = (int) ceil(log(count($teams), 2));
-        $numByes = 2 ** $numRounds - count($teams);
+        $numRounds = (int) ceil(log(count($teamIds), 2));
+        $numByes = 2 ** $numRounds - count($teamIds);
 
         $byeParticipants = array_fill(0, $numByes, Participant::bye());
-        $teamParticipants = array_map(fn (Team $t) => Participant::forTeam($t), $teams);
+        $teamParticipants = array_map(fn (TeamId $t) => Participant::forTeam($t), $teamIds);
 
         return array_merge($byeParticipants, $teamParticipants);
     }

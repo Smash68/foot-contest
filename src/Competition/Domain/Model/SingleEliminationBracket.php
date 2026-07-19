@@ -48,7 +48,7 @@ final class SingleEliminationBracket implements Bracket
         return $this->rounds[array_key_last($this->rounds)]->getEncounters()[0]->isCompleted();
     }
 
-    public function getChampion(): Team
+    public function getChampion(): TeamId
     {
         if (!$this->isComplete()) {
             throw new \LogicException('Competition is not complete yet.');
