@@ -6,7 +6,7 @@ Vision produit et acteurs : [`README.md`](README.md). Modèle de domaine et conv
 
 #### 1a — Détection de fin de tournoi ✅ implémenté
 
-Quand la finale est jouée (`recordResult()` sur le dernier encounter), le bracket est terminé. Exposé via `Bracket::isComplete(): bool` et `Bracket::getChampion(): Team`.
+Quand la finale est jouée (`recordResult()` sur le dernier encounter), le bracket est terminé. Exposé via `Bracket::isComplete(): bool` et `Bracket::getChampion(): TeamId` (`Bracket` référence les équipes par id depuis l'ADR 022, pas par `Team` complète).
 
 #### 1b — Score enrichi ✅ implémenté
 
@@ -18,7 +18,7 @@ Optionnel, activé par composition (`BracketGeneratorWithThirdPlaceMatch` / `Bra
 
 ## Priorité 3 — Inscription au tournoi ✅ implémenté (couche domaine)
 
-Agrégat `Competition` : création (`TeamCapacity` valide min/max), inscription/désistement d'une équipe (`Registration` = `Team` + `Player` capitaine), clôture et génération du bracket comme deux actions manuelles et distinctes de l'organisateur — voir ADR 007.
+Agrégat `Competition` : création (`TeamCapacity` valide min/max), inscription/désistement d'une équipe, clôture et génération du bracket comme deux actions manuelles et distinctes de l'organisateur — voir ADR 007. Modélisation corrigée depuis : `Registration` a disparu, `Team` porte directement `name`/`captainId: PlayerId`/`roster: PlayerId[]` — voir ADR 022.
 
 Couche `Application/` volontairement reportée à la priorité 5 : sans repository, un use case n'aurait aucune orchestration réelle à faire au-delà d'un appel direct à l'agrégat.
 
@@ -36,7 +36,7 @@ Couche `Application/` volontairement reportée à la priorité 5 : sans reposito
 
 #### 5b — Persistance réelle 🚧 en cours
 
-Remplacer `InMemoryCompetitionRepository` par une vraie base de données. Choix retenu : Doctrine ORM + PostgreSQL, bootstrappé via Flex. Voir ADR 010 : mapping XML de `Competition` fait pour `id`/`name`/`capacity`/`closed` (`DoctrineCompetitionRepository`, testé par aller-retour réel sur PostgreSQL), `registrations` et `bracket` volontairement pas encore mappés (collection de VOs et polymorphisme d'agrégat, décisions à part entière).
+Remplacer `InMemoryCompetitionRepository` par une vraie base de données. Choix retenu : Doctrine ORM + PostgreSQL, bootstrappé via Flex. Voir ADR 010 : mapping XML de `Competition` fait pour `id`/`name`/`capacity`/`closed` (`DoctrineCompetitionRepository`, testé par aller-retour réel sur PostgreSQL), `registrations` et `bracket` volontairement pas encore mappés à ce stade (collection de VOs et polymorphisme d'agrégat, décisions à part entière — la première est résolue par l'ADR 022).
 
 Reste à faire :
 - ✅ Environnement Docker (container `app` PHP-CLI + `database` PostgreSQL) — voir ADR 011
@@ -45,7 +45,9 @@ Reste à faire :
 - ✅ `services_test.yaml` : garde `InMemoryCompetitionRepository` pour `CreateCompetitionControllerTest` (test de contrat HTTP, pas de persistance — la couverture Doctrine vit déjà dans `DoctrineCompetitionRepositoryTest`) — voir ADR 013
 - ✅ Smoke test e2e contre la stack réelle (`CreateCompetitionEndToEndTest`, un seul happy path — voir ADR 014)
 - ✅ `CreateCompetitionControllerTest` couvre les 4 réponses de la route (201/422×3/400) ; violation de règle métier mappée en 422 JSON au lieu d'un 500 qui fuitait le message d'exception — voir ADR 015
-- Mapper `registrations` (collection de `Registration` = `Team` + `Player`)
+- ✅ Persistance de `Player` en agrégat indépendant (table `id`/`name`, `PlayerRepository`) — un joueur existe indépendamment de toute compétition — voir ADR 022
+- `Bracket` référence les équipes par `TeamId` (pas par `Team` complète) ; `Team` absorbe `Registration` (`name`/`captainId`/`roster`), reste une entité interne à `Competition` sans repository dédié — voir ADR 022 (corrige ADR 007 §2)
+- Mapper `registrations` : colonne JSON auto-suffisante (`team_id`/`team_name`/`captain_id`/`roster` de `PlayerId`), pas de lookup repository nécessaire à l'hydratation — voir ADR 022
 - Mapper `bracket` (interface polymorphe `Bracket`/`SingleEliminationBracket`/décorateur)
 
 #### 5c bis — Outillage transverse
@@ -63,7 +65,10 @@ Reste à faire :
 
 ## Priorité 6 — Gestion des équipes et des utilisateurs
 
-- CRUD équipe (`Team`) : création, modification, suppression, consultation — indépendant de l'inscription à une compétition (`Registration`)
+Persistance de `Player` en agrégat indépendant avancée à la Priorité 5b (voir ADR 022) ; `Team` n'a pas d'existence hors d'une `Competition`, donc pas de CRUD indépendant à construire ici. Reste :
+
+- Flux "rejoindre une équipe" : un joueur crée une équipe (devient capitaine) ou demande à rejoindre une équipe déjà inscrite à la même compétition, validation par le capitaine requise — voir ADR 022
+- Règles de cohérence inter-équipes d'une même compétition : unicité du nom d'équipe, un joueur ne peut appartenir qu'à une seule `Team` par `Competition` — incrément dédié, volontairement hors périmètre de l'ADR 022
 - Gestion des utilisateurs : rôles et droits (organisateur / capitaine / joueur, cf. acteurs dans `README.md`)
 
 ## Priorité 7 — Gestion de la compétition en cours
