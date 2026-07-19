@@ -91,6 +91,21 @@ final class BracketWithThirdPlaceMatchTest extends TestCase
         self::assertFalse($bracket->isComplete()); // final not played yet
     }
 
+    #[Test]
+    public function it_exposes_the_fixture_it_was_wired_with(): void
+    {
+        $innerBracket = new SingleEliminationBracket([]);
+        $fixture = new ThirdPlaceFixture(
+            new EncounterId('third-place'),
+            new EncounterId('semi-1'),
+            new EncounterId('semi-2'),
+        );
+
+        $bracket = new BracketWithThirdPlaceMatch($innerBracket, $fixture);
+
+        self::assertSame($fixture, $bracket->getFixture());
+    }
+
     // --- helpers ---
 
     /** @return array{bracket: BracketWithThirdPlaceMatch, teamA: TeamId, teamB: TeamId, teamC: TeamId, teamD: TeamId} */

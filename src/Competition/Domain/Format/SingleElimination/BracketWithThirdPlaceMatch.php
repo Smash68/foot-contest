@@ -57,6 +57,11 @@ final class BracketWithThirdPlaceMatch implements Bracket
         return $this->thirdPlaceEncounter;
     }
 
+    public function getFixture(): ThirdPlaceFixture
+    {
+        return $this->fixture;
+    }
+
     public function recordResult(EncounterId $encounterId, EncounterResult $result): void
     {
         if ($this->thirdPlaceEncounter !== null && $this->thirdPlaceEncounter->id->equals($encounterId)) {
