@@ -34,9 +34,21 @@ Décision retenue (première itération, à réévaluer après implémentation) 
 
 Une alternative a été identifiée en discussion — supprimer entièrement l'état caché en recalculant `thirdPlaceEncounter` à la demande à chaque appel de `getThirdPlaceEncounter()` (à partir de `inner` + un `?EncounterResult` stocké au lieu d'un `?Encounter`), ce qui aurait rendu le constructeur et `recordResult()` seuls suffisants pour l'hydratation, sans réflexion. Reportée : à réévaluer une fois la version par réflexion implémentée et vécue.
 
+### 5. `Bracket` reste sans identité ni repository propres — pas de scission en agrégat séparé
+
+Question posée en cours de session : enregistrer un résultat a-t-il vraiment besoin de charger toute la `Competition` (équipes, capacité, statut) alors qu'il ne touche que le `Bracket` ? L'ADR 007 §1 anticipait explicitement ce point ("la référence par ID n'aurait de sens qu'une fois un repository introduit") — signal réel, pas ignoré. L'ADR 004 ("la couche application... persistera l'agrégat [Bracket]") a été écartée comme argument à l'appui : elle date du 2026-07-01, avant la création de `Competition` (ADR 007, 2026-07-15) — elle décrivait `Bracket` comme unique agrégat root de l'époque, pas un engagement pris en connaissance du modèle actuel à deux agrégats.
+
+Décision : ne pas scinder maintenant. Deux raisons concrètes, pas seulement la lettre d'une ADR passée :
+
+- **Aucune contention réelle.** `register()`/`withdraw()` sont bloqués dès `closeRegistration()` (`assertOpenForRegistration()`), qui précède toujours `generateBracket()`. Au moment où des résultats s'enregistrent, les autres champs de `Competition` sont déjà figés — il n'y a jamais d'écriture concurrente entre "enregistrer un résultat" et "modifier la compétition". Le coût de l'embarquement est une lecture de quelques colonnes scalaires en plus, pas un risque de verrou ou d'incohérence.
+- **Aucun consommateur ne le justifie encore.** Aucun handler `RecordResult` n'existe (Priorité 5c, pas commencée) — `recordResult()` n'est exercé que par des tests appelant directement le domaine. Construire `BracketId` + `BracketRepository` + un handler `GenerateBracket` maintenant serait de l'infrastructure spéculative en avance sur un besoin non prouvé.
+
+**Déclencheur explicite pour revisiter** : si un futur handler `RecordResult` réel révèle un coût ou un couplage gênant à charger `Competition` en entier pour enregistrer un résultat (volumétrie, fréquence, contention observée), reconsidérer la scission à ce moment-là — avec les besoins réels du handler en main plutôt qu'en anticipation.
+
 ## Conséquences
 
 - `BracketType` (Doctrine DBAL `Type`, JSON) + entrée dans `config/packages/doctrine_competition.yaml` + champ `bracket` (nullable) dans `Competition.orm.xml`.
 - Testé par aller-retour réel sur PostgreSQL (`DoctrineCompetitionRepositoryTest`), même patron que `registrations` — pas de test unitaire isolé du `Type`.
 - `BracketWithThirdPlaceMatch` gagne un accesseur public `getFixture(): ThirdPlaceFixture` ; aucun autre changement de comportement métier. L'hydratation s'appuie sur `ReflectionMethod::invoke()` pour déclencher `buildThirdPlaceEncounterIfReady()`, seule méthode privée concernée.
 - Toute requête transverse multi-compétitions sur l'état des brackets (hors périmètre ici) sera un modèle de lecture séparé, pas un remaniement de ce mapping.
+- `Bracket` reste sans `BracketId` ni `BracketRepository` propres ; scission reportée jusqu'à ce qu'un besoin réel (handler `RecordResult`) la justifie.
