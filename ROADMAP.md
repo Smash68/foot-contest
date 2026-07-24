@@ -34,9 +34,9 @@ Couche `Application/` volontairement reportée à la priorité 5 : sans reposito
 
 `POST /competitions` → contrôleur → Command CQRS dispatchée sur le bus Messenger → Handler (génère l'id via le repository, persiste, retourne l'id créé) → réponse 201. Bootstrap Symfony complet via `symfony/flex`. Voir ADR 008 (couche Application/CQRS) et ADR 009 (bootstrap infrastructure). Persistance actuelle : `InMemoryCompetitionRepository`.
 
-#### 5b — Persistance réelle 🚧 en cours
+#### 5b — Persistance réelle ✅ implémenté
 
-Remplacer `InMemoryCompetitionRepository` par une vraie base de données. Choix retenu : Doctrine ORM + PostgreSQL, bootstrappé via Flex. Voir ADR 010 : mapping XML de `Competition` fait pour `id`/`name`/`capacity`/`closed` (`DoctrineCompetitionRepository`, testé par aller-retour réel sur PostgreSQL), `registrations` et `bracket` volontairement pas encore mappés à ce stade (collection de VOs et polymorphisme d'agrégat, décisions à part entière — la première est résolue par l'ADR 022).
+Remplacer `InMemoryCompetitionRepository` par une vraie base de données. Choix retenu : Doctrine ORM + PostgreSQL, bootstrappé via Flex. Voir ADR 010 : mapping XML de `Competition` fait pour `id`/`name`/`capacity`/`closed` (`DoctrineCompetitionRepository`, testé par aller-retour réel sur PostgreSQL). `registrations` (ADR 022) et `bracket` (ADR 023) mappés dans un second temps — collection de VOs et polymorphisme d'agrégat, deux décisions à part entière.
 
 Reste à faire :
 - ✅ Environnement Docker (container `app` PHP-CLI + `database` PostgreSQL) — voir ADR 011
@@ -46,9 +46,9 @@ Reste à faire :
 - ✅ Smoke test e2e contre la stack réelle (`CreateCompetitionEndToEndTest`, un seul happy path — voir ADR 014)
 - ✅ `CreateCompetitionControllerTest` couvre les 4 réponses de la route (201/422×3/400) ; violation de règle métier mappée en 422 JSON au lieu d'un 500 qui fuitait le message d'exception — voir ADR 015
 - ✅ Persistance de `Player` en agrégat indépendant (table `id`/`name`, `PlayerRepository`) — un joueur existe indépendamment de toute compétition — voir ADR 022
-- `Bracket` référence les équipes par `TeamId` (pas par `Team` complète) ; `Team` absorbe `Registration` (`name`/`captainId`/`roster`), reste une entité interne à `Competition` sans repository dédié — voir ADR 022 (corrige ADR 007 §2)
+- ✅ `Bracket` référence les équipes par `TeamId` (pas par `Team` complète) ; `Team` absorbe `Registration` (`name`/`captainId`/`roster`), reste une entité interne à `Competition` sans repository dédié — voir ADR 022 (corrige ADR 007 §2)
 - ✅ Mapper `registrations` : colonne JSON auto-suffisante (`team_id`/`team_name`/`captain_id`), pas de lookup repository nécessaire à l'hydratation — voir ADR 022
-- Mapper `bracket` (interface polymorphe `Bracket`/`SingleEliminationBracket`/décorateur)
+- ✅ Mapper `bracket` (interface polymorphe `Bracket`/`SingleEliminationBracket`/décorateur) : colonne JSON auto-suffisante scopée à une compétition, discriminant de type, décorateur 3e place reconstruit par réflexion (première itération) — voir ADR 023. `Bracket` reste sans `BracketId`/repository propres (scission envisagée puis reportée faute de besoin réel, ADR 023 §5).
 
 #### 5c bis — Outillage transverse
 
