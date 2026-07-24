@@ -214,6 +214,43 @@ final class DoctrineCompetitionRepositoryTest extends KernelTestCase
         self::assertNull($bracket->getThirdPlaceEncounter());
     }
 
+    #[Test]
+    public function it_persists_a_third_place_match_once_both_semi_finals_are_played(): void
+    {
+        $entityManager = self::getContainer()->get(EntityManagerInterface::class);
+        $repository = new DoctrineCompetitionRepository($entityManager);
+
+        $id = $repository->nextIdentity();
+        $competition = Competition::create($id, 'Summer Cup', TeamCapacity::of(2, 4));
+        $competition->register($this->team('a', 'Team A'));
+        $competition->register($this->team('b', 'Team B'));
+        $competition->register($this->team('c', 'Team C'));
+        $competition->register($this->team('d', 'Team D'));
+        $competition->closeRegistration();
+        $competition->generateBracket(new BracketGeneratorWithThirdPlaceMatch(new SingleEliminationBracketGenerator()));
+
+        $semiFinalOneId = new EncounterId('encounter-1');
+        $semiFinalTwoId = new EncounterId('encounter-2');
+        $semiFinalRound = $competition->getBracket()->getRound(1);
+        $expectedLoserOne = $semiFinalRound->findEncounterById($semiFinalOneId)->getAway()->getTeamId();
+        $expectedLoserTwo = $semiFinalRound->findEncounterById($semiFinalTwoId)->getAway()->getTeamId();
+        $competition->getBracket()->recordResult($semiFinalOneId, EncounterResult::regularTime(Score::of(2, 0)));
+        $competition->getBracket()->recordResult($semiFinalTwoId, EncounterResult::regularTime(Score::of(3, 1)));
+
+        $repository->save($competition);
+        $entityManager->clear();
+
+        $found = $repository->ofId($id);
+        $bracket = $found->getBracket();
+        self::assertInstanceOf(BracketWithThirdPlaceMatch::class, $bracket);
+        $thirdPlaceEncounter = $bracket->getThirdPlaceEncounter();
+
+        self::assertNotNull($thirdPlaceEncounter);
+        self::assertFalse($thirdPlaceEncounter->isCompleted());
+        self::assertSame($expectedLoserOne->value, $thirdPlaceEncounter->getHome()->getTeamId()->value);
+        self::assertSame($expectedLoserTwo->value, $thirdPlaceEncounter->getAway()->getTeamId()->value);
+    }
+
     private function team(string $teamId, string $teamName): Team
     {
         return Team::create(new TeamId($teamId), $teamName, new PlayerId("{$teamId}@example.com"));
