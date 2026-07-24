@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Tests\Competition\Infrastructure\Persistence\Doctrine;
 
+use App\Competition\Domain\Format\SingleElimination\BracketGeneratorWithThirdPlaceMatch;
+use App\Competition\Domain\Format\SingleElimination\BracketWithThirdPlaceMatch;
 use App\Competition\Domain\Format\SingleElimination\SingleEliminationBracketGenerator;
 use App\Competition\Domain\Model\Competition;
 use App\Competition\Domain\Model\EncounterId;
@@ -185,6 +187,31 @@ final class DoctrineCompetitionRepositoryTest extends KernelTestCase
 
         self::assertTrue($playedEncounter->isCompleted());
         self::assertSame($expectedWinner->value, $playedEncounter->getWinner()->value);
+    }
+
+    #[Test]
+    public function it_persists_a_bracket_with_a_third_place_match_not_yet_playable(): void
+    {
+        $entityManager = self::getContainer()->get(EntityManagerInterface::class);
+        $repository = new DoctrineCompetitionRepository($entityManager);
+
+        $id = $repository->nextIdentity();
+        $competition = Competition::create($id, 'Summer Cup', TeamCapacity::of(2, 4));
+        $competition->register($this->team('a', 'Team A'));
+        $competition->register($this->team('b', 'Team B'));
+        $competition->register($this->team('c', 'Team C'));
+        $competition->register($this->team('d', 'Team D'));
+        $competition->closeRegistration();
+        $competition->generateBracket(new BracketGeneratorWithThirdPlaceMatch(new SingleEliminationBracketGenerator()));
+
+        $repository->save($competition);
+        $entityManager->clear();
+
+        $found = $repository->ofId($id);
+        $bracket = $found->getBracket();
+
+        self::assertInstanceOf(BracketWithThirdPlaceMatch::class, $bracket);
+        self::assertNull($bracket->getThirdPlaceEncounter());
     }
 
     private function team(string $teamId, string $teamName): Team

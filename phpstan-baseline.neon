@@ -141,7 +141,7 @@ parameters:
 		-
 			message: '#^Call to an undefined method object\:\:clear\(\)\.$#'
 			identifier: method.notFound
-			count: 8
+			count: 9
 			path: tests/Competition/Infrastructure/Persistence/Doctrine/DoctrineCompetitionRepositoryTest.php
 
 		-
@@ -153,7 +153,7 @@ parameters:
 		-
 			message: '#^Cannot call method getBracket\(\) on App\\Competition\\Domain\\Model\\Competition\|null\.$#'
 			identifier: method.nonObject
-			count: 3
+			count: 4
 			path: tests/Competition/Infrastructure/Persistence/Doctrine/DoctrineCompetitionRepositoryTest.php
 
 		-
@@ -207,7 +207,7 @@ parameters:
 		-
 			message: '#^Parameter \#1 \$entityManager of class App\\Competition\\Infrastructure\\Persistence\\Doctrine\\DoctrineCompetitionRepository constructor expects Doctrine\\ORM\\EntityManagerInterface, object given\.$#'
 			identifier: argument.type
-			count: 8
+			count: 9
 			path: tests/Competition/Infrastructure/Persistence/Doctrine/DoctrineCompetitionRepositoryTest.php
 
 		-
