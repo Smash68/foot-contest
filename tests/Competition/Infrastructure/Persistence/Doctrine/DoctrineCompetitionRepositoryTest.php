@@ -251,6 +251,40 @@ final class DoctrineCompetitionRepositoryTest extends KernelTestCase
         self::assertSame($expectedLoserTwo->value, $thirdPlaceEncounter->getAway()->getTeamId()->value);
     }
 
+    #[Test]
+    public function it_persists_a_played_third_place_match_result(): void
+    {
+        $entityManager = self::getContainer()->get(EntityManagerInterface::class);
+        $repository = new DoctrineCompetitionRepository($entityManager);
+
+        $id = $repository->nextIdentity();
+        $competition = Competition::create($id, 'Summer Cup', TeamCapacity::of(2, 4));
+        $competition->register($this->team('a', 'Team A'));
+        $competition->register($this->team('b', 'Team B'));
+        $competition->register($this->team('c', 'Team C'));
+        $competition->register($this->team('d', 'Team D'));
+        $competition->closeRegistration();
+        $competition->generateBracket(new BracketGeneratorWithThirdPlaceMatch(new SingleEliminationBracketGenerator()));
+
+        $competition->getBracket()->recordResult(new EncounterId('encounter-1'), EncounterResult::regularTime(Score::of(2, 0)));
+        $competition->getBracket()->recordResult(new EncounterId('encounter-2'), EncounterResult::regularTime(Score::of(3, 1)));
+        $thirdPlaceEncounter = $competition->getBracket()->getThirdPlaceEncounter();
+        $expectedWinner = $thirdPlaceEncounter->getHome()->getTeamId();
+        $competition->getBracket()->recordResult($thirdPlaceEncounter->id, EncounterResult::regularTime(Score::of(1, 0)));
+
+        $repository->save($competition);
+        $entityManager->clear();
+
+        $found = $repository->ofId($id);
+        $bracket = $found->getBracket();
+        self::assertInstanceOf(BracketWithThirdPlaceMatch::class, $bracket);
+        $reloadedThirdPlaceEncounter = $bracket->getThirdPlaceEncounter();
+
+        self::assertNotNull($reloadedThirdPlaceEncounter);
+        self::assertTrue($reloadedThirdPlaceEncounter->isCompleted());
+        self::assertSame($expectedWinner->value, $reloadedThirdPlaceEncounter->getWinner()->value);
+    }
+
     private function team(string $teamId, string $teamName): Team
     {
         return Team::create(new TeamId($teamId), $teamName, new PlayerId("{$teamId}@example.com"));

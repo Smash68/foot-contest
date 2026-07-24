@@ -141,7 +141,19 @@ parameters:
 		-
 			message: '#^Call to an undefined method object\:\:clear\(\)\.$#'
 			identifier: method.notFound
-			count: 10
+			count: 11
+			path: tests/Competition/Infrastructure/Persistence/Doctrine/DoctrineCompetitionRepositoryTest.php
+
+		-
+			message: '#^Cannot access property \$id on mixed\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: tests/Competition/Infrastructure/Persistence/Doctrine/DoctrineCompetitionRepositoryTest.php
+
+		-
+			message: '#^Cannot access property \$value on mixed\.$#'
+			identifier: property.nonObject
+			count: 1
 			path: tests/Competition/Infrastructure/Persistence/Doctrine/DoctrineCompetitionRepositoryTest.php
 
 		-
@@ -159,11 +171,17 @@ parameters:
 		-
 			message: '#^Cannot call method getBracket\(\) on App\\Competition\\Domain\\Model\\Competition\|null\.$#'
 			identifier: method.nonObject
-			count: 5
+			count: 6
 			path: tests/Competition/Infrastructure/Persistence/Doctrine/DoctrineCompetitionRepositoryTest.php
 
 		-
 			message: '#^Cannot call method getHome\(\) on App\\Competition\\Domain\\Model\\Encounter\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: tests/Competition/Infrastructure/Persistence/Doctrine/DoctrineCompetitionRepositoryTest.php
+
+		-
+			message: '#^Cannot call method getHome\(\) on mixed\.$#'
 			identifier: method.nonObject
 			count: 1
 			path: tests/Competition/Infrastructure/Persistence/Doctrine/DoctrineCompetitionRepositoryTest.php
@@ -178,6 +196,18 @@ parameters:
 			message: '#^Cannot call method getRound\(\) on App\\Competition\\Domain\\Model\\Bracket\|null\.$#'
 			identifier: method.nonObject
 			count: 3
+			path: tests/Competition/Infrastructure/Persistence/Doctrine/DoctrineCompetitionRepositoryTest.php
+
+		-
+			message: '#^Cannot call method getTeamId\(\) on mixed\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: tests/Competition/Infrastructure/Persistence/Doctrine/DoctrineCompetitionRepositoryTest.php
+
+		-
+			message: '#^Cannot call method getThirdPlaceEncounter\(\) on App\\Competition\\Domain\\Model\\Bracket\|null\.$#'
+			identifier: method.nonObject
+			count: 1
 			path: tests/Competition/Infrastructure/Persistence/Doctrine/DoctrineCompetitionRepositoryTest.php
 
 		-
@@ -201,7 +231,7 @@ parameters:
 		-
 			message: '#^Cannot call method recordResult\(\) on App\\Competition\\Domain\\Model\\Bracket\|null\.$#'
 			identifier: method.nonObject
-			count: 3
+			count: 6
 			path: tests/Competition/Infrastructure/Persistence/Doctrine/DoctrineCompetitionRepositoryTest.php
 
 		-
@@ -213,7 +243,7 @@ parameters:
 		-
 			message: '#^Parameter \#1 \$entityManager of class App\\Competition\\Infrastructure\\Persistence\\Doctrine\\DoctrineCompetitionRepository constructor expects Doctrine\\ORM\\EntityManagerInterface, object given\.$#'
 			identifier: argument.type
-			count: 10
+			count: 11
 			path: tests/Competition/Infrastructure/Persistence/Doctrine/DoctrineCompetitionRepositoryTest.php
 
 		-
