@@ -11,6 +11,7 @@ use App\Competition\Domain\Model\CompetitionId;
 use App\Competition\Domain\Model\Player;
 use App\Competition\Domain\Model\PlayerId;
 use App\Competition\Domain\Model\TeamCapacity;
+use App\Competition\Domain\Model\TeamId;
 use App\Competition\Infrastructure\Persistence\InMemory\InMemoryCompetitionRepository;
 use App\Competition\Infrastructure\Persistence\InMemory\InMemoryPlayerRepository;
 use App\Competition\Infrastructure\Persistence\InMemory\InMemoryTeamRepository;
@@ -66,5 +67,21 @@ final class RegisterTeamHandlerTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
 
         $handler(new RegisterTeamCommand('c1', 'Team A', 'unknown@example.com'));
+    }
+
+    #[Test]
+    public function it_returns_the_registered_team_id(): void
+    {
+        $competitions = new InMemoryCompetitionRepository();
+        $competitions->save(Competition::create(new CompetitionId('c1'), 'Summer Cup', TeamCapacity::of(2, 4)));
+
+        $players = new InMemoryPlayerRepository();
+        $players->save(new Player(new PlayerId('captain@example.com'), 'Captain'));
+
+        $handler = new RegisterTeamHandler($competitions, $players, new InMemoryTeamRepository());
+
+        $teamId = $handler(new RegisterTeamCommand('c1', 'Team A', 'captain@example.com'));
+
+        self::assertInstanceOf(TeamId::class, $teamId);
     }
 }

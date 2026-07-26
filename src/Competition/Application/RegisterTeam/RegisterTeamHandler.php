@@ -7,6 +7,7 @@ namespace App\Competition\Application\RegisterTeam;
 use App\Competition\Domain\Model\CompetitionId;
 use App\Competition\Domain\Model\PlayerId;
 use App\Competition\Domain\Model\Team;
+use App\Competition\Domain\Model\TeamId;
 use App\Competition\Domain\Repository\CompetitionRepository;
 use App\Competition\Domain\Repository\PlayerRepository;
 use App\Competition\Domain\Repository\TeamRepository;
@@ -20,7 +21,7 @@ final readonly class RegisterTeamHandler
     ) {
     }
 
-    public function __invoke(RegisterTeamCommand $command): void
+    public function __invoke(RegisterTeamCommand $command): TeamId
     {
         $competition = $this->competitions->ofId(new CompetitionId($command->competitionId));
 
@@ -39,5 +40,7 @@ final readonly class RegisterTeamHandler
         $competition->register($team);
 
         $this->competitions->save($competition);
+
+        return $team->getId();
     }
 }
