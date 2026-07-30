@@ -57,9 +57,13 @@ Reste à faire :
 - ✅ PHPStan niveau max, `src/` propre, `tests/` en baseline, intégré à la CI — voir ADR 018
 - ✅ PHP-CS-Fixer `@Symfony` (revue règle par règle), intégré à la CI en vérification seule — voir ADR 019
 
-#### 5c — Reste à faire
+#### 5c — API REST pour les autres use cases
 
-- API REST ou GraphQL (autres use cases : inscription/désistement d'équipe, clôture, génération du bracket)
+- ✅ Inscription d'équipe (`RegisterTeam`) : `POST /competitions/{id}/teams` — CQRS (`RegisterTeamCommand`/`RegisterTeamHandler`), capitaine-seul (le roster complet se construit via le futur flux "rejoindre une équipe", Priorité 6). Le capitaine doit être un `Player` déjà persisté (échoue sinon) — mais aucun use case `CreatePlayer` n'existe encore, donc le flux n'est pas exerçable de bout en bout tant que celui-ci n'est pas construit. `TeamRepository` ajouté (port `nextIdentity()` uniquement, `Team` n'a pas de persistance propre — voir ADR 022) ; branché sur `InMemoryTeamRepository` en prod comme en test, pas de `DoctrineTeamRepository` nécessaire.
+- Créer un `Player` (`CreatePlayer`) — préalable nécessaire pour exercer `RegisterTeam` de bout en bout
+- Désistement d'équipe (`withdraw`)
+- Clôture de l'inscription (`closeRegistration`)
+- Génération du bracket (`generateBracket`)
 - Multi-tenancy
 - Front (Vue 3 ou Twig — à décider)
 
