@@ -26,19 +26,12 @@ services:
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
 
-    App\Competition\Application\CreateCompetition\CreateCompetitionHandler:
-        tags: ['messenger.message_handler']
-
-    App\Competition\Application\RegisterTeam\RegisterTeamHandler:
-        tags: ['messenger.message_handler']
-
-    App\Competition\Application\CreatePlayer\CreatePlayerHandler:
-        tags: ['messenger.message_handler']
-
-    App\Competition\Application\Withdraw\WithdrawHandler:
-        tags: ['messenger.message_handler']
-
-    App\Competition\Application\CloseRegistration\CloseRegistrationHandler:
+    # tags every Application Handler as a Messenger handler in one shot, based on the
+    # already-established naming convention (one *Handler.php per use case directory) —
+    # no per-use-case block to add here going forward. Tag stays in config, not
+    # #[AsMessageHandler] on the class, per ADR 008.
+    App\Competition\Application\:
+        resource: '../src/Competition/Application/*/*Handler.php'
         tags: ['messenger.message_handler']
 
     App\Competition\Domain\Repository\CompetitionRepository: '@App\Competition\Infrastructure\Persistence\Doctrine\DoctrineCompetitionRepository'

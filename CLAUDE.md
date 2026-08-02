@@ -145,6 +145,7 @@ Le raisonnement complet de chaque décision structurante (contexte, alternatives
 - ADR 019 — PHP-CS-Fixer `@Symfony` (pas `:risky`, formatage seulement) ; `php_unit_method_casing` forcé en `snake_case` (convention déjà établie pour les noms de tests) ; `yoda_style`/`concat_space`/`increment_style` désactivées par préférence explicite après revue règle par règle ; CI en vérification seule (`cs-check`), jamais d'auto-fix
 - ADR 020 — `Makefile` (pas `just`, pas d'alias shell personnels) pour raccourcir les commandes `docker compose` déjà documentées ; `make help` liste les cibles
 - ADR 021 — CI : cache des layers Docker via `docker/build-push-action` (`type=gha`) plutôt que `docker compose build` seul (aucun cache entre runs) ; build de l'image 3m14s → 28s une fois le cache chaud
+- ADR 025 — Handlers Messenger taggés par un unique bloc `resource:` ciblant `*Handler.php` (pas un bloc par use case, pas de split de `services.yaml`) ; ajouter un use case n'implique plus de toucher la config tant que son Handler suit la convention de nommage établie
 
 ## Workflow
 
