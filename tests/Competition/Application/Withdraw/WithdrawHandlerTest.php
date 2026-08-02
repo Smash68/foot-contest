@@ -32,4 +32,14 @@ final class WithdrawHandlerTest extends TestCase
 
         self::assertSame(0, $competition->countRegistrations());
     }
+
+    #[Test]
+    public function it_rejects_withdrawal_from_an_unknown_competition(): void
+    {
+        $handler = new WithdrawHandler(new InMemoryCompetitionRepository());
+
+        $this->expectException(\InvalidArgumentException::class);
+
+        $handler(new WithdrawCommand('unknown', 't1'));
+    }
 }
