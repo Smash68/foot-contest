@@ -95,6 +95,11 @@ Un dossier par use case, en CQRS via `symfony/messenger` (voir ADR 008) :
 
 **Port repository** (`Domain/Repository/CompetitionRepository.php`) — contrat `nextIdentity(): CompetitionId`, `save(Competition): void`, `ofId(CompetitionId): ?Competition`.
 
+- `RegisterTeam/RegisterTeamCommand` — DTO immuable (`competitionId`, `teamName`, `captainId`) ; inscription **capitaine-seul**, le roster complet se construit via un futur flux "rejoindre une équipe" (Priorité 6, validation par le capitaine) — enregistrer une équipe déjà complète court-circuiterait cette validation
+- `RegisterTeam/RegisterTeamHandler` — vérifie l'existence de la `Competition` (`CompetitionRepository::ofId()`) et du `Player` capitaine (`PlayerRepository::ofId()`, doit déjà être persisté — échoue sinon, pas d'upsert) avant d'écrire ; construit l'équipe (`Team::create()`, id généré via `TeamRepository::nextIdentity()`), l'enregistre sur l'agrégat (`Competition::register()`), persiste, et retourne le `TeamId` créé
+
+**Port repository** (`Domain/Repository/TeamRepository.php`) — contrat réduit à `nextIdentity(): TeamId` : `Team` n'a pas de persistance propre (voir ADR 022), ce port ne sert qu'à générer l'identifiant. Branché sur `InMemoryTeamRepository` en production comme en test, pas de `DoctrineTeamRepository` nécessaire.
+
 - `CreatePlayer/CreatePlayerCommand` — DTO immuable (`name`, `email`) ; pas de `nextIdentity()` (`PlayerId` est une clé métier, l'email, pas un id généré — voir ADR 007 §3)
 - `CreatePlayer/CreatePlayerHandler` — vérifie l'existence du `Player` via `PlayerRepository::ofId()` avant d'écrire : crée et persiste si absent, ne touche à rien si déjà présent ; retourne toujours le même `PlayerId` dans les deux cas. Réponse HTTP identique (201) qu'il y ait eu création ou non — anti-énumération d'utilisateurs, voir ADR 024.
 - `Withdraw/WithdrawCommand` — DTO immuable (`competitionId`, `teamId`)
