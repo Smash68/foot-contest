@@ -35,6 +35,9 @@ services:
     App\Competition\Application\CreatePlayer\CreatePlayerHandler:
         tags: ['messenger.message_handler']
 
+    App\Competition\Application\Withdraw\WithdrawHandler:
+        tags: ['messenger.message_handler']
+
     App\Competition\Domain\Repository\CompetitionRepository: '@App\Competition\Infrastructure\Persistence\Doctrine\DoctrineCompetitionRepository'
     App\Competition\Domain\Repository\PlayerRepository: '@App\Competition\Infrastructure\Persistence\Doctrine\DoctrinePlayerRepository'
     # TeamRepository ne porte que nextIdentity() (Team n'a pas de persistance propre, voir ADR 022) :
