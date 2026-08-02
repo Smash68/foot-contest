@@ -59,8 +59,8 @@ Reste à faire :
 
 #### 5c — API REST pour les autres use cases
 
-- ✅ Inscription d'équipe (`RegisterTeam`) : `POST /competitions/{id}/teams` — CQRS (`RegisterTeamCommand`/`RegisterTeamHandler`), capitaine-seul (le roster complet se construit via le futur flux "rejoindre une équipe", Priorité 6). Le capitaine doit être un `Player` déjà persisté (échoue sinon) — mais aucun use case `CreatePlayer` n'existe encore, donc le flux n'est pas exerçable de bout en bout tant que celui-ci n'est pas construit. `TeamRepository` ajouté (port `nextIdentity()` uniquement, `Team` n'a pas de persistance propre — voir ADR 022) ; branché sur `InMemoryTeamRepository` en prod comme en test, pas de `DoctrineTeamRepository` nécessaire.
-- Créer un `Player` (`CreatePlayer`) — préalable nécessaire pour exercer `RegisterTeam` de bout en bout
+- ✅ Inscription d'équipe (`RegisterTeam`) : `POST /competitions/{id}/teams` — CQRS (`RegisterTeamCommand`/`RegisterTeamHandler`), capitaine-seul (le roster complet se construit via le futur flux "rejoindre une équipe", Priorité 6). Le capitaine doit être un `Player` déjà persisté (échoue sinon). `TeamRepository` ajouté (port `nextIdentity()` uniquement, `Team` n'a pas de persistance propre — voir ADR 022) ; branché sur `InMemoryTeamRepository` en prod comme en test, pas de `DoctrineTeamRepository` nécessaire.
+- ✅ Créer un `Player` (`CreatePlayer`) : `POST /players` — CQRS (`CreatePlayerCommand`/`CreatePlayerHandler`), premier endpoint permettant à une vraie personne (hors accès direct au repository) de faire exister son identité et donc de devenir capitaine via `RegisterTeam`. Réponse `201` identique qu'un email soit nouveau ou déjà pris, aucun profil existant jamais écrasé — voir ADR 024.
 - Désistement d'équipe (`withdraw`)
 - Clôture de l'inscription (`closeRegistration`)
 - Génération du bracket (`generateBracket`)
