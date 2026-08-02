@@ -97,6 +97,8 @@ Un dossier par use case, en CQRS via `symfony/messenger` (voir ADR 008) :
 
 - `CreatePlayer/CreatePlayerCommand` — DTO immuable (`name`, `email`) ; pas de `nextIdentity()` (`PlayerId` est une clé métier, l'email, pas un id généré — voir ADR 007 §3)
 - `CreatePlayer/CreatePlayerHandler` — vérifie l'existence du `Player` via `PlayerRepository::ofId()` avant d'écrire : crée et persiste si absent, ne touche à rien si déjà présent ; retourne toujours le même `PlayerId` dans les deux cas. Réponse HTTP identique (201) qu'il y ait eu création ou non — anti-énumération d'utilisateurs, voir ADR 024.
+- `Withdraw/WithdrawCommand` — DTO immuable (`competitionId`, `teamId`)
+- `Withdraw/WithdrawHandler` — orchestration minimale : délègue entièrement la règle métier (inscription ouverte, équipe existante) à `Competition::withdraw()`, déjà couverte côté domaine ; ne teste à son niveau que ce qu'il possède en propre (dépendance externe inconnue). Pas de notion d'appelant/autorisation dans la Command : aucune couche auth n'existe encore dans l'app, capitaine/organisateur reporté en bloc à Priorité 6 plutôt que codé de façon non vérifiable.
 
 ### Couche infrastructure (`src/Competition/Infrastructure/`)
 
@@ -156,4 +158,4 @@ Le raisonnement complet de chaque décision structurante (contexte, alternatives
 
 ## Prochaine étape prioritaire
 
-Priorité 5b (persistance réelle) ✅ implémentée (voir `ROADMAP.md` pour le détail). Priorité 5c (API REST pour les autres use cases) entamée : `RegisterTeam` (inscription d'équipe, capitaine-seul) et `CreatePlayer` (création d'identité joueur, `POST /players` — réponse anti-énumération, voir ADR 024) ✅ faits bout en bout (Application + HTTP). Reste : `withdraw` (désistement), `closeRegistration` (clôture) et `generateBracket` (génération du bracket), chacun en HTTP + Application, même patron CQRS que `CreateCompetition`/`RegisterTeam`/`CreatePlayer`. Le détail complet du plan est dans `ROADMAP.md`.
+Priorité 5b (persistance réelle) ✅ implémentée (voir `ROADMAP.md` pour le détail). Priorité 5c (API REST pour les autres use cases) entamée : `RegisterTeam` (inscription d'équipe, capitaine-seul), `CreatePlayer` (création d'identité joueur, `POST /players` — réponse anti-énumération, voir ADR 024) et `Withdraw` (désistement, `DELETE /competitions/{id}/teams/{teamId}`) ✅ faits bout en bout (Application + HTTP). Reste : `closeRegistration` (clôture) et `generateBracket` (génération du bracket), chacun en HTTP + Application, même patron CQRS que `CreateCompetition`/`RegisterTeam`/`CreatePlayer`/`Withdraw`. Le détail complet du plan est dans `ROADMAP.md`.

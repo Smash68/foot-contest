@@ -61,7 +61,7 @@ Reste à faire :
 
 - ✅ Inscription d'équipe (`RegisterTeam`) : `POST /competitions/{id}/teams` — CQRS (`RegisterTeamCommand`/`RegisterTeamHandler`), capitaine-seul (le roster complet se construit via le futur flux "rejoindre une équipe", Priorité 6). Le capitaine doit être un `Player` déjà persisté (échoue sinon). `TeamRepository` ajouté (port `nextIdentity()` uniquement, `Team` n'a pas de persistance propre — voir ADR 022) ; branché sur `InMemoryTeamRepository` en prod comme en test, pas de `DoctrineTeamRepository` nécessaire.
 - ✅ Créer un `Player` (`CreatePlayer`) : `POST /players` — CQRS (`CreatePlayerCommand`/`CreatePlayerHandler`), premier endpoint permettant à une vraie personne (hors accès direct au repository) de faire exister son identité et donc de devenir capitaine via `RegisterTeam`. Réponse `201` identique qu'un email soit nouveau ou déjà pris, aucun profil existant jamais écrasé — voir ADR 024.
-- Désistement d'équipe (`withdraw`)
+- ✅ Désistement d'équipe (`withdraw`) : `DELETE /competitions/{id}/teams/{teamId}` — CQRS (`WithdrawCommand`/`WithdrawHandler`), délègue entièrement la règle métier (inscription ouverte, équipe existante) à `Competition::withdraw()` déjà couverte côté domaine. Autorisation (capitaine ou organisateur) volontairement absente : aucune couche auth n'existe encore, question reportée en bloc à la Priorité 6 plutôt que de coder une règle non vérifiable aujourd'hui.
 - Clôture de l'inscription (`closeRegistration`)
 - Génération du bracket (`generateBracket`)
 - Multi-tenancy
