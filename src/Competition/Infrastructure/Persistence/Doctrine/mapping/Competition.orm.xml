@@ -13,6 +13,7 @@
         <field name="bracket" type="bracket" column="bracket" nullable="true" />
 
         <embedded name="capacity" class="App\Competition\Domain\Model\TeamCapacity" />
+        <embedded name="bracketConfiguration" class="App\Competition\Domain\Model\BracketConfiguration" />
     </entity>
 
 </doctrine-mapping>

@@ -43,6 +43,25 @@ final class DoctrineCompetitionRepositoryTest extends KernelTestCase
     }
 
     #[Test]
+    public function it_persists_the_bracket_configuration(): void
+    {
+        $entityManager = self::getContainer()->get(EntityManagerInterface::class);
+        $repository = new DoctrineCompetitionRepository($entityManager);
+
+        $id = $repository->nextIdentity();
+        $competition = Competition::create($id, 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, true));
+
+        $repository->save($competition);
+        $entityManager->clear();
+
+        $found = $repository->ofId($id);
+
+        self::assertNotNull($found);
+        self::assertSame(CompetitionFormat::SingleElimination, $found->getFormat());
+        self::assertTrue($found->includesThirdPlaceMatch());
+    }
+
+    #[Test]
     public function it_persists_that_registration_has_been_closed(): void
     {
         $entityManager = self::getContainer()->get(EntityManagerInterface::class);

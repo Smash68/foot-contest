@@ -195,7 +195,7 @@ parameters:
 		-
 			message: '#^Call to an undefined method object\:\:clear\(\)\.$#'
 			identifier: method.notFound
-			count: 11
+			count: 12
 			path: tests/Competition/Infrastructure/Persistence/Doctrine/DoctrineCompetitionRepositoryTest.php
 
 		-
@@ -297,7 +297,7 @@ parameters:
 		-
 			message: '#^Parameter \#1 \$entityManager of class App\\Competition\\Infrastructure\\Persistence\\Doctrine\\DoctrineCompetitionRepository constructor expects Doctrine\\ORM\\EntityManagerInterface, object given\.$#'
 			identifier: argument.type
-			count: 11
+			count: 12
 			path: tests/Competition/Infrastructure/Persistence/Doctrine/DoctrineCompetitionRepositoryTest.php
 
 		-
