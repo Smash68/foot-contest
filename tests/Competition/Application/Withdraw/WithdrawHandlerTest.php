@@ -6,7 +6,9 @@ namespace App\Tests\Competition\Application\Withdraw;
 
 use App\Competition\Application\Withdraw\WithdrawCommand;
 use App\Competition\Application\Withdraw\WithdrawHandler;
+use App\Competition\Domain\Model\BracketConfiguration;
 use App\Competition\Domain\Model\Competition;
+use App\Competition\Domain\Model\CompetitionFormat;
 use App\Competition\Domain\Model\CompetitionId;
 use App\Competition\Domain\Model\PlayerId;
 use App\Competition\Domain\Model\Team;
@@ -22,7 +24,7 @@ final class WithdrawHandlerTest extends TestCase
     public function it_withdraws_a_registered_team(): void
     {
         $competitions = new InMemoryCompetitionRepository();
-        $competition = Competition::create(new CompetitionId('c1'), 'Summer Cup', TeamCapacity::of(2, 4));
+        $competition = Competition::create(new CompetitionId('c1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false));
         $competition->register(Team::create(new TeamId('t1'), 'Team A', new PlayerId('captain@example.com')));
         $competitions->save($competition);
 

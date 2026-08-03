@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Tests\Competition\Infrastructure\Http;
 
+use App\Competition\Domain\Model\BracketConfiguration;
 use App\Competition\Domain\Model\Competition;
+use App\Competition\Domain\Model\CompetitionFormat;
 use App\Competition\Domain\Model\PlayerId;
 use App\Competition\Domain\Model\Team;
 use App\Competition\Domain\Model\TeamCapacity;
@@ -24,7 +26,7 @@ final class WithdrawControllerTest extends WebTestCase
         $competitions = new InMemoryCompetitionRepository();
         self::getContainer()->set(CompetitionRepository::class, $competitions);
 
-        $competition = Competition::create($competitions->nextIdentity(), 'Summer Cup', TeamCapacity::of(2, 4));
+        $competition = Competition::create($competitions->nextIdentity(), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false));
         $competition->register(Team::create(new TeamId('t1'), 'Team A', new PlayerId('captain@example.com')));
         $competitions->save($competition);
 

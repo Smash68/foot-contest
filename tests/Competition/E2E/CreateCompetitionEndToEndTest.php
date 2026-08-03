@@ -26,6 +26,8 @@ final class CreateCompetitionEndToEndTest extends WebTestCase
             'name' => 'Summer Cup',
             'minTeams' => 2,
             'maxTeams' => 4,
+            'format' => 'single_elimination',
+            'includeThirdPlaceMatch' => false,
         ]));
 
         self::assertResponseStatusCodeSame(201);

@@ -18,6 +18,8 @@ final class CreateCompetitionControllerTest extends WebTestCase
             'name' => 'Summer Cup',
             'minTeams' => 2,
             'maxTeams' => 4,
+            'format' => 'single_elimination',
+            'includeThirdPlaceMatch' => false,
         ]));
 
         self::assertResponseStatusCodeSame(201);
@@ -36,6 +38,8 @@ final class CreateCompetitionControllerTest extends WebTestCase
             'name' => 'Summer Cup',
             'minTeams' => 1,
             'maxTeams' => 4,
+            'format' => 'single_elimination',
+            'includeThirdPlaceMatch' => false,
         ]));
 
         self::assertResponseStatusCodeSame(422);
@@ -49,6 +53,8 @@ final class CreateCompetitionControllerTest extends WebTestCase
         $client->request('POST', '/competitions', server: ['CONTENT_TYPE' => 'application/json'], content: json_encode([
             'minTeams' => 2,
             'maxTeams' => 4,
+            'format' => 'single_elimination',
+            'includeThirdPlaceMatch' => false,
         ]));
 
         self::assertResponseStatusCodeSame(422);
@@ -63,6 +69,8 @@ final class CreateCompetitionControllerTest extends WebTestCase
             'name' => 'Summer Cup',
             'minTeams' => 'not-a-number',
             'maxTeams' => 4,
+            'format' => 'single_elimination',
+            'includeThirdPlaceMatch' => false,
         ]));
 
         self::assertResponseStatusCodeSame(422);

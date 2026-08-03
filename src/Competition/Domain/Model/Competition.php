@@ -19,12 +19,13 @@ final class Competition
         private readonly CompetitionId $id,
         private readonly string $name,
         private readonly TeamCapacity $capacity,
+        private readonly BracketConfiguration $bracketConfiguration,
     ) {
     }
 
-    public static function create(CompetitionId $id, string $name, TeamCapacity $capacity): self
+    public static function create(CompetitionId $id, string $name, TeamCapacity $capacity, BracketConfiguration $bracketConfiguration): self
     {
-        return new self($id, $name, $capacity);
+        return new self($id, $name, $capacity, $bracketConfiguration);
     }
 
     public function getId(): CompetitionId
@@ -35,6 +36,16 @@ final class Competition
     public function getName(): string
     {
         return $this->name;
+    }
+
+    public function getFormat(): CompetitionFormat
+    {
+        return $this->bracketConfiguration->format;
+    }
+
+    public function includesThirdPlaceMatch(): bool
+    {
+        return $this->bracketConfiguration->includeThirdPlaceMatch;
     }
 
     public function isOpenForRegistration(): bool

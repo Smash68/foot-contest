@@ -6,7 +6,9 @@ namespace App\Tests\Competition\Application\RegisterTeam;
 
 use App\Competition\Application\RegisterTeam\RegisterTeamCommand;
 use App\Competition\Application\RegisterTeam\RegisterTeamHandler;
+use App\Competition\Domain\Model\BracketConfiguration;
 use App\Competition\Domain\Model\Competition;
+use App\Competition\Domain\Model\CompetitionFormat;
 use App\Competition\Domain\Model\CompetitionId;
 use App\Competition\Domain\Model\Player;
 use App\Competition\Domain\Model\PlayerId;
@@ -24,7 +26,7 @@ final class RegisterTeamHandlerTest extends TestCase
     public function it_registers_a_team_to_an_open_competition(): void
     {
         $competitions = new InMemoryCompetitionRepository();
-        $competition = Competition::create(new CompetitionId('c1'), 'Summer Cup', TeamCapacity::of(2, 4));
+        $competition = Competition::create(new CompetitionId('c1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false));
         $competitions->save($competition);
 
         $players = new InMemoryPlayerRepository();
@@ -56,7 +58,7 @@ final class RegisterTeamHandlerTest extends TestCase
     public function it_rejects_registration_for_an_unknown_captain(): void
     {
         $competitions = new InMemoryCompetitionRepository();
-        $competitions->save(Competition::create(new CompetitionId('c1'), 'Summer Cup', TeamCapacity::of(2, 4)));
+        $competitions->save(Competition::create(new CompetitionId('c1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false)));
 
         $handler = new RegisterTeamHandler(
             $competitions,
@@ -73,7 +75,7 @@ final class RegisterTeamHandlerTest extends TestCase
     public function it_returns_the_registered_team_id(): void
     {
         $competitions = new InMemoryCompetitionRepository();
-        $competitions->save(Competition::create(new CompetitionId('c1'), 'Summer Cup', TeamCapacity::of(2, 4)));
+        $competitions->save(Competition::create(new CompetitionId('c1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false)));
 
         $players = new InMemoryPlayerRepository();
         $players->save(new Player(new PlayerId('captain@example.com'), 'Captain'));

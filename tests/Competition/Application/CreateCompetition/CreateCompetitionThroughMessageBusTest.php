@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Competition\Application\CreateCompetition;
 
 use App\Competition\Application\CreateCompetition\CreateCompetitionCommand;
+use App\Competition\Domain\Model\CompetitionFormat;
 use App\Competition\Domain\Repository\CompetitionRepository;
 use PHPUnit\Framework\Attributes\Test;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
@@ -19,7 +20,7 @@ final class CreateCompetitionThroughMessageBusTest extends KernelTestCase
         $container = self::getContainer();
 
         $envelope = $container->get(MessageBusInterface::class)->dispatch(
-            new CreateCompetitionCommand('Summer Cup', 2, 4),
+            new CreateCompetitionCommand('Summer Cup', 2, 4, CompetitionFormat::SingleElimination->value, false),
         );
 
         $id = $envelope->last(HandledStamp::class)->getResult();

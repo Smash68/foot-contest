@@ -7,7 +7,9 @@ namespace App\Tests\Competition\Infrastructure\Persistence\Doctrine;
 use App\Competition\Domain\Format\SingleElimination\BracketGeneratorWithThirdPlaceMatch;
 use App\Competition\Domain\Format\SingleElimination\BracketWithThirdPlaceMatch;
 use App\Competition\Domain\Format\SingleElimination\SingleEliminationBracketGenerator;
+use App\Competition\Domain\Model\BracketConfiguration;
 use App\Competition\Domain\Model\Competition;
+use App\Competition\Domain\Model\CompetitionFormat;
 use App\Competition\Domain\Model\EncounterId;
 use App\Competition\Domain\Model\EncounterResult;
 use App\Competition\Domain\Model\PlayerId;
@@ -29,7 +31,7 @@ final class DoctrineCompetitionRepositoryTest extends KernelTestCase
         $repository = new DoctrineCompetitionRepository($entityManager);
 
         $id = $repository->nextIdentity();
-        $competition = Competition::create($id, 'Summer Cup', TeamCapacity::of(2, 4));
+        $competition = Competition::create($id, 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false));
 
         $repository->save($competition);
         $entityManager->clear();
@@ -47,7 +49,7 @@ final class DoctrineCompetitionRepositoryTest extends KernelTestCase
         $repository = new DoctrineCompetitionRepository($entityManager);
 
         $id = $repository->nextIdentity();
-        $competition = Competition::create($id, 'Summer Cup', TeamCapacity::of(2, 4));
+        $competition = Competition::create($id, 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false));
         $competition->register($this->team('a', 'Team A'));
         $competition->register($this->team('b', 'Team B'));
         $competition->closeRegistration();
@@ -67,7 +69,7 @@ final class DoctrineCompetitionRepositoryTest extends KernelTestCase
         $repository = new DoctrineCompetitionRepository($entityManager);
 
         $id = $repository->nextIdentity();
-        $competition = Competition::create($id, 'Summer Cup', TeamCapacity::of(2, 4));
+        $competition = Competition::create($id, 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false));
         $competition->register($this->team('a', 'Team A'));
         $competition->register($this->team('b', 'Team B'));
 
@@ -86,7 +88,7 @@ final class DoctrineCompetitionRepositoryTest extends KernelTestCase
         $repository = new DoctrineCompetitionRepository($entityManager);
 
         $id = $repository->nextIdentity();
-        $competition = Competition::create($id, 'Summer Cup', TeamCapacity::of(2, 4));
+        $competition = Competition::create($id, 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false));
 
         $repository->save($competition);
         $entityManager->clear();
@@ -103,7 +105,7 @@ final class DoctrineCompetitionRepositoryTest extends KernelTestCase
         $repository = new DoctrineCompetitionRepository($entityManager);
 
         $id = $repository->nextIdentity();
-        $competition = Competition::create($id, 'Summer Cup', TeamCapacity::of(2, 3));
+        $competition = Competition::create($id, 'Summer Cup', TeamCapacity::of(2, 3), new BracketConfiguration(CompetitionFormat::SingleElimination, false));
 
         $repository->save($competition);
         $entityManager->clear();
@@ -125,7 +127,7 @@ final class DoctrineCompetitionRepositoryTest extends KernelTestCase
         $repository = new DoctrineCompetitionRepository($entityManager);
 
         $id = $repository->nextIdentity();
-        $competition = Competition::create($id, 'Summer Cup', TeamCapacity::of(2, 4));
+        $competition = Competition::create($id, 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false));
 
         $repository->save($competition);
         $entityManager->clear();
@@ -142,7 +144,7 @@ final class DoctrineCompetitionRepositoryTest extends KernelTestCase
         $repository = new DoctrineCompetitionRepository($entityManager);
 
         $id = $repository->nextIdentity();
-        $competition = Competition::create($id, 'Summer Cup', TeamCapacity::of(2, 4));
+        $competition = Competition::create($id, 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false));
         $competition->register($this->team('a', 'Team A'));
         $competition->register($this->team('b', 'Team B'));
         $competition->register($this->team('c', 'Team C'));
@@ -168,7 +170,7 @@ final class DoctrineCompetitionRepositoryTest extends KernelTestCase
         $repository = new DoctrineCompetitionRepository($entityManager);
 
         $id = $repository->nextIdentity();
-        $competition = Competition::create($id, 'Summer Cup', TeamCapacity::of(2, 4));
+        $competition = Competition::create($id, 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false));
         $competition->register($this->team('a', 'Team A'));
         $competition->register($this->team('b', 'Team B'));
         $competition->register($this->team('c', 'Team C'));
@@ -196,7 +198,7 @@ final class DoctrineCompetitionRepositoryTest extends KernelTestCase
         $repository = new DoctrineCompetitionRepository($entityManager);
 
         $id = $repository->nextIdentity();
-        $competition = Competition::create($id, 'Summer Cup', TeamCapacity::of(2, 4));
+        $competition = Competition::create($id, 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false));
         $competition->register($this->team('a', 'Team A'));
         $competition->register($this->team('b', 'Team B'));
         $competition->register($this->team('c', 'Team C'));
@@ -221,7 +223,7 @@ final class DoctrineCompetitionRepositoryTest extends KernelTestCase
         $repository = new DoctrineCompetitionRepository($entityManager);
 
         $id = $repository->nextIdentity();
-        $competition = Competition::create($id, 'Summer Cup', TeamCapacity::of(2, 4));
+        $competition = Competition::create($id, 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false));
         $competition->register($this->team('a', 'Team A'));
         $competition->register($this->team('b', 'Team B'));
         $competition->register($this->team('c', 'Team C'));
@@ -258,7 +260,7 @@ final class DoctrineCompetitionRepositoryTest extends KernelTestCase
         $repository = new DoctrineCompetitionRepository($entityManager);
 
         $id = $repository->nextIdentity();
-        $competition = Competition::create($id, 'Summer Cup', TeamCapacity::of(2, 4));
+        $competition = Competition::create($id, 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false));
         $competition->register($this->team('a', 'Team A'));
         $competition->register($this->team('b', 'Team B'));
         $competition->register($this->team('c', 'Team C'));
