@@ -39,3 +39,14 @@ services:
     # TeamRepository ne porte que nextIdentity() (Team n'a pas de persistance propre, voir ADR 022) :
     # l'implémentation InMemory suffit aussi en production, pas de DoctrineTeamRepository nécessaire.
     App\Competition\Domain\Repository\TeamRepository: '@App\Competition\Infrastructure\Persistence\InMemory\InMemoryTeamRepository'
+
+    # Exception ciblée à l'exclusion Domain/ ci-dessus (ADR 026 §6) : seule classe du Domain
+    # enregistrée comme service, uniquement pour alimenter la map de BracketGeneratorFactory
+    # ci-dessous. Ajouter un futur format = une classe générateur + une entrée ici, la factory
+    # elle-même n'est jamais modifiée (OCP).
+    App\Competition\Domain\Format\SingleElimination\SingleEliminationBracketGenerator: ~
+
+    App\Competition\Domain\Service\BracketGeneratorFactory:
+        arguments:
+            $generatorsByFormat:
+                single_elimination: '@App\Competition\Domain\Format\SingleElimination\SingleEliminationBracketGenerator'
