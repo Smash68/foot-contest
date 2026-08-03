@@ -13,6 +13,7 @@ use App\Competition\Domain\Model\PlayerId;
 use App\Competition\Domain\Model\Team;
 use App\Competition\Domain\Model\TeamCapacity;
 use App\Competition\Domain\Model\TeamId;
+use App\Competition\Domain\Service\BracketGeneratorFactory;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
@@ -160,7 +161,7 @@ final class CompetitionTest extends TestCase
 
         $this->expectException(\LogicException::class);
 
-        $competition->generateBracket(new SingleEliminationBracketGenerator());
+        $competition->generateBracket($this->bracketGeneratorFactory());
     }
 
     #[Test]
@@ -171,7 +172,7 @@ final class CompetitionTest extends TestCase
         $competition->register($this->team('b', 'Team B'));
         $competition->closeRegistration();
 
-        $competition->generateBracket(new SingleEliminationBracketGenerator());
+        $competition->generateBracket($this->bracketGeneratorFactory());
 
         self::assertSame(1, $competition->getBracket()->countEncounters());
     }
@@ -183,15 +184,22 @@ final class CompetitionTest extends TestCase
         $competition->register($this->team('a', 'Team A'));
         $competition->register($this->team('b', 'Team B'));
         $competition->closeRegistration();
-        $competition->generateBracket(new SingleEliminationBracketGenerator());
+        $competition->generateBracket($this->bracketGeneratorFactory());
 
         $this->expectException(\LogicException::class);
 
-        $competition->generateBracket(new SingleEliminationBracketGenerator());
+        $competition->generateBracket($this->bracketGeneratorFactory());
     }
 
     private function team(string $teamId, string $teamName): Team
     {
         return Team::create(new TeamId($teamId), $teamName, new PlayerId("{$teamId}@example.com"));
+    }
+
+    private function bracketGeneratorFactory(): BracketGeneratorFactory
+    {
+        return new BracketGeneratorFactory([
+            CompetitionFormat::SingleElimination->value => new SingleEliminationBracketGenerator(),
+        ]);
     }
 }

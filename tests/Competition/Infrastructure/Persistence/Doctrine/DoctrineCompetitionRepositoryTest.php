@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Tests\Competition\Infrastructure\Persistence\Doctrine;
 
-use App\Competition\Domain\Format\SingleElimination\BracketGeneratorWithThirdPlaceMatch;
 use App\Competition\Domain\Format\SingleElimination\BracketWithThirdPlaceMatch;
 use App\Competition\Domain\Format\SingleElimination\SingleEliminationBracketGenerator;
 use App\Competition\Domain\Model\BracketConfiguration;
@@ -17,6 +16,7 @@ use App\Competition\Domain\Model\Score;
 use App\Competition\Domain\Model\Team;
 use App\Competition\Domain\Model\TeamCapacity;
 use App\Competition\Domain\Model\TeamId;
+use App\Competition\Domain\Service\BracketGeneratorFactory;
 use App\Competition\Infrastructure\Persistence\Doctrine\DoctrineCompetitionRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\Test;
@@ -149,7 +149,7 @@ final class DoctrineCompetitionRepositoryTest extends KernelTestCase
         $competition->register($this->team('b', 'Team B'));
         $competition->register($this->team('c', 'Team C'));
         $competition->closeRegistration();
-        $competition->generateBracket(new SingleEliminationBracketGenerator());
+        $competition->generateBracket($this->bracketGeneratorFactory());
 
         $repository->save($competition);
         $entityManager->clear();
@@ -175,7 +175,7 @@ final class DoctrineCompetitionRepositoryTest extends KernelTestCase
         $competition->register($this->team('b', 'Team B'));
         $competition->register($this->team('c', 'Team C'));
         $competition->closeRegistration();
-        $competition->generateBracket(new SingleEliminationBracketGenerator());
+        $competition->generateBracket($this->bracketGeneratorFactory());
 
         $playedEncounterId = new EncounterId('encounter-2');
         $expectedWinner = $competition->getBracket()->getRound(1)->findEncounterById($playedEncounterId)->getHome()->getTeamId();
@@ -198,13 +198,13 @@ final class DoctrineCompetitionRepositoryTest extends KernelTestCase
         $repository = new DoctrineCompetitionRepository($entityManager);
 
         $id = $repository->nextIdentity();
-        $competition = Competition::create($id, 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false));
+        $competition = Competition::create($id, 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, true));
         $competition->register($this->team('a', 'Team A'));
         $competition->register($this->team('b', 'Team B'));
         $competition->register($this->team('c', 'Team C'));
         $competition->register($this->team('d', 'Team D'));
         $competition->closeRegistration();
-        $competition->generateBracket(new BracketGeneratorWithThirdPlaceMatch(new SingleEliminationBracketGenerator()));
+        $competition->generateBracket($this->bracketGeneratorFactory());
 
         $repository->save($competition);
         $entityManager->clear();
@@ -223,13 +223,13 @@ final class DoctrineCompetitionRepositoryTest extends KernelTestCase
         $repository = new DoctrineCompetitionRepository($entityManager);
 
         $id = $repository->nextIdentity();
-        $competition = Competition::create($id, 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false));
+        $competition = Competition::create($id, 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, true));
         $competition->register($this->team('a', 'Team A'));
         $competition->register($this->team('b', 'Team B'));
         $competition->register($this->team('c', 'Team C'));
         $competition->register($this->team('d', 'Team D'));
         $competition->closeRegistration();
-        $competition->generateBracket(new BracketGeneratorWithThirdPlaceMatch(new SingleEliminationBracketGenerator()));
+        $competition->generateBracket($this->bracketGeneratorFactory());
 
         $semiFinalOneId = new EncounterId('encounter-1');
         $semiFinalTwoId = new EncounterId('encounter-2');
@@ -260,13 +260,13 @@ final class DoctrineCompetitionRepositoryTest extends KernelTestCase
         $repository = new DoctrineCompetitionRepository($entityManager);
 
         $id = $repository->nextIdentity();
-        $competition = Competition::create($id, 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false));
+        $competition = Competition::create($id, 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, true));
         $competition->register($this->team('a', 'Team A'));
         $competition->register($this->team('b', 'Team B'));
         $competition->register($this->team('c', 'Team C'));
         $competition->register($this->team('d', 'Team D'));
         $competition->closeRegistration();
-        $competition->generateBracket(new BracketGeneratorWithThirdPlaceMatch(new SingleEliminationBracketGenerator()));
+        $competition->generateBracket($this->bracketGeneratorFactory());
 
         $competition->getBracket()->recordResult(new EncounterId('encounter-1'), EncounterResult::regularTime(Score::of(2, 0)));
         $competition->getBracket()->recordResult(new EncounterId('encounter-2'), EncounterResult::regularTime(Score::of(3, 1)));
@@ -290,5 +290,12 @@ final class DoctrineCompetitionRepositoryTest extends KernelTestCase
     private function team(string $teamId, string $teamName): Team
     {
         return Team::create(new TeamId($teamId), $teamName, new PlayerId("{$teamId}@example.com"));
+    }
+
+    private function bracketGeneratorFactory(): BracketGeneratorFactory
+    {
+        return new BracketGeneratorFactory([
+            CompetitionFormat::SingleElimination->value => new SingleEliminationBracketGenerator(),
+        ]);
     }
 }

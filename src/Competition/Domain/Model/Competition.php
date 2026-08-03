@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Competition\Domain\Model;
 
-use App\Competition\Domain\Service\BracketGenerator;
+use App\Competition\Domain\Service\BracketGeneratorFactory;
 
 final class Competition
 {
@@ -113,7 +113,7 @@ final class Competition
         return null;
     }
 
-    public function generateBracket(BracketGenerator $generator): void
+    public function generateBracket(BracketGeneratorFactory $factory): void
     {
         if ($this->isOpenForRegistration()) {
             throw new \LogicException("Competition '{$this->id->value}' registration must be closed before generating the bracket.");
@@ -128,7 +128,7 @@ final class Competition
             $this->teams,
         );
 
-        $this->bracket = $generator->generate($teamIds);
+        $this->bracket = $factory->forConfiguration($this->bracketConfiguration)->generate($teamIds);
     }
 
     public function getBracket(): ?Bracket
