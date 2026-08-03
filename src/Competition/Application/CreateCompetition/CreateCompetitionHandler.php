@@ -23,7 +23,7 @@ final readonly class CreateCompetitionHandler
             $this->repository->nextIdentity(),
             $command->name,
             TeamCapacity::of($command->minTeams, $command->maxTeams),
-            new BracketConfiguration(CompetitionFormat::from($command->format), $command->includeThirdPlaceMatch),
+            new BracketConfiguration(CompetitionFormat::fromValue($command->format), $command->includeThirdPlaceMatch),
         );
 
         $this->repository->save($competition);
