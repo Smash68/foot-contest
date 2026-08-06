@@ -27,6 +27,11 @@ final class DoctrineOrganizerRepository implements OrganizerRepository
         $this->entityManager->flush();
     }
 
+    public function ofId(OrganizerId $id): ?Organizer
+    {
+        return $this->entityManager->find(Organizer::class, $id);
+    }
+
     public function ofEmail(string $email): ?Organizer
     {
         return $this->entityManager->getRepository(Organizer::class)->findOneBy(['email' => $email]);

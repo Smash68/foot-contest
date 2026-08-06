@@ -24,6 +24,11 @@ final class InMemoryOrganizerRepository implements OrganizerRepository
         $this->organizers[$organizer->getId()->value] = $organizer;
     }
 
+    public function ofId(OrganizerId $id): ?Organizer
+    {
+        return $this->organizers[$id->value] ?? null;
+    }
+
     public function ofEmail(string $email): ?Organizer
     {
         foreach ($this->organizers as $organizer) {

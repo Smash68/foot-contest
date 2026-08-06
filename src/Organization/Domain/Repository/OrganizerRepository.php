@@ -13,5 +13,7 @@ interface OrganizerRepository
 
     public function save(Organizer $organizer): void;
 
+    public function ofId(OrganizerId $id): ?Organizer;
+
     public function ofEmail(string $email): ?Organizer;
 }
