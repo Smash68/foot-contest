@@ -9,6 +9,7 @@ use App\Organization\Application\Login\LoginHandler;
 use App\Organization\Application\RegisterOrganizer\RegisterOrganizerCommand;
 use App\Organization\Application\RegisterOrganizer\RegisterOrganizerHandler;
 use App\Organization\Domain\Exception\InvalidCredentialsException;
+use App\Organization\Domain\Service\AccessTokenIssuer;
 use App\Organization\Infrastructure\Password\NativePasswordHasher;
 use App\Organization\Infrastructure\Persistence\InMemory\InMemoryOrganizerRepository;
 use PHPUnit\Framework\Attributes\Test;
@@ -19,7 +20,7 @@ final class LoginHandlerTest extends TestCase
     #[Test]
     public function it_rejects_login_with_an_unknown_email(): void
     {
-        $handler = new LoginHandler(new InMemoryOrganizerRepository(), new NativePasswordHasher());
+        $handler = new LoginHandler(new InMemoryOrganizerRepository(), new NativePasswordHasher(), $this->accessTokenIssuerStub());
 
         $this->expectException(InvalidCredentialsException::class);
 
@@ -34,10 +35,33 @@ final class LoginHandlerTest extends TestCase
         (new RegisterOrganizerHandler($organizers, $passwordHasher))(
             new RegisterOrganizerCommand('organizer@example.com', 'super-secret'),
         );
-        $handler = new LoginHandler($organizers, $passwordHasher);
+        $handler = new LoginHandler($organizers, $passwordHasher, $this->accessTokenIssuerStub());
 
         $this->expectException(InvalidCredentialsException::class);
 
         $handler(new LoginCommand('organizer@example.com', 'wrong-password'));
+    }
+
+    #[Test]
+    public function it_returns_the_issued_access_token_when_credentials_are_valid(): void
+    {
+        $organizers = new InMemoryOrganizerRepository();
+        $passwordHasher = new NativePasswordHasher();
+        (new RegisterOrganizerHandler($organizers, $passwordHasher))(
+            new RegisterOrganizerCommand('organizer@example.com', 'super-secret'),
+        );
+        $handler = new LoginHandler($organizers, $passwordHasher, $this->accessTokenIssuerStub('fake-jwt-token'));
+
+        $token = $handler(new LoginCommand('organizer@example.com', 'super-secret'));
+
+        self::assertSame('fake-jwt-token', $token);
+    }
+
+    private function accessTokenIssuerStub(string $token = 'fake-jwt-token'): AccessTokenIssuer
+    {
+        $issuer = $this->createStub(AccessTokenIssuer::class);
+        $issuer->method('issue')->willReturn($token);
+
+        return $issuer;
     }
 }
