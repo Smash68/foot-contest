@@ -5,6 +5,8 @@ security:
 
     # https://symfony.com/doc/current/security.html#loading-the-user-the-user-provider
     providers:
+        organizers:
+            id: App\Organization\Infrastructure\Security\OrganizerUserProvider
         users_in_memory: { memory: null }
 
     firewalls:
@@ -12,6 +14,15 @@ security:
             # Ensure dev tools and static assets are always allowed
             pattern: ^/(_profiler|_wdt|assets|build)/
             security: false
+        # JWT-authenticated firewall scoped to the one Organization endpoint that needs to
+        # know the current organizer (POST /organizations/checkout). Every other Organization
+        # route (/organizers, /login, /organizations/checkout-webhook) falls through to "main"
+        # untouched, same as every Competition route.
+        organization_checkout:
+            pattern: ^/organizations/checkout$
+            stateless: true
+            provider: organizers
+            jwt: ~
         main:
             lazy: true
             provider: users_in_memory
@@ -24,6 +35,7 @@ security:
 
     # Note: Only the *first* matching rule is applied
     access_control:
+        - { path: ^/organizations/checkout$, roles: IS_AUTHENTICATED_FULLY }
         # - { path: ^/admin, roles: ROLE_ADMIN }
         # - { path: ^/profile, roles: ROLE_USER }
 
