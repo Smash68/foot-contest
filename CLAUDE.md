@@ -42,7 +42,7 @@ docker compose exec -d app php -S 0.0.0.0:8000 -t public
 
 SaaS multi-tenant de gestion de tournois de football. PHP 8.4 / Symfony, architecture **hexagonale** (DDD), approche TDD.
 
-L'application est structurée autour du namespace `Competition`, en trois couches : `Domain/`, `Application/` (use cases) et `Infrastructure/` (adapters).
+L'application est structurée en modules (bounded contexts) — `Competition` et `Organization` — chacun en trois couches : `Domain/`, `Application/` (use cases) et `Infrastructure/` (adapters). Dépendance à sens unique imposée en CI par `deptrac` : `Competition` peut dépendre d'`Organization`, jamais l'inverse — voir ADR 027.
 
 ### Couche domaine (`src/Competition/Domain/`)
 
@@ -128,6 +128,42 @@ Bootstrap Symfony (Kernel, `config/`, `public/index.php`, `bin/console`) posé v
 - `getEncounters()` / `countEncounters()` — jamais `getMatches()` / `countMatches()`
 - Les IDs sont toujours des Value Objects typés (ex: `EncounterId`), jamais des `string` nus
 
+### Module `Organization`
+
+Bounded context distinct, fondations multi-tenant : auth organisateur et paiement simulé (`src/Organization/{Domain,Application,Infrastructure}`) — voir ADR 027 pour le raisonnement complet.
+
+**Domaine** (`Domain/Model/`) :
+
+| Classe | Type DDD | Rôle |
+|--------|----------|------|
+| `OrganizerId` | Value Object | Identifiant typé, généré (`nextIdentity()`) — contrairement à `PlayerId` (email), voir ADR 027 §2 |
+| `Organizer` | Entity | Compte organisateur : email + mot de passe hashé, `register()` valide l'email — distinct de `Player` |
+| `OrganizationId` | Value Object | Identifiant typé du tenant — local au module (ACL, pas Shared Kernel avec `Competition`) |
+| `Organization` | **Aggregate Root** | Le tenant : `id` + `name` + `ownerId: OrganizerId` — `create()` uniquement, jamais d'état "pending" |
+| `CheckoutSessionId` / `CheckoutReference` | Value Object | Identifiant typé de session / référence opaque retournée par `PaymentGateway::initiateCheckout()` |
+| `CheckoutSessionStatus` | Enum (backé string) | `Pending` / `Completed` / `Failed` — backé pour permettre le mapping Doctrine `enum-type` (mirroir `CompetitionFormat`) |
+| `CheckoutSession` | Aggregate | État intermédiaire d'un paiement en cours : `initiate()`, `complete(OrganizationId)`/`fail()` (protègent l'invariant "pending seulement", `\LogicException` sinon) |
+
+**Services Domain** (`Domain/Service/`) : `PasswordHasher` (`hash()`/`verify()`), `PaymentGateway` (`initiateCheckout(): CheckoutReference`), `AccessTokenIssuer` (`issue(OrganizerId): string`, émet un JWT) — tous des ports, implémentés en Infrastructure (`NativePasswordHasher`, `FakePaymentGateway`, `LexikAccessTokenIssuer`).
+
+**Application** (un dossier par use case, même patron CQRS que `Competition`) :
+
+- `RegisterOrganizer` — crée l'`Organizer`, échoue explicitement si email déjà pris (pas d'anti-énumération ici, contrairement à `CreatePlayer`/ADR 024 — voir ADR 027 §7)
+- `Login` — vérifie les identifiants (`OrganizerRepository::ofEmail()` + `PasswordHasher::verify()`), lève `InvalidCredentialsException` sinon (401, pas 422), émet le JWT via `AccessTokenIssuer` en cas de succès
+- `InitiateOrganizationCheckout` — crée une `CheckoutSession` `Pending`, retourne la `CheckoutReference`
+- `ConfirmOrganizationCheckout` — reçoit la référence + le résultat (webhook simulé), **idempotent** (rejouer sur une session déjà terminée renvoie le résultat existant), crée l'`Organization` seulement si succès
+
+**Infrastructure** :
+
+- Persistance Doctrine des 3 agrégats (mapping XML, `config/packages/doctrine_organization.yaml`), même discipline qu'ADR 010 — `OrganizerIdType`/`OrganizationIdType`/`CheckoutSessionIdType`/`CheckoutReferenceType`
+- `SecurityOrganizer implements UserInterface` — adapter minimal construit à la volée depuis un `OrganizerId`, jamais porté par `Organizer` lui-même (zéro dépendance Symfony Security dans le Domain, même discipline que le mapping Doctrine)
+- `OrganizerUserProvider implements UserProviderInterface` — recharge l'`Organizer` depuis le claim JWT via `OrganizerRepository::ofId()`
+- `LexikJWTAuthenticationBundle` : firewall `organization_checkout` (`security.yaml`) scopé au seul `POST /organizations/checkout`, pas un firewall JWT global
+- Endpoints HTTP : `POST /organizers`, `POST /login`, `POST /organizations/checkout` (authentifiée via `#[CurrentUser]`), `POST /organizations/checkout-webhook` (publique, simule le webhook fournisseur) — même patron `#[MapRequestPayload]` + dispatch CQRS que `Competition/Infrastructure/Http/*`
+- `InvalidCredentialsExceptionListener` (mirroir `InvalidArgumentExceptionListener`) mappe `InvalidCredentialsException` en 401 JSON
+
+Rattacher `Competition` à une `Organization` (`organizationId`) reste à faire — hors périmètre de ce chantier, voir ADR 027 "Conséquences".
+
 ### Décisions d'architecture
 
 Le raisonnement complet de chaque décision structurante (contexte, alternatives rejetées, conséquences) vit dans `docs/adr/` — ne pas le dupliquer ici, seulement y renvoyer :
@@ -155,6 +191,7 @@ Le raisonnement complet de chaque décision structurante (contexte, alternatives
 - ADR 021 — CI : cache des layers Docker via `docker/build-push-action` (`type=gha`) plutôt que `docker compose build` seul (aucun cache entre runs) ; build de l'image 3m14s → 28s une fois le cache chaud
 - ADR 025 — Handlers Messenger taggés par un unique bloc `resource:` ciblant `*Handler.php` (pas un bloc par use case, pas de split de `services.yaml`) ; ajouter un use case n'implique plus de toucher la config tant que son Handler suit la convention de nommage établie
 - ADR 026 — Format de compétition choisi à la création (`CompetitionFormat`/`BracketConfiguration` sur `Competition::create()`, pas au moment de générer le bracket) ; `includeThirdPlaceMatch` orthogonal au format, pas un 2e case d'enum ; `BracketGeneratorFactory` (map format → générateur injectée en config, pas de `match` codé en dur) résout le générateur, `Competition::generateBracket(BracketGeneratorFactory)` protège l'invariant format/générateur en interne à l'agrégat
+- ADR 027 — Bounded context `Organization` (dépendance à sens unique vers/depuis `Competition` imposée par `deptrac`) : `Organizer` distinct de `Player` (id généré, pas email) ; `Organization` créée uniquement après paiement confirmé (pas d'état "pending" sur l'agrégat) ; paiement par flux initiation/confirmation asynchrone (`PaymentGateway`/`CheckoutSession`, webhook simulé idempotent), jamais de `charge()` synchrone ; `OrganizationId` en ACL (pas de Shared Kernel) ; auth par JWT stateless (`LexikJWTAuthenticationBundle`, pas de token opaque persisté, pas de révocation en v1) avec `SecurityOrganizer`/`OrganizerUserProvider` en adapters Infrastructure (zéro interface Symfony Security sur `Organizer`) ; email dupliqué à l'inscription en erreur explicite (pas anti-énumération, contexte différent de `CreatePlayer`/ADR 024)
 
 ## Workflow
 
@@ -175,4 +212,4 @@ Le raisonnement complet de chaque décision structurante (contexte, alternatives
 
 ## Prochaine étape prioritaire
 
-Priorité 5b (persistance réelle) ✅ implémentée (voir `ROADMAP.md` pour le détail). Priorité 5c (API REST pour les autres use cases) ✅ terminée : `RegisterTeam`, `CreatePlayer` (ADR 024), `Withdraw`, `CloseRegistration` et `GenerateBracket` (`POST /competitions/{id}/generate-bracket`, format/option 3e place choisis à la création via `BracketConfiguration`, résolus via `BracketGeneratorFactory` — voir ADR 026) tous faits bout en bout (Application + HTTP). Reste sur Priorité 5c : multi-tenancy, choix du front (Vue 3 ou Twig). Le détail complet du plan est dans `ROADMAP.md`.
+Priorité 5b (persistance réelle) ✅ implémentée. Priorité 5c (API REST pour les autres use cases) ✅ terminée : `RegisterTeam`, `CreatePlayer` (ADR 024), `Withdraw`, `CloseRegistration`, `GenerateBracket` (ADR 026) et multi-tenancy — fondations `Organization` (ADR 027) faites bout en bout (Domain/Application/Infrastructure + HTTP + Security). Reste sur Priorité 5c : rattacher `Competition.organizationId` (esquissé mais pas implémenté, voir ADR 027 "Conséquences"), choix du front (Vue 3 ou Twig). Le détail complet du plan est dans `ROADMAP.md`.
