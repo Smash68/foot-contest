@@ -41,6 +41,9 @@ jobs:
       - name: Run static analysis
         run: docker compose exec -T app composer stan
 
+      - name: Check module dependencies
+        run: docker compose exec -T app composer deptrac
+
       - name: Check code style
         run: docker compose exec -T app composer cs-check
 

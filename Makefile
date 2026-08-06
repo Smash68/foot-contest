@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := help
 
-.PHONY: help up down shell test test-coverage stan cs-check cs-fix migrate serve
+.PHONY: help up down shell test test-coverage stan deptrac cs-check cs-fix migrate serve
 
 help: ## Liste les commandes disponibles
 	@grep -E '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*## "}; {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}'
@@ -22,6 +22,9 @@ test-coverage: ## Lance les tests avec couverture (Xdebug)
 
 stan: ## Analyse statique (PHPStan)
 	docker compose exec app composer stan
+
+deptrac: ## Vérifie les dépendances entre modules (Deptrac)
+	docker compose exec app composer deptrac
 
 cs-check: ## Vérifie le style de code (PHP-CS-Fixer, sans modifier)
 	docker compose exec app composer cs-check

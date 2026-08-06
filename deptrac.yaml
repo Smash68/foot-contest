@@ -1,0 +1,19 @@
+deptrac:
+    paths:
+        - ./src
+
+    layers:
+        - name: Competition
+          collectors:
+              - type: directory
+                value: src/Competition/.*
+
+        - name: Organization
+          collectors:
+              - type: directory
+                value: src/Organization/.*
+
+    ruleset:
+        Competition:
+            - Organization
+        Organization: []
