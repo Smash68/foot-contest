@@ -50,3 +50,23 @@ services:
         arguments:
             $generatorsByFormat:
                 single_elimination: '@App\Competition\Domain\Format\SingleElimination\SingleEliminationBracketGenerator'
+
+    # makes classes in src/Organization/{Application,Infrastructure} available as services,
+    # same convention as App\Competition\ above (Domain excluded, hexagonal purity).
+    App\Organization\:
+        resource: '../src/Organization/*'
+        exclude:
+            - '../src/Organization/Domain'
+
+    App\Organization\Application\:
+        resource: '../src/Organization/Application/*/*Handler.php'
+        tags: ['messenger.message_handler']
+
+    App\Organization\Domain\Repository\OrganizerRepository: '@App\Organization\Infrastructure\Persistence\Doctrine\DoctrineOrganizerRepository'
+    App\Organization\Domain\Repository\OrganizationRepository: '@App\Organization\Infrastructure\Persistence\Doctrine\DoctrineOrganizationRepository'
+    App\Organization\Domain\Repository\CheckoutSessionRepository: '@App\Organization\Infrastructure\Persistence\Doctrine\DoctrineCheckoutSessionRepository'
+    App\Organization\Domain\Service\PasswordHasher: '@App\Organization\Infrastructure\Password\NativePasswordHasher'
+    App\Organization\Domain\Service\AccessTokenIssuer: '@App\Organization\Infrastructure\Security\LexikAccessTokenIssuer'
+    App\Organization\Domain\Service\PaymentGateway: '@App\Organization\Infrastructure\Payment\FakePaymentGateway'
+
+    Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface: '@lexik_jwt_authentication.jwt_manager'
