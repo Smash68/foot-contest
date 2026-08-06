@@ -2,6 +2,7 @@ doctrine:
     dbal:
         types:
             organizer_id: App\Organization\Infrastructure\Persistence\Doctrine\Type\OrganizerIdType
+            organization_id: App\Organization\Infrastructure\Persistence\Doctrine\Type\OrganizationIdType
     orm:
         mappings:
             Organization:
