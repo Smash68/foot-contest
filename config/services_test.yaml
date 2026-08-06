@@ -1,3 +1,5 @@
 services:
     App\Competition\Domain\Repository\CompetitionRepository: '@App\Competition\Infrastructure\Persistence\InMemory\InMemoryCompetitionRepository'
     App\Organization\Domain\Repository\OrganizerRepository: '@App\Organization\Infrastructure\Persistence\InMemory\InMemoryOrganizerRepository'
+    App\Organization\Domain\Repository\OrganizationRepository: '@App\Organization\Infrastructure\Persistence\InMemory\InMemoryOrganizationRepository'
+    App\Organization\Domain\Repository\CheckoutSessionRepository: '@App\Organization\Infrastructure\Persistence\InMemory\InMemoryCheckoutSessionRepository'
