@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping
+                   https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+
+    <entity name="App\Organization\Domain\Model\CheckoutSession" table="checkout_session">
+        <id name="id" type="checkout_session_id" column="id" />
+
+        <field name="organizationName" type="string" column="organization_name" />
+        <field name="ownerId" type="organizer_id" column="owner_id" />
+        <field name="checkoutReference" type="checkout_reference" column="checkout_reference" />
+        <field name="status" type="string" column="status" enum-type="App\Organization\Domain\Model\CheckoutSessionStatus" />
+        <field name="organizationId" type="organization_id" column="organization_id" nullable="true" />
+    </entity>
+
+</doctrine-mapping>

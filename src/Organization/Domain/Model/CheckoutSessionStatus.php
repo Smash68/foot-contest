@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Organization\Domain\Model;
 
-enum CheckoutSessionStatus
+enum CheckoutSessionStatus: string
 {
-    case Pending;
-    case Completed;
-    case Failed;
+    case Pending = 'pending';
+    case Completed = 'completed';
+    case Failed = 'failed';
 }

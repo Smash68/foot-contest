@@ -3,6 +3,8 @@ doctrine:
         types:
             organizer_id: App\Organization\Infrastructure\Persistence\Doctrine\Type\OrganizerIdType
             organization_id: App\Organization\Infrastructure\Persistence\Doctrine\Type\OrganizationIdType
+            checkout_session_id: App\Organization\Infrastructure\Persistence\Doctrine\Type\CheckoutSessionIdType
+            checkout_reference: App\Organization\Infrastructure\Persistence\Doctrine\Type\CheckoutReferenceType
     orm:
         mappings:
             Organization:
