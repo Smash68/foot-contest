@@ -1,0 +1,12 @@
+doctrine:
+    dbal:
+        types:
+            organizer_id: App\Organization\Infrastructure\Persistence\Doctrine\Type\OrganizerIdType
+    orm:
+        mappings:
+            Organization:
+                type: xml
+                is_bundle: false
+                dir: '%kernel.project_dir%/src/Organization/Infrastructure/Persistence/Doctrine/mapping'
+                prefix: 'App\Organization\Domain\Model'
+                alias: Organization
