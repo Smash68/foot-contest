@@ -12,4 +12,9 @@ final class NativePasswordHasher implements PasswordHasher
     {
         return password_hash($plainPassword, PASSWORD_BCRYPT);
     }
+
+    public function verify(string $plainPassword, string $hashedPassword): bool
+    {
+        return password_verify($plainPassword, $hashedPassword);
+    }
 }
