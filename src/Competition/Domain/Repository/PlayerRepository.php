@@ -9,7 +9,11 @@ use App\Competition\Domain\Model\PlayerId;
 
 interface PlayerRepository
 {
+    public function nextIdentity(): PlayerId;
+
     public function save(Player $player): void;
 
     public function ofId(PlayerId $id): ?Player;
+
+    public function ofEmail(string $email): ?Player;
 }

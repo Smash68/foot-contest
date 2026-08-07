@@ -8,7 +8,6 @@ use App\Competition\Domain\Model\BracketConfiguration;
 use App\Competition\Domain\Model\Competition;
 use App\Competition\Domain\Model\CompetitionFormat;
 use App\Competition\Domain\Model\Player;
-use App\Competition\Domain\Model\PlayerId;
 use App\Competition\Domain\Model\TeamCapacity;
 use App\Competition\Domain\Repository\CompetitionRepository;
 use App\Competition\Infrastructure\Persistence\Doctrine\DoctrinePlayerRepository;
@@ -31,13 +30,13 @@ final class RegisterTeamControllerTest extends WebTestCase
         $competitions->save($competition);
 
         $entityManager = self::getContainer()->get(EntityManagerInterface::class);
-        (new DoctrinePlayerRepository($entityManager))->save(
-            new Player(new PlayerId('captain@example.com'), 'Captain'),
-        );
+        $players = new DoctrinePlayerRepository($entityManager);
+        $captainId = $players->nextIdentity();
+        $players->save(Player::register($captainId, 'Captain', 'captain@example.com'));
 
         $client->request('POST', "/competitions/{$competition->getId()->value}/teams", server: ['CONTENT_TYPE' => 'application/json'], content: json_encode([
             'name' => 'Team A',
-            'captainId' => 'captain@example.com',
+            'captainId' => $captainId->value,
         ]));
 
         self::assertResponseStatusCodeSame(201);

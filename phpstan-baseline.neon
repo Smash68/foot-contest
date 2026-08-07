@@ -303,13 +303,13 @@ parameters:
 		-
 			message: '#^Call to an undefined method object\:\:clear\(\)\.$#'
 			identifier: method.notFound
-			count: 1
+			count: 2
 			path: tests/Competition/Infrastructure/Persistence/Doctrine/DoctrinePlayerRepositoryTest.php
 
 		-
 			message: '#^Parameter \#1 \$entityManager of class App\\Competition\\Infrastructure\\Persistence\\Doctrine\\DoctrinePlayerRepository constructor expects Doctrine\\ORM\\EntityManagerInterface, object given\.$#'
 			identifier: argument.type
-			count: 1
+			count: 2
 			path: tests/Competition/Infrastructure/Persistence/Doctrine/DoctrinePlayerRepositoryTest.php
 
 		-

@@ -8,6 +8,7 @@
         <id name="id" type="player_id" column="id" />
 
         <field name="name" type="string" column="name" />
+        <field name="email" type="string" column="email" />
     </entity>
 
 </doctrine-mapping>

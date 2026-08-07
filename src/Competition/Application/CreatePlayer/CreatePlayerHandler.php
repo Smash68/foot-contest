@@ -16,14 +16,13 @@ final readonly class CreatePlayerHandler
 
     public function __invoke(CreatePlayerCommand $command): PlayerId
     {
-        $id = new PlayerId($command->email);
-
-        $existing = $this->repository->ofId($id);
+        $existing = $this->repository->ofEmail($command->email);
         if ($existing !== null) {
             return $existing->getId();
         }
 
-        $this->repository->save(new Player($id, $command->name));
+        $id = $this->repository->nextIdentity();
+        $this->repository->save(Player::register($id, $command->name, $command->email));
 
         return $id;
     }
