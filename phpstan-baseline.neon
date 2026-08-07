@@ -135,7 +135,7 @@ parameters:
 		-
 			message: '#^Parameter \$content of method Symfony\\Component\\BrowserKit\\AbstractBrowser\<Symfony\\Component\\HttpFoundation\\Request,Symfony\\Component\\HttpFoundation\\Response\>\:\:request\(\) expects string\|null, string\|false given\.$#'
 			identifier: argument.type
-			count: 4
+			count: 6
 			path: tests/Competition/Infrastructure/Http/CreateCompetitionControllerTest.php
 
 		-

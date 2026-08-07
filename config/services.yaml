@@ -56,6 +56,11 @@ services:
     App\Competition\Domain\Service\PasswordHasher: '@App\Competition\Infrastructure\Password\NativePasswordHasher'
     App\Competition\Domain\Service\AccessTokenIssuer: '@App\Competition\Infrastructure\Security\LexikAccessTokenIssuer'
 
+    # seul port qui traverse réellement la frontière vers Organization (autorisé par deptrac,
+    # voir ADR 027 décision 1) : l'adapter ne dépend que de la Query Application d'Organization
+    # (primitifs en entrée/sortie), jamais de son Domain — ACL via le bus CQRS déjà établi (ADR 008).
+    App\Competition\Domain\Service\OrganizerOrganizationAuthorization: '@App\Competition\Infrastructure\Service\OrganizationOwnershipAuthorization'
+
     # makes classes in src/Organization/{Application,Infrastructure} available as services,
     # same convention as App\Competition\ above (Domain excluded, hexagonal purity).
     App\Organization\:

@@ -23,6 +23,14 @@ security:
             stateless: true
             provider: organizers
             jwt: ~
+        # JWT-authenticated firewall for the one Competition endpoint that needs to know the
+        # current organizer (POST /competitions, to attach the new Competition to one of their
+        # Organizations). Every other Competition route falls through to "main" untouched.
+        create_competition:
+            pattern: ^/competitions$
+            stateless: true
+            provider: organizers
+            jwt: ~
         main:
             lazy: true
             provider: users_in_memory
@@ -36,6 +44,7 @@ security:
     # Note: Only the *first* matching rule is applied
     access_control:
         - { path: ^/organizations/checkout$, roles: IS_AUTHENTICATED_FULLY }
+        - { path: ^/competitions$, roles: IS_AUTHENTICATED_FULLY }
         # - { path: ^/admin, roles: ROLE_ADMIN }
         # - { path: ^/profile, roles: ROLE_USER }
 

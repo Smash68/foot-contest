@@ -6,11 +6,13 @@ namespace App\Competition\Infrastructure\Http;
 
 use App\Competition\Application\CreateCompetition\CreateCompetitionCommand;
 use App\Competition\Domain\Model\CompetitionId;
+use App\Organization\Infrastructure\Security\SecurityOrganizer;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Messenger\Stamp\HandledStamp;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\CurrentUser;
 
 final class CreateCompetitionController
 {
@@ -19,14 +21,17 @@ final class CreateCompetitionController
     }
 
     #[Route('/competitions', methods: ['POST'])]
-    public function __invoke(#[MapRequestPayload] CreateCompetitionRequest $request): JsonResponse
-    {
+    public function __invoke(
+        #[MapRequestPayload] CreateCompetitionRequest $request,
+        #[CurrentUser] SecurityOrganizer $organizer,
+    ): JsonResponse {
         $envelope = $this->bus->dispatch(new CreateCompetitionCommand(
             $request->name,
             $request->minTeams,
             $request->maxTeams,
             $request->format,
             $request->includeThirdPlaceMatch,
+            $organizer->getUserIdentifier(),
             $request->organizationId,
         ));
 
