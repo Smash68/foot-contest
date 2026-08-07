@@ -20,7 +20,7 @@ final class CreateCompetitionThroughMessageBusTest extends KernelTestCase
         $container = self::getContainer();
 
         $envelope = $container->get(MessageBusInterface::class)->dispatch(
-            new CreateCompetitionCommand('Summer Cup', 2, 4, CompetitionFormat::SingleElimination->value, false),
+            new CreateCompetitionCommand('Summer Cup', 2, 4, CompetitionFormat::SingleElimination->value, false, 'org-1'),
         );
 
         $id = $envelope->last(HandledStamp::class)->getResult();

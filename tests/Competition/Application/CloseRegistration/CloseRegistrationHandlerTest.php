@@ -10,6 +10,7 @@ use App\Competition\Domain\Model\BracketConfiguration;
 use App\Competition\Domain\Model\Competition;
 use App\Competition\Domain\Model\CompetitionFormat;
 use App\Competition\Domain\Model\CompetitionId;
+use App\Competition\Domain\Model\OrganizationId;
 use App\Competition\Domain\Model\PlayerId;
 use App\Competition\Domain\Model\Team;
 use App\Competition\Domain\Model\TeamCapacity;
@@ -24,7 +25,7 @@ final class CloseRegistrationHandlerTest extends TestCase
     public function it_closes_registration_for_an_eligible_competition(): void
     {
         $competitions = new InMemoryCompetitionRepository();
-        $competition = Competition::create(new CompetitionId('c1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false));
+        $competition = Competition::create(new CompetitionId('c1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
         $competition->register(Team::create(new TeamId('t1'), 'Team A', new PlayerId('captain-a@example.com')));
         $competition->register(Team::create(new TeamId('t2'), 'Team B', new PlayerId('captain-b@example.com')));
         $competitions->save($competition);

@@ -11,6 +11,7 @@
         <field name="closed" type="boolean" column="closed" />
         <field name="teams" type="registrations" column="registrations" />
         <field name="bracket" type="bracket" column="bracket" nullable="true" />
+        <field name="organizationId" type="competition_organization_id" column="organization_id" />
 
         <embedded name="capacity" class="App\Competition\Domain\Model\TeamCapacity" />
         <embedded name="bracketConfiguration" class="App\Competition\Domain\Model\BracketConfiguration" />

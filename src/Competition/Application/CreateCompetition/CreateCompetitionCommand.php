@@ -12,6 +12,7 @@ final readonly class CreateCompetitionCommand
         public int $maxTeams,
         public string $format,
         public bool $includeThirdPlaceMatch,
+        public string $organizationId,
     ) {
     }
 }

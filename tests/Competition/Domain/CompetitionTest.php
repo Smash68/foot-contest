@@ -9,6 +9,7 @@ use App\Competition\Domain\Model\BracketConfiguration;
 use App\Competition\Domain\Model\Competition;
 use App\Competition\Domain\Model\CompetitionFormat;
 use App\Competition\Domain\Model\CompetitionId;
+use App\Competition\Domain\Model\OrganizationId;
 use App\Competition\Domain\Model\PlayerId;
 use App\Competition\Domain\Model\Team;
 use App\Competition\Domain\Model\TeamCapacity;
@@ -23,15 +24,24 @@ final class CompetitionTest extends TestCase
     public function it_exposes_its_id(): void
     {
         $id = new CompetitionId('t1');
-        $competition = Competition::create($id, 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false));
+        $competition = Competition::create($id, 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
 
         self::assertTrue($competition->getId()->equals($id));
     }
 
     #[Test]
+    public function it_exposes_its_organization_id(): void
+    {
+        $organizationId = new OrganizationId('org-1');
+        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), $organizationId);
+
+        self::assertTrue($competition->getOrganizationId()->equals($organizationId));
+    }
+
+    #[Test]
     public function it_exposes_its_format(): void
     {
-        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false));
+        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
 
         self::assertSame(CompetitionFormat::SingleElimination, $competition->getFormat());
     }
@@ -39,7 +49,7 @@ final class CompetitionTest extends TestCase
     #[Test]
     public function it_exposes_whether_it_includes_a_third_place_match(): void
     {
-        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, true));
+        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, true), new OrganizationId('org-1'));
 
         self::assertTrue($competition->includesThirdPlaceMatch());
     }
@@ -47,7 +57,7 @@ final class CompetitionTest extends TestCase
     #[Test]
     public function it_exposes_its_name(): void
     {
-        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false));
+        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
 
         self::assertSame('Summer Cup', $competition->getName());
     }
@@ -55,7 +65,7 @@ final class CompetitionTest extends TestCase
     #[Test]
     public function it_starts_open_for_registration_with_no_teams(): void
     {
-        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false));
+        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
 
         self::assertTrue($competition->isOpenForRegistration());
         self::assertSame(0, $competition->countRegistrations());
@@ -64,7 +74,7 @@ final class CompetitionTest extends TestCase
     #[Test]
     public function it_counts_a_registered_team(): void
     {
-        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false));
+        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
 
         $competition->register($this->team('a', 'Team A'));
 
@@ -74,7 +84,7 @@ final class CompetitionTest extends TestCase
     #[Test]
     public function it_rejects_a_registration_once_the_maximum_is_reached(): void
     {
-        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 2), new BracketConfiguration(CompetitionFormat::SingleElimination, false));
+        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 2), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
         $competition->register($this->team('a', 'Team A'));
         $competition->register($this->team('b', 'Team B'));
 
@@ -86,7 +96,7 @@ final class CompetitionTest extends TestCase
     #[Test]
     public function it_rejects_a_registration_once_closed(): void
     {
-        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false));
+        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
         $competition->register($this->team('a', 'Team A'));
         $competition->register($this->team('b', 'Team B'));
         $competition->closeRegistration();
@@ -99,7 +109,7 @@ final class CompetitionTest extends TestCase
     #[Test]
     public function it_removes_a_withdrawn_team(): void
     {
-        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false));
+        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
         $competition->register($this->team('a', 'Team A'));
 
         $competition->withdraw(new TeamId('a'));
@@ -110,7 +120,7 @@ final class CompetitionTest extends TestCase
     #[Test]
     public function it_rejects_withdrawing_an_unregistered_team(): void
     {
-        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false));
+        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
 
         $this->expectException(\InvalidArgumentException::class);
 
@@ -120,7 +130,7 @@ final class CompetitionTest extends TestCase
     #[Test]
     public function it_rejects_withdrawing_once_closed(): void
     {
-        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false));
+        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
         $competition->register($this->team('a', 'Team A'));
         $competition->register($this->team('b', 'Team B'));
         $competition->closeRegistration();
@@ -133,7 +143,7 @@ final class CompetitionTest extends TestCase
     #[Test]
     public function it_rejects_registering_the_same_team_twice(): void
     {
-        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false));
+        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
         $competition->register($this->team('a', 'Team A'));
 
         $this->expectException(\LogicException::class);
@@ -144,7 +154,7 @@ final class CompetitionTest extends TestCase
     #[Test]
     public function it_rejects_closing_registration_below_the_minimum(): void
     {
-        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false));
+        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
         $competition->register($this->team('a', 'Team A'));
 
         $this->expectException(\LogicException::class);
@@ -155,7 +165,7 @@ final class CompetitionTest extends TestCase
     #[Test]
     public function it_rejects_generating_the_bracket_while_open(): void
     {
-        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false));
+        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
         $competition->register($this->team('a', 'Team A'));
         $competition->register($this->team('b', 'Team B'));
 
@@ -167,7 +177,7 @@ final class CompetitionTest extends TestCase
     #[Test]
     public function it_generates_the_bracket_from_registered_teams(): void
     {
-        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false));
+        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
         $competition->register($this->team('a', 'Team A'));
         $competition->register($this->team('b', 'Team B'));
         $competition->closeRegistration();
@@ -180,7 +190,7 @@ final class CompetitionTest extends TestCase
     #[Test]
     public function it_rejects_generating_the_bracket_twice(): void
     {
-        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false));
+        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
         $competition->register($this->team('a', 'Team A'));
         $competition->register($this->team('b', 'Team B'));
         $competition->closeRegistration();

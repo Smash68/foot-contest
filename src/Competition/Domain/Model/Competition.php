@@ -20,17 +20,23 @@ final class Competition
         private readonly string $name,
         private readonly TeamCapacity $capacity,
         private readonly BracketConfiguration $bracketConfiguration,
+        private readonly OrganizationId $organizationId,
     ) {
     }
 
-    public static function create(CompetitionId $id, string $name, TeamCapacity $capacity, BracketConfiguration $bracketConfiguration): self
+    public static function create(CompetitionId $id, string $name, TeamCapacity $capacity, BracketConfiguration $bracketConfiguration, OrganizationId $organizationId): self
     {
-        return new self($id, $name, $capacity, $bracketConfiguration);
+        return new self($id, $name, $capacity, $bracketConfiguration, $organizationId);
     }
 
     public function getId(): CompetitionId
     {
         return $this->id;
+    }
+
+    public function getOrganizationId(): OrganizationId
+    {
+        return $this->organizationId;
     }
 
     public function getName(): string

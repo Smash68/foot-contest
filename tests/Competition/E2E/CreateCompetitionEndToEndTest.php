@@ -28,6 +28,7 @@ final class CreateCompetitionEndToEndTest extends WebTestCase
             'maxTeams' => 4,
             'format' => 'single_elimination',
             'includeThirdPlaceMatch' => false,
+            'organizationId' => 'org-1',
         ]));
 
         self::assertResponseStatusCodeSame(201);

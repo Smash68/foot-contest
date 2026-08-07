@@ -7,6 +7,7 @@ namespace App\Tests\Competition\Infrastructure\Http;
 use App\Competition\Domain\Model\BracketConfiguration;
 use App\Competition\Domain\Model\Competition;
 use App\Competition\Domain\Model\CompetitionFormat;
+use App\Competition\Domain\Model\OrganizationId;
 use App\Competition\Domain\Model\Player;
 use App\Competition\Domain\Model\TeamCapacity;
 use App\Competition\Domain\Repository\CompetitionRepository;
@@ -26,7 +27,7 @@ final class RegisterTeamControllerTest extends WebTestCase
         $competitions = new InMemoryCompetitionRepository();
         self::getContainer()->set(CompetitionRepository::class, $competitions);
 
-        $competition = Competition::create($competitions->nextIdentity(), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false));
+        $competition = Competition::create($competitions->nextIdentity(), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
         $competitions->save($competition);
 
         $entityManager = self::getContainer()->get(EntityManagerInterface::class);

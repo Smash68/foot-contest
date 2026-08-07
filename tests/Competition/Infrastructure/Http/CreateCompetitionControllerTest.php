@@ -20,6 +20,7 @@ final class CreateCompetitionControllerTest extends WebTestCase
             'maxTeams' => 4,
             'format' => 'single_elimination',
             'includeThirdPlaceMatch' => false,
+            'organizationId' => 'org-1',
         ]));
 
         self::assertResponseStatusCodeSame(201);
@@ -40,6 +41,7 @@ final class CreateCompetitionControllerTest extends WebTestCase
             'maxTeams' => 4,
             'format' => 'single_elimination',
             'includeThirdPlaceMatch' => false,
+            'organizationId' => 'org-1',
         ]));
 
         self::assertResponseStatusCodeSame(422);
@@ -55,6 +57,7 @@ final class CreateCompetitionControllerTest extends WebTestCase
             'maxTeams' => 4,
             'format' => 'single_elimination',
             'includeThirdPlaceMatch' => false,
+            'organizationId' => 'org-1',
         ]));
 
         self::assertResponseStatusCodeSame(422);
@@ -71,6 +74,7 @@ final class CreateCompetitionControllerTest extends WebTestCase
             'maxTeams' => 4,
             'format' => 'single_elimination',
             'includeThirdPlaceMatch' => false,
+            'organizationId' => 'org-1',
         ]));
 
         self::assertResponseStatusCodeSame(422);

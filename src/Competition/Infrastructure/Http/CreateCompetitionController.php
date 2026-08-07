@@ -27,6 +27,7 @@ final class CreateCompetitionController
             $request->maxTeams,
             $request->format,
             $request->includeThirdPlaceMatch,
+            $request->organizationId,
         ));
 
         $handledStamp = $envelope->last(HandledStamp::class);
