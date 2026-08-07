@@ -51,9 +51,10 @@ services:
             $generatorsByFormat:
                 single_elimination: '@App\Competition\Domain\Format\SingleElimination\SingleEliminationBracketGenerator'
 
-    # port dupliqué depuis Organization (pas de dépendance vers celui d'Organization), voir ADR 027
+    # ports dupliqués depuis Organization (pas de dépendance vers ceux d'Organization), voir ADR 027
     # "Conséquences" : un port technique partagé recréerait le couplage que deptrac empêche.
     App\Competition\Domain\Service\PasswordHasher: '@App\Competition\Infrastructure\Password\NativePasswordHasher'
+    App\Competition\Domain\Service\AccessTokenIssuer: '@App\Competition\Infrastructure\Security\LexikAccessTokenIssuer'
 
     # makes classes in src/Organization/{Application,Infrastructure} available as services,
     # same convention as App\Competition\ above (Domain excluded, hexagonal purity).
