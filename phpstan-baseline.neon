@@ -139,6 +139,30 @@ parameters:
 			path: tests/Competition/Infrastructure/Http/CreateCompetitionControllerTest.php
 
 		-
+			message: '#^Parameter \#1 \$entityManager of class App\\Competition\\Infrastructure\\Persistence\\Doctrine\\DoctrinePlayerRepository constructor expects Doctrine\\ORM\\EntityManagerInterface, object given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Competition/Infrastructure/Http/LoginControllerTest.php
+
+		-
+			message: '#^Parameter \#1 \$json of function json_decode expects string, string\|false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Competition/Infrastructure/Http/LoginControllerTest.php
+
+		-
+			message: '#^Parameter \#2 \$array of static method PHPUnit\\Framework\\Assert\:\:assertArrayHasKey\(\) expects array\<mixed\>\|ArrayAccess\<\(int\|string\), mixed\>, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Competition/Infrastructure/Http/LoginControllerTest.php
+
+		-
+			message: '#^Parameter \$content of method Symfony\\Component\\BrowserKit\\AbstractBrowser\<Symfony\\Component\\HttpFoundation\\Request,Symfony\\Component\\HttpFoundation\\Response\>\:\:request\(\) expects string\|null, string\|false given\.$#'
+			identifier: argument.type
+			count: 2
+			path: tests/Competition/Infrastructure/Http/LoginControllerTest.php
+
+		-
 			message: '#^Cannot access offset ''id'' on mixed\.$#'
 			identifier: offsetAccess.nonOffsetAccessible
 			count: 1
