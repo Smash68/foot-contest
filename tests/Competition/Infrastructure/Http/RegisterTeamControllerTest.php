@@ -32,7 +32,7 @@ final class RegisterTeamControllerTest extends WebTestCase
         $entityManager = self::getContainer()->get(EntityManagerInterface::class);
         $players = new DoctrinePlayerRepository($entityManager);
         $captainId = $players->nextIdentity();
-        $players->save(Player::register($captainId, 'Captain', 'captain@example.com'));
+        $players->save(Player::register($captainId, 'Captain', 'captain@example.com', 'hashed-password'));
 
         $client->request('POST', "/competitions/{$competition->getId()->value}/teams", server: ['CONTENT_TYPE' => 'application/json'], content: json_encode([
             'name' => 'Team A',

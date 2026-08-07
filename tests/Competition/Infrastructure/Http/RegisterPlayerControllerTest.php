@@ -7,16 +7,17 @@ namespace App\Tests\Competition\Infrastructure\Http;
 use PHPUnit\Framework\Attributes\Test;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
-final class CreatePlayerControllerTest extends WebTestCase
+final class RegisterPlayerControllerTest extends WebTestCase
 {
     #[Test]
-    public function it_creates_a_player(): void
+    public function it_registers_a_player(): void
     {
         $client = static::createClient();
 
         $client->request('POST', '/players', server: ['CONTENT_TYPE' => 'application/json'], content: json_encode([
             'name' => 'Captain',
             'email' => 'captain@example.com',
+            'password' => 'super-secret',
         ]));
 
         self::assertResponseStatusCodeSame(201);
@@ -34,6 +35,7 @@ final class CreatePlayerControllerTest extends WebTestCase
         $client->request('POST', '/players', server: ['CONTENT_TYPE' => 'application/json'], content: json_encode([
             'name' => 'Captain',
             'email' => 'not-an-email',
+            'password' => 'super-secret',
         ]));
 
         self::assertResponseStatusCodeSame(422);
@@ -46,6 +48,7 @@ final class CreatePlayerControllerTest extends WebTestCase
 
         $client->request('POST', '/players', server: ['CONTENT_TYPE' => 'application/json'], content: json_encode([
             'email' => 'captain@example.com',
+            'password' => 'super-secret',
         ]));
 
         self::assertResponseStatusCodeSame(422);

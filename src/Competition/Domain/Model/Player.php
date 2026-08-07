@@ -10,16 +10,17 @@ final class Player
         private readonly PlayerId $id,
         private readonly string $name,
         private readonly string $email,
+        private readonly string $hashedPassword,
     ) {
     }
 
-    public static function register(PlayerId $id, string $name, string $email): self
+    public static function register(PlayerId $id, string $name, string $email, string $hashedPassword): self
     {
         if (filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
             throw new \InvalidArgumentException('Player email must be a valid email address.');
         }
 
-        return new self($id, $name, $email);
+        return new self($id, $name, $email, $hashedPassword);
     }
 
     public function getId(): PlayerId
@@ -35,5 +36,10 @@ final class Player
     public function getEmail(): string
     {
         return $this->email;
+    }
+
+    public function getHashedPassword(): string
+    {
+        return $this->hashedPassword;
     }
 }

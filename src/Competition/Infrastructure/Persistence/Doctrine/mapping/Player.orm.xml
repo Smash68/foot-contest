@@ -9,6 +9,7 @@
 
         <field name="name" type="string" column="name" />
         <field name="email" type="string" column="email" />
+        <field name="hashedPassword" type="string" column="hashed_password" />
     </entity>
 
 </doctrine-mapping>

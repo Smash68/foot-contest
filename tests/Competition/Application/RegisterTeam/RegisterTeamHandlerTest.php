@@ -30,7 +30,7 @@ final class RegisterTeamHandlerTest extends TestCase
 
         $players = new InMemoryPlayerRepository();
         $captainId = $players->nextIdentity();
-        $players->save(Player::register($captainId, 'Captain', 'captain@example.com'));
+        $players->save(Player::register($captainId, 'Captain', 'captain@example.com', 'hashed-password'));
 
         $handler = new RegisterTeamHandler($competitions, $players, new InMemoryTeamRepository());
 
@@ -78,7 +78,7 @@ final class RegisterTeamHandlerTest extends TestCase
 
         $players = new InMemoryPlayerRepository();
         $captainId = $players->nextIdentity();
-        $players->save(Player::register($captainId, 'Captain', 'captain@example.com'));
+        $players->save(Player::register($captainId, 'Captain', 'captain@example.com', 'hashed-password'));
 
         $handler = new RegisterTeamHandler($competitions, $players, new InMemoryTeamRepository());
 

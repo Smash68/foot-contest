@@ -19,7 +19,7 @@ final class DoctrinePlayerRepositoryTest extends KernelTestCase
         $repository = new DoctrinePlayerRepository($entityManager);
 
         $id = $repository->nextIdentity();
-        $player = Player::register($id, 'Captain America', 'captain@example.com');
+        $player = Player::register($id, 'Captain America', 'captain@example.com', 'hashed-password');
 
         $repository->save($player);
         $entityManager->clear();
@@ -38,7 +38,7 @@ final class DoctrinePlayerRepositoryTest extends KernelTestCase
         $repository = new DoctrinePlayerRepository($entityManager);
 
         $id = $repository->nextIdentity();
-        $player = Player::register($id, 'Captain America', 'captain@example.com');
+        $player = Player::register($id, 'Captain America', 'captain@example.com', 'hashed-password');
 
         $repository->save($player);
         $entityManager->clear();
