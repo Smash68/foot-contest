@@ -74,7 +74,10 @@ Persistance de `Player` en agrégat indépendant avancée à la Priorité 5b (vo
 
 - Flux "rejoindre une équipe" : un joueur crée une équipe (devient capitaine) ou demande à rejoindre une équipe déjà inscrite à la même compétition, validation par le capitaine requise — voir ADR 022
 - Règles de cohérence inter-équipes d'une même compétition : unicité du nom d'équipe, un joueur ne peut appartenir qu'à une seule `Team` par `Competition` — incrément dédié, volontairement hors périmètre de l'ADR 022. Nuances à trancher au moment de le reprendre : unicité du nom sensible à la casse/aux espaces ou normalisée ? un retrait (`withdraw`) libère-t-il immédiatement le nom et les joueurs pour une nouvelle inscription, ou restent-ils réservés ?
-- Gestion des utilisateurs : rôles et droits (organisateur / capitaine / joueur, cf. acteurs dans `README.md`) — brancher le JWT `Player` déjà émis (`POST /players/login`, ADR 028) sur un `PlayerUserProvider`/firewall dédié, puis authentifier réellement le capitaine dans `RegisterTeam`/`Withdraw`/`CloseRegistration`
+- Gestion des utilisateurs : rôles et droits (organisateur / capitaine / joueur, cf. acteurs dans `README.md`)
+  - ✅ `PlayerUserProvider`/firewall dédié : `PlayerUserProvider implements UserProviderInterface` (mirroir `OrganizerUserProvider`) résout un `Player` depuis le JWT via `PlayerRepository::ofId()`. Firewall `register_team` (`security.yaml`, mirroir `create_competition`) scopé à `POST /competitions/{id}/teams`.
+  - ✅ Capitaine authentifié dans `RegisterTeam` : `RegisterTeamController` résout le capitaine via `#[CurrentUser] SecurityPlayer` au lieu d'un `captainId` dans le payload client — mirroir exact d'`organizerId` sur `CreateCompetitionController`.
+  - Reste : authentifier réellement le capitaine (ou l'organisateur ?) dans `Withdraw`/`CloseRegistration` — règles d'autorisation à trancher avant d'implémenter (qui a le droit de désister une équipe, de clore l'inscription ?).
 
 ## Priorité 7 — Gestion de la compétition en cours
 
