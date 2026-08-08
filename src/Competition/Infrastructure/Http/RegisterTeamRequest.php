@@ -8,7 +8,6 @@ final readonly class RegisterTeamRequest
 {
     public function __construct(
         public string $name,
-        public string $captainId,
     ) {
     }
 }

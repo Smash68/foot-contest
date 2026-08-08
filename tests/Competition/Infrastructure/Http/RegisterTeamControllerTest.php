@@ -11,9 +11,9 @@ use App\Competition\Domain\Model\OrganizationId;
 use App\Competition\Domain\Model\Player;
 use App\Competition\Domain\Model\TeamCapacity;
 use App\Competition\Domain\Repository\CompetitionRepository;
-use App\Competition\Infrastructure\Persistence\Doctrine\DoctrinePlayerRepository;
+use App\Competition\Domain\Repository\PlayerRepository;
+use App\Competition\Domain\Service\AccessTokenIssuer;
 use App\Competition\Infrastructure\Persistence\InMemory\InMemoryCompetitionRepository;
-use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\Test;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
@@ -30,14 +30,13 @@ final class RegisterTeamControllerTest extends WebTestCase
         $competition = Competition::create($competitions->nextIdentity(), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
         $competitions->save($competition);
 
-        $entityManager = self::getContainer()->get(EntityManagerInterface::class);
-        $players = new DoctrinePlayerRepository($entityManager);
-        $captainId = $players->nextIdentity();
-        $players->save(Player::register($captainId, 'Captain', 'captain@example.com', 'hashed-password'));
+        $token = $this->authenticatedPlayer();
 
-        $client->request('POST', "/competitions/{$competition->getId()->value}/teams", server: ['CONTENT_TYPE' => 'application/json'], content: json_encode([
+        $client->request('POST', "/competitions/{$competition->getId()->value}/teams", server: [
+            'CONTENT_TYPE' => 'application/json',
+            'HTTP_AUTHORIZATION' => "Bearer {$token}",
+        ], content: json_encode([
             'name' => 'Team A',
-            'captainId' => $captainId->value,
         ]));
 
         self::assertResponseStatusCodeSame(201);
@@ -45,5 +44,36 @@ final class RegisterTeamControllerTest extends WebTestCase
         $payload = json_decode($client->getResponse()->getContent(), true);
         self::assertArrayHasKey('id', $payload);
         self::assertNotEmpty($payload['id']);
+    }
+
+    #[Test]
+    public function it_returns_401_without_a_token(): void
+    {
+        $client = static::createClient();
+
+        $competitions = new InMemoryCompetitionRepository();
+        self::getContainer()->set(CompetitionRepository::class, $competitions);
+
+        $competition = Competition::create($competitions->nextIdentity(), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
+        $competitions->save($competition);
+
+        $client->request('POST', "/competitions/{$competition->getId()->value}/teams", server: ['CONTENT_TYPE' => 'application/json'], content: json_encode([
+            'name' => 'Team A',
+        ]));
+
+        self::assertResponseStatusCodeSame(401);
+    }
+
+    private function authenticatedPlayer(): string
+    {
+        $players = self::getContainer()->get(PlayerRepository::class);
+        assert($players instanceof PlayerRepository);
+        $playerId = $players->nextIdentity();
+        $players->save(Player::register($playerId, 'Captain', 'captain@example.com', 'hashed-password'));
+
+        $accessTokenIssuer = self::getContainer()->get(AccessTokenIssuer::class);
+        assert($accessTokenIssuer instanceof AccessTokenIssuer);
+
+        return $accessTokenIssuer->issue($playerId);
     }
 }

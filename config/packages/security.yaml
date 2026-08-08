@@ -7,6 +7,8 @@ security:
     providers:
         organizers:
             id: App\Organization\Infrastructure\Security\OrganizerUserProvider
+        players:
+            id: App\Competition\Infrastructure\Security\PlayerUserProvider
         users_in_memory: { memory: null }
 
     firewalls:
@@ -31,6 +33,14 @@ security:
             stateless: true
             provider: organizers
             jwt: ~
+        # JWT-authenticated firewall for the one Competition endpoint that needs to know the
+        # current player (POST /competitions/{id}/teams, to register them as the team's
+        # captain). Every other Competition route falls through to "main" untouched.
+        register_team:
+            pattern: ^/competitions/[^/]+/teams$
+            stateless: true
+            provider: players
+            jwt: ~
         main:
             lazy: true
             provider: users_in_memory
@@ -45,6 +55,7 @@ security:
     access_control:
         - { path: ^/organizations/checkout$, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/competitions$, roles: IS_AUTHENTICATED_FULLY }
+        - { path: ^/competitions/[^/]+/teams$, roles: IS_AUTHENTICATED_FULLY }
         # - { path: ^/admin, roles: ROLE_ADMIN }
         # - { path: ^/profile, roles: ROLE_USER }
 
