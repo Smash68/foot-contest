@@ -11,6 +11,7 @@ jobs:
 
     env:
       COMPOSE_PROJECT_NAME: foot-contest
+      JWT_PASSPHRASE: ${{ secrets.JWT_PASSPHRASE }}
 
     steps:
       - uses: actions/checkout@v4
@@ -52,5 +53,8 @@ jobs:
           docker compose exec -T app php bin/console doctrine:database:create --env=test --if-not-exists
           docker compose exec -T app php bin/console doctrine:migrations:migrate --env=test --no-interaction
 
+      - name: Generate JWT keypair
+        run: docker compose exec -T -e JWT_PASSPHRASE app php bin/console lexik:jwt:generate-keypair --skip-if-exists
+
       - name: Run tests
-        run: docker compose exec -T app vendor/bin/phpunit
+        run: docker compose exec -T -e JWT_PASSPHRASE app vendor/bin/phpunit
