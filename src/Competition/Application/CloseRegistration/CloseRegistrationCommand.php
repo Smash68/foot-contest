@@ -8,6 +8,7 @@ final readonly class CloseRegistrationCommand
 {
     public function __construct(
         public string $competitionId,
+        public string $organizerId,
     ) {
     }
 }

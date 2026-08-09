@@ -41,6 +41,15 @@ security:
             stateless: true
             provider: players
             jwt: ~
+        # JWT-authenticated firewall for the one Competition endpoint that needs to know the
+        # current organizer (POST /competitions/{id}/close-registration, only the organizer
+        # owning the competition may close it). Every other Competition route falls through
+        # to "main" untouched.
+        close_registration:
+            pattern: ^/competitions/[^/]+/close-registration$
+            stateless: true
+            provider: organizers
+            jwt: ~
         main:
             lazy: true
             provider: users_in_memory
@@ -56,6 +65,7 @@ security:
         - { path: ^/organizations/checkout$, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/competitions$, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/competitions/[^/]+/teams$, roles: IS_AUTHENTICATED_FULLY }
+        - { path: ^/competitions/[^/]+/close-registration$, roles: IS_AUTHENTICATED_FULLY }
         # - { path: ^/admin, roles: ROLE_ADMIN }
         # - { path: ^/profile, roles: ROLE_USER }
 
