@@ -9,6 +9,11 @@ security:
             id: App\Organization\Infrastructure\Security\OrganizerUserProvider
         players:
             id: App\Competition\Infrastructure\Security\PlayerUserProvider
+        # Withdraw accepts either a Player (the team's captain) or an Organizer (owning the
+        # competition) - tries players first (cheaper, no cross-context call), then organizers.
+        players_or_organizers:
+            chain:
+                providers: [players, organizers]
         users_in_memory: { memory: null }
 
     firewalls:
@@ -50,6 +55,15 @@ security:
             stateless: true
             provider: organizers
             jwt: ~
+        # JWT-authenticated firewall for the one Competition endpoint that accepts two actor
+        # types (DELETE /competitions/{id}/teams/{teamId}) : the team's captain (Player) or
+        # the organizer owning the competition (Organizer) may withdraw a team. Every other
+        # Competition route falls through to "main" untouched.
+        withdraw:
+            pattern: ^/competitions/[^/]+/teams/[^/]+$
+            stateless: true
+            provider: players_or_organizers
+            jwt: ~
         main:
             lazy: true
             provider: users_in_memory
@@ -66,6 +80,7 @@ security:
         - { path: ^/competitions$, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/competitions/[^/]+/teams$, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/competitions/[^/]+/close-registration$, roles: IS_AUTHENTICATED_FULLY }
+        - { path: ^/competitions/[^/]+/teams/[^/]+$, roles: IS_AUTHENTICATED_FULLY }
         # - { path: ^/admin, roles: ROLE_ADMIN }
         # - { path: ^/profile, roles: ROLE_USER }
 

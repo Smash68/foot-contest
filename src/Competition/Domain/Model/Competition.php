@@ -101,6 +101,17 @@ final class Competition
         unset($this->teams[$index]);
     }
 
+    public function getTeamCaptainId(TeamId $teamId): PlayerId
+    {
+        $index = $this->findTeamIndex($teamId);
+
+        if ($index === null) {
+            throw new \InvalidArgumentException("Team '{$teamId->value}' is not registered in competition '{$this->id->value}'.");
+        }
+
+        return $this->teams[$index]->getCaptainId();
+    }
+
     private function assertOpenForRegistration(): void
     {
         if (!$this->isOpenForRegistration()) {

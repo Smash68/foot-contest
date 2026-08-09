@@ -9,6 +9,7 @@ final readonly class WithdrawCommand
     public function __construct(
         public string $competitionId,
         public string $teamId,
+        public string $actorId,
     ) {
     }
 }

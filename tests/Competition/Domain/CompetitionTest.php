@@ -141,6 +141,27 @@ final class CompetitionTest extends TestCase
     }
 
     #[Test]
+    public function it_exposes_the_captain_id_of_a_registered_team(): void
+    {
+        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
+        $competition->register($this->team('a', 'Team A'));
+
+        $captainId = $competition->getTeamCaptainId(new TeamId('a'));
+
+        self::assertTrue($captainId->equals(new PlayerId('a@example.com')));
+    }
+
+    #[Test]
+    public function it_rejects_getting_the_captain_id_of_an_unregistered_team(): void
+    {
+        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
+
+        $this->expectException(\InvalidArgumentException::class);
+
+        $competition->getTeamCaptainId(new TeamId('unknown'));
+    }
+
+    #[Test]
     public function it_rejects_registering_the_same_team_twice(): void
     {
         $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
