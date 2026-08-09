@@ -77,7 +77,8 @@ Persistance de `Player` en agrégat indépendant avancée à la Priorité 5b (vo
 - Gestion des utilisateurs : rôles et droits (organisateur / capitaine / joueur, cf. acteurs dans `README.md`)
   - ✅ `PlayerUserProvider`/firewall dédié : `PlayerUserProvider implements UserProviderInterface` (mirroir `OrganizerUserProvider`) résout un `Player` depuis le JWT via `PlayerRepository::ofId()`. Firewall `register_team` (`security.yaml`, mirroir `create_competition`) scopé à `POST /competitions/{id}/teams`.
   - ✅ Capitaine authentifié dans `RegisterTeam` : `RegisterTeamController` résout le capitaine via `#[CurrentUser] SecurityPlayer` au lieu d'un `captainId` dans le payload client — mirroir exact d'`organizerId` sur `CreateCompetitionController`.
-  - Reste : authentifier réellement le capitaine (ou l'organisateur ?) dans `Withdraw`/`CloseRegistration` — règles d'autorisation à trancher avant d'implémenter (qui a le droit de désister une équipe, de clore l'inscription ?).
+  - ✅ Organisateur authentifié dans `CloseRegistration` : seul l'organisateur propriétaire de l'`Organization` rattachée peut clore l'inscription — mirroir exact de `CreateCompetition` (`OrganizerOrganizationAuthorization`, 403 sinon, firewall `close_registration`).
+  - ✅ Autorisation à double acteur dans `Withdraw` : capitaine de l'équipe **ou** organisateur propriétaire de la compétition. Chain provider Symfony (`players_or_organizers`, premier du projet) sur un firewall unique ; `WithdrawCommand` ne porte qu'un `actorId` (pas de tag de type d'acteur), `WithdrawHandler` teste la comparaison capitaine (moins coûteuse) puis, si elle échoue, le port `OrganizerOrganizationAuthorization` — voir ADR 030.
 
 ## Priorité 7 — Gestion de la compétition en cours
 
