@@ -64,6 +64,14 @@ security:
             stateless: true
             provider: players_or_organizers
             jwt: ~
+        # JWT-authenticated firewall for the one Competition endpoint that needs to know the
+        # current player (POST /competitions/{id}/teams/{teamId}/join-requests, to record them
+        # as the applicant). Every other Competition route falls through to "main" untouched.
+        request_to_join_team:
+            pattern: ^/competitions/[^/]+/teams/[^/]+/join-requests$
+            stateless: true
+            provider: players
+            jwt: ~
         main:
             lazy: true
             provider: users_in_memory
@@ -80,6 +88,7 @@ security:
         - { path: ^/competitions$, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/competitions/[^/]+/teams$, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/competitions/[^/]+/close-registration$, roles: IS_AUTHENTICATED_FULLY }
+        - { path: ^/competitions/[^/]+/teams/[^/]+/join-requests$, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/competitions/[^/]+/teams/[^/]+$, roles: IS_AUTHENTICATED_FULLY }
         # - { path: ^/admin, roles: ROLE_ADMIN }
         # - { path: ^/profile, roles: ROLE_USER }
