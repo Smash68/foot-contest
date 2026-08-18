@@ -8,7 +8,7 @@ use App\Competition\Domain\Service\BracketGeneratorFactory;
 
 final class Competition
 {
-    /** @var Team[] */
+    /** @var array<string, Team> */
     private array $teams = [];
 
     private bool $closed = false;
@@ -72,11 +72,11 @@ final class Competition
             throw new \LogicException("Competition '{$this->id->value}' has reached its maximum number of teams.");
         }
 
-        if ($this->findTeamIndex($team->getId()) !== null) {
+        if (isset($this->teams[$team->getId()->value])) {
             throw new \LogicException("Team '{$team->getId()->value}' is already registered in competition '{$this->id->value}'.");
         }
 
-        $this->teams[] = $team;
+        $this->teams[$team->getId()->value] = $team;
     }
 
     public function closeRegistration(): void
@@ -92,24 +92,47 @@ final class Competition
     {
         $this->assertOpenForRegistration();
 
-        $index = $this->findTeamIndex($teamId);
+        $this->getTeam($teamId);
 
-        if ($index === null) {
-            throw new \InvalidArgumentException("Team '{$teamId->value}' is not registered in competition '{$this->id->value}'.");
-        }
-
-        unset($this->teams[$index]);
+        unset($this->teams[$teamId->value]);
     }
 
     public function getTeamCaptainId(TeamId $teamId): PlayerId
     {
-        $index = $this->findTeamIndex($teamId);
+        return $this->getTeam($teamId)->getCaptainId();
+    }
 
-        if ($index === null) {
-            throw new \InvalidArgumentException("Team '{$teamId->value}' is not registered in competition '{$this->id->value}'.");
-        }
+    public function requestToJoinTeam(TeamId $teamId, PlayerId $playerId): void
+    {
+        $this->assertOpenForRegistration();
 
-        return $this->teams[$index]->getCaptainId();
+        $this->getTeam($teamId)->requestToJoin($playerId);
+    }
+
+    /** @return PlayerId[] */
+    public function getTeamPendingRequests(TeamId $teamId): array
+    {
+        return $this->getTeam($teamId)->getPendingRequests();
+    }
+
+    public function approveJoinRequest(TeamId $teamId, PlayerId $playerId): void
+    {
+        $this->assertOpenForRegistration();
+
+        $this->getTeam($teamId)->approveJoinRequest($playerId);
+    }
+
+    /** @return PlayerId[] */
+    public function getTeamRoster(TeamId $teamId): array
+    {
+        return $this->getTeam($teamId)->getRoster();
+    }
+
+    public function rejectJoinRequest(TeamId $teamId, PlayerId $playerId): void
+    {
+        $this->assertOpenForRegistration();
+
+        $this->getTeam($teamId)->rejectJoinRequest($playerId);
     }
 
     private function assertOpenForRegistration(): void
@@ -119,15 +142,13 @@ final class Competition
         }
     }
 
-    private function findTeamIndex(TeamId $teamId): ?int
+    private function getTeam(TeamId $teamId): Team
     {
-        foreach ($this->teams as $index => $team) {
-            if ($team->getId()->equals($teamId)) {
-                return $index;
-            }
+        if (!isset($this->teams[$teamId->value])) {
+            throw new \InvalidArgumentException("Team '{$teamId->value}' is not registered in competition '{$this->id->value}'.");
         }
 
-        return null;
+        return $this->teams[$teamId->value];
     }
 
     public function generateBracket(BracketGeneratorFactory $factory): void
