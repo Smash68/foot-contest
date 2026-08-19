@@ -16,6 +16,12 @@ Seul Docker est requis (pas de PHP/Composer local nécessaire) — voir ADR 011.
 docker compose up -d app
 ```
 
+La paire de clés JWT (`config/jwt/*.pem`) n'est pas versionnée (voir `.gitignore`) — à générer une fois après le premier démarrage :
+
+```bash
+docker compose exec app php bin/console lexik:jwt:generate-keypair
+```
+
 ## Lancer les tests
 
 ```bash
