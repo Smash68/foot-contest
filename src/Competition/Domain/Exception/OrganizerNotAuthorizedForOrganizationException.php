@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Competition\Domain\Exception;
 
-final class OrganizerNotAuthorizedForOrganizationException extends \RuntimeException
+final class OrganizerNotAuthorizedForOrganizationException extends NotAuthorizedException
 {
     public function __construct(string $organizerId, string $organizationId)
     {
