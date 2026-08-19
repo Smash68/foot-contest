@@ -81,6 +81,15 @@ security:
             stateless: true
             provider: players
             jwt: ~
+        # JWT-authenticated firewall for the one Competition endpoint that needs to know the
+        # current player (POST .../join-requests/{playerId}/reject, only the team's captain
+        # may reject a pending join request). Every other Competition route falls through
+        # to "main" untouched.
+        reject_join_request:
+            pattern: ^/competitions/[^/]+/teams/[^/]+/join-requests/[^/]+/reject$
+            stateless: true
+            provider: players
+            jwt: ~
         main:
             lazy: true
             provider: users_in_memory
@@ -99,6 +108,7 @@ security:
         - { path: ^/competitions/[^/]+/close-registration$, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/competitions/[^/]+/teams/[^/]+/join-requests$, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/competitions/[^/]+/teams/[^/]+/join-requests/[^/]+/approve$, roles: IS_AUTHENTICATED_FULLY }
+        - { path: ^/competitions/[^/]+/teams/[^/]+/join-requests/[^/]+/reject$, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/competitions/[^/]+/teams/[^/]+$, roles: IS_AUTHENTICATED_FULLY }
         # - { path: ^/admin, roles: ROLE_ADMIN }
         # - { path: ^/profile, roles: ROLE_USER }
