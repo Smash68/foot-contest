@@ -9,7 +9,10 @@ use App\Competition\Domain\Model\Competition;
 use App\Competition\Domain\Model\CompetitionFormat;
 use App\Competition\Domain\Model\OrganizationId;
 use App\Competition\Domain\Model\Player;
+use App\Competition\Domain\Model\PlayerId;
+use App\Competition\Domain\Model\Team;
 use App\Competition\Domain\Model\TeamCapacity;
+use App\Competition\Domain\Model\TeamId;
 use App\Competition\Domain\Repository\CompetitionRepository;
 use App\Competition\Domain\Repository\PlayerRepository;
 use App\Competition\Domain\Service\AccessTokenIssuer;
@@ -44,6 +47,30 @@ final class RegisterTeamControllerTest extends WebTestCase
         $payload = json_decode($client->getResponse()->getContent(), true);
         self::assertArrayHasKey('id', $payload);
         self::assertNotEmpty($payload['id']);
+    }
+
+    #[Test]
+    public function it_returns_409_when_the_team_name_is_already_taken(): void
+    {
+        $client = static::createClient();
+
+        $competitions = new InMemoryCompetitionRepository();
+        self::getContainer()->set(CompetitionRepository::class, $competitions);
+
+        $competition = Competition::create($competitions->nextIdentity(), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
+        $competition->register(Team::create(new TeamId('a'), 'Team A', new PlayerId('existing-captain')));
+        $competitions->save($competition);
+
+        $token = $this->authenticatedPlayer();
+
+        $client->request('POST', "/competitions/{$competition->getId()->value}/teams", server: [
+            'CONTENT_TYPE' => 'application/json',
+            'HTTP_AUTHORIZATION' => "Bearer {$token}",
+        ], content: json_encode([
+            'name' => 'Team A',
+        ]));
+
+        self::assertResponseStatusCodeSame(409);
     }
 
     #[Test]
