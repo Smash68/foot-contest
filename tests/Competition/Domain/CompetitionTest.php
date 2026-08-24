@@ -173,6 +173,39 @@ final class CompetitionTest extends TestCase
     }
 
     #[Test]
+    public function it_rejects_registering_a_team_with_a_name_already_taken(): void
+    {
+        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
+        $competition->register($this->team('a', 'Team A'));
+
+        $this->expectException(\LogicException::class);
+
+        $competition->register($this->team('b', 'Team A'));
+    }
+
+    #[Test]
+    public function it_rejects_registering_a_team_with_a_name_already_taken_ignoring_case_and_whitespace(): void
+    {
+        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
+        $competition->register($this->team('a', 'Team A'));
+
+        $this->expectException(\LogicException::class);
+
+        $competition->register($this->team('b', '  team a  '));
+    }
+
+    #[Test]
+    public function it_rejects_registering_a_team_whose_captain_already_belongs_to_another_team(): void
+    {
+        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
+        $competition->register($this->team('a', 'Team A'));
+
+        $this->expectException(\LogicException::class);
+
+        $competition->register(Team::create(new TeamId('b'), 'Team B', new PlayerId('a@example.com')));
+    }
+
+    #[Test]
     public function it_rejects_closing_registration_below_the_minimum(): void
     {
         $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
@@ -260,6 +293,18 @@ final class CompetitionTest extends TestCase
     }
 
     #[Test]
+    public function it_rejects_a_join_request_from_a_player_already_in_another_team(): void
+    {
+        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
+        $competition->register($this->team('a', 'Team A'));
+        $competition->register($this->team('b', 'Team B'));
+
+        $this->expectException(\LogicException::class);
+
+        $competition->requestToJoinTeam(new TeamId('b'), new PlayerId('a@example.com'));
+    }
+
+    #[Test]
     public function it_moves_an_approved_applicant_to_the_team_roster(): void
     {
         $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
@@ -271,6 +316,22 @@ final class CompetitionTest extends TestCase
 
         self::assertCount(0, $competition->getTeamPendingRequests(new TeamId('a')));
         self::assertCount(2, $competition->getTeamRoster(new TeamId('a')));
+    }
+
+    #[Test]
+    public function it_rejects_approving_a_join_request_from_a_player_already_in_another_team(): void
+    {
+        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
+        $competition->register($this->team('a', 'Team A'));
+        $competition->register($this->team('b', 'Team B'));
+        $applicantId = new PlayerId('applicant@example.com');
+        $competition->requestToJoinTeam(new TeamId('a'), $applicantId);
+        $competition->requestToJoinTeam(new TeamId('b'), $applicantId);
+        $competition->approveJoinRequest(new TeamId('a'), $applicantId);
+
+        $this->expectException(\LogicException::class);
+
+        $competition->approveJoinRequest(new TeamId('b'), $applicantId);
     }
 
     #[Test]

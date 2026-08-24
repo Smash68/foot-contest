@@ -76,7 +76,35 @@ final class Competition
             throw new \LogicException("Team '{$team->getId()->value}' is already registered in competition '{$this->id->value}'.");
         }
 
+        $normalizedName = self::normalizeTeamName($team->getName());
+        foreach ($this->teams as $existingTeam) {
+            if (self::normalizeTeamName($existingTeam->getName()) === $normalizedName) {
+                throw new \LogicException("Team name '{$team->getName()}' is already taken in competition '{$this->id->value}'.");
+            }
+        }
+
+        if ($this->belongsToAnotherTeam($team->getCaptainId())) {
+            throw new \LogicException("Player '{$team->getCaptainId()->value}' already belongs to a team in competition '{$this->id->value}'.");
+        }
+
         $this->teams[$team->getId()->value] = $team;
+    }
+
+    private function belongsToAnotherTeam(PlayerId $playerId, ?TeamId $excludingTeamId = null): bool
+    {
+        foreach ($this->teams as $existingTeam) {
+            if ($excludingTeamId !== null && $existingTeam->getId()->equals($excludingTeamId)) {
+                continue;
+            }
+
+            foreach ($existingTeam->getRoster() as $rosterPlayerId) {
+                if ($rosterPlayerId->equals($playerId)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     public function closeRegistration(): void
@@ -106,7 +134,13 @@ final class Competition
     {
         $this->assertOpenForRegistration();
 
-        $this->getTeam($teamId)->requestToJoin($playerId);
+        $team = $this->getTeam($teamId);
+
+        if ($this->belongsToAnotherTeam($playerId, $teamId)) {
+            throw new \LogicException("Player '{$playerId->value}' already belongs to a team in competition '{$this->id->value}'.");
+        }
+
+        $team->requestToJoin($playerId);
     }
 
     /** @return PlayerId[] */
@@ -118,6 +152,10 @@ final class Competition
     public function approveJoinRequest(TeamId $teamId, PlayerId $playerId): void
     {
         $this->assertOpenForRegistration();
+
+        if ($this->belongsToAnotherTeam($playerId, $teamId)) {
+            throw new \LogicException("Player '{$playerId->value}' already belongs to a team in competition '{$this->id->value}'.");
+        }
 
         $this->getTeam($teamId)->approveJoinRequest($playerId);
     }
@@ -140,6 +178,11 @@ final class Competition
         if (!$this->isOpenForRegistration()) {
             throw new \LogicException("Competition '{$this->id->value}' registration is closed.");
         }
+    }
+
+    private static function normalizeTeamName(string $name): string
+    {
+        return mb_strtolower(trim($name));
     }
 
     private function getTeam(TeamId $teamId): Team
