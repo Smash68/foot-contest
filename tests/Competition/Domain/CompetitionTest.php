@@ -394,6 +394,46 @@ final class CompetitionTest extends TestCase
         $competition->rejectJoinRequest(new TeamId('a'), new PlayerId('applicant@example.com'));
     }
 
+    #[Test]
+    public function it_removes_a_player_from_a_team_roster(): void
+    {
+        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
+        $competition->register($this->team('a', 'Team A'));
+        $memberId = new PlayerId('member@example.com');
+        $competition->requestToJoinTeam(new TeamId('a'), $memberId);
+        $competition->approveJoinRequest(new TeamId('a'), $memberId);
+
+        $competition->removePlayerFromTeam(new TeamId('a'), $memberId);
+
+        self::assertCount(1, $competition->getTeamRoster(new TeamId('a')));
+    }
+
+    #[Test]
+    public function it_rejects_removing_a_player_once_closed(): void
+    {
+        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
+        $competition->register($this->team('a', 'Team A'));
+        $memberId = new PlayerId('member@example.com');
+        $competition->requestToJoinTeam(new TeamId('a'), $memberId);
+        $competition->approveJoinRequest(new TeamId('a'), $memberId);
+        $competition->register($this->team('b', 'Team B'));
+        $competition->closeRegistration();
+
+        $this->expectException(\LogicException::class);
+
+        $competition->removePlayerFromTeam(new TeamId('a'), $memberId);
+    }
+
+    #[Test]
+    public function it_rejects_removing_a_player_from_an_unregistered_team(): void
+    {
+        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
+
+        $this->expectException(\InvalidArgumentException::class);
+
+        $competition->removePlayerFromTeam(new TeamId('unknown'), new PlayerId('member@example.com'));
+    }
+
     private function team(string $teamId, string $teamName): Team
     {
         return Team::create(new TeamId($teamId), $teamName, new PlayerId("{$teamId}@example.com"));

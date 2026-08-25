@@ -173,6 +173,13 @@ final class Competition
         $this->getTeam($teamId)->rejectJoinRequest($playerId);
     }
 
+    public function removePlayerFromTeam(TeamId $teamId, PlayerId $playerId): void
+    {
+        $this->assertOpenForRegistration();
+
+        $this->getTeam($teamId)->removeFromRoster($playerId);
+    }
+
     private function assertOpenForRegistration(): void
     {
         if (!$this->isOpenForRegistration()) {

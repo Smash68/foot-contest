@@ -127,4 +127,38 @@ final class TeamTest extends TestCase
 
         $team->rejectJoinRequest(new PlayerId('applicant@example.com'));
     }
+
+    #[Test]
+    public function it_rejects_removing_the_captain_from_the_roster(): void
+    {
+        $captainId = new PlayerId('captain@example.com');
+        $team = Team::create(new TeamId('a'), 'Team A', $captainId);
+
+        $this->expectException(\LogicException::class);
+
+        $team->removeFromRoster($captainId);
+    }
+
+    #[Test]
+    public function it_rejects_removing_a_player_not_in_the_roster(): void
+    {
+        $team = Team::create(new TeamId('a'), 'Team A', new PlayerId('captain@example.com'));
+
+        $this->expectException(\InvalidArgumentException::class);
+
+        $team->removeFromRoster(new PlayerId('stranger@example.com'));
+    }
+
+    #[Test]
+    public function it_removes_a_non_captain_player_from_the_roster(): void
+    {
+        $team = Team::create(new TeamId('a'), 'Team A', new PlayerId('captain@example.com'));
+        $memberId = new PlayerId('member@example.com');
+        $team->requestToJoin($memberId);
+        $team->approveJoinRequest($memberId);
+
+        $team->removeFromRoster($memberId);
+
+        self::assertCount(1, $team->getRoster());
+    }
 }
