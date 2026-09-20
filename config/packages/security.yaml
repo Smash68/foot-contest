@@ -90,6 +90,15 @@ security:
             stateless: true
             provider: players
             jwt: ~
+        # JWT-authenticated firewall for the one Competition endpoint that accepts three actor
+        # types (DELETE .../teams/{teamId}/players/{playerId}): the player themself (voluntary
+        # departure), the team's captain, or the organizer owning the competition (exclusion).
+        # Every other Competition route falls through to "main" untouched.
+        remove_player_from_team:
+            pattern: ^/competitions/[^/]+/teams/[^/]+/players/[^/]+$
+            stateless: true
+            provider: players_or_organizers
+            jwt: ~
         main:
             lazy: true
             provider: users_in_memory
@@ -109,6 +118,7 @@ security:
         - { path: ^/competitions/[^/]+/teams/[^/]+/join-requests$, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/competitions/[^/]+/teams/[^/]+/join-requests/[^/]+/approve$, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/competitions/[^/]+/teams/[^/]+/join-requests/[^/]+/reject$, roles: IS_AUTHENTICATED_FULLY }
+        - { path: ^/competitions/[^/]+/teams/[^/]+/players/[^/]+$, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/competitions/[^/]+/teams/[^/]+$, roles: IS_AUTHENTICATED_FULLY }
         # - { path: ^/admin, roles: ROLE_ADMIN }
         # - { path: ^/profile, roles: ROLE_USER }

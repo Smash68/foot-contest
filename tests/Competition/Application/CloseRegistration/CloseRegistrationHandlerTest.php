@@ -16,8 +16,8 @@ use App\Competition\Domain\Model\PlayerId;
 use App\Competition\Domain\Model\Team;
 use App\Competition\Domain\Model\TeamCapacity;
 use App\Competition\Domain\Model\TeamId;
-use App\Competition\Domain\Service\OrganizerOrganizationAuthorization;
 use App\Competition\Infrastructure\Persistence\InMemory\InMemoryCompetitionRepository;
+use App\Competition\Infrastructure\Service\InMemoryOrganizerOrganizationAuthorization;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
@@ -31,8 +31,10 @@ final class CloseRegistrationHandlerTest extends TestCase
         $competition->register(Team::create(new TeamId('t1'), 'Team A', new PlayerId('captain-a@example.com')));
         $competition->register(Team::create(new TeamId('t2'), 'Team B', new PlayerId('captain-b@example.com')));
         $competitions->save($competition);
+        $authorization = new InMemoryOrganizerOrganizationAuthorization();
+        $authorization->grantOwnership('organizer-1', new OrganizationId('org-1'));
 
-        $handler = new CloseRegistrationHandler($competitions, $this->authorizationStub(true));
+        $handler = new CloseRegistrationHandler($competitions, $authorization);
 
         $handler(new CloseRegistrationCommand('c1', 'organizer-1'));
 
@@ -42,7 +44,7 @@ final class CloseRegistrationHandlerTest extends TestCase
     #[Test]
     public function it_rejects_closing_an_unknown_competition(): void
     {
-        $handler = new CloseRegistrationHandler(new InMemoryCompetitionRepository(), $this->authorizationStub(true));
+        $handler = new CloseRegistrationHandler(new InMemoryCompetitionRepository(), new InMemoryOrganizerOrganizationAuthorization());
 
         $this->expectException(\InvalidArgumentException::class);
 
@@ -58,18 +60,10 @@ final class CloseRegistrationHandlerTest extends TestCase
         $competition->register(Team::create(new TeamId('t2'), 'Team B', new PlayerId('captain-b@example.com')));
         $competitions->save($competition);
 
-        $handler = new CloseRegistrationHandler($competitions, $this->authorizationStub(false));
+        $handler = new CloseRegistrationHandler($competitions, new InMemoryOrganizerOrganizationAuthorization());
 
         $this->expectException(OrganizerNotAuthorizedForOrganizationException::class);
 
         $handler(new CloseRegistrationCommand('c1', 'organizer-1'));
-    }
-
-    private function authorizationStub(bool $authorized): OrganizerOrganizationAuthorization
-    {
-        $authorization = $this->createStub(OrganizerOrganizationAuthorization::class);
-        $authorization->method('authorizes')->willReturn($authorized);
-
-        return $authorization;
     }
 }

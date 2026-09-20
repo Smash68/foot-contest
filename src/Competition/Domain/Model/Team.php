@@ -83,4 +83,17 @@ final class Team
 
         unset($this->pendingRequests[$playerId->value]);
     }
+
+    public function removeFromRoster(PlayerId $playerId): void
+    {
+        if ($playerId->equals($this->captainId)) {
+            throw new \LogicException("Captain '{$playerId->value}' cannot be removed from the roster of team '{$this->id->value}'.");
+        }
+
+        if (!isset($this->roster[$playerId->value])) {
+            throw new \InvalidArgumentException("Player '{$playerId->value}' is not in the roster of team '{$this->id->value}'.");
+        }
+
+        unset($this->roster[$playerId->value]);
+    }
 }
