@@ -181,6 +181,60 @@ parameters:
 			path: tests/Competition/Infrastructure/Http/GetBracketControllerTest.php
 
 		-
+			message: '#^Cannot access offset ''away'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 3
+			path: tests/Competition/Infrastructure/Http/GetEncounterControllerTest.php
+
+		-
+			message: '#^Cannot access offset ''home'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 4
+			path: tests/Competition/Infrastructure/Http/GetEncounterControllerTest.php
+
+		-
+			message: '#^Cannot access offset ''id'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: tests/Competition/Infrastructure/Http/GetEncounterControllerTest.php
+
+		-
+			message: '#^Cannot access offset ''name'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 2
+			path: tests/Competition/Infrastructure/Http/GetEncounterControllerTest.php
+
+		-
+			message: '#^Cannot access offset ''players'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: tests/Competition/Infrastructure/Http/GetEncounterControllerTest.php
+
+		-
+			message: '#^Cannot access offset ''result'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: tests/Competition/Infrastructure/Http/GetEncounterControllerTest.php
+
+		-
+			message: '#^Cannot access offset ''team'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 2
+			path: tests/Competition/Infrastructure/Http/GetEncounterControllerTest.php
+
+		-
+			message: '#^Cannot access offset ''type'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 2
+			path: tests/Competition/Infrastructure/Http/GetEncounterControllerTest.php
+
+		-
+			message: '#^Parameter \#2 \$haystack of static method PHPUnit\\Framework\\Assert\:\:assertCount\(\) expects Countable\|iterable, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Competition/Infrastructure/Http/GetEncounterControllerTest.php
+
+		-
 			message: '#^Parameter \#1 \$entityManager of class App\\Competition\\Infrastructure\\Persistence\\Doctrine\\DoctrinePlayerRepository constructor expects Doctrine\\ORM\\EntityManagerInterface, object given\.$#'
 			identifier: argument.type
 			count: 1

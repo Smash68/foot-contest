@@ -52,6 +52,15 @@ final class BracketWithThirdPlaceMatch implements Bracket
         return $this->inner->getChampion();
     }
 
+    public function findEncounterById(EncounterId $encounterId): ?Encounter
+    {
+        if ($this->thirdPlaceEncounter !== null && $this->thirdPlaceEncounter->id->equals($encounterId)) {
+            return $this->thirdPlaceEncounter;
+        }
+
+        return $this->inner->findEncounterById($encounterId);
+    }
+
     public function getThirdPlaceEncounter(): ?Encounter
     {
         return $this->thirdPlaceEncounter;
@@ -96,13 +105,12 @@ final class BracketWithThirdPlaceMatch implements Bracket
 
     private function findEncounter(EncounterId $encounterId): Encounter
     {
-        foreach ($this->inner->getRounds() as $round) {
-            $encounter = $round->findEncounterById($encounterId);
-            if ($encounter !== null) {
-                return $encounter;
-            }
+        $encounter = $this->inner->findEncounterById($encounterId);
+
+        if ($encounter === null) {
+            throw new \LogicException("Encounter '{$encounterId->value}' not found in bracket.");
         }
 
-        throw new \LogicException("Encounter '{$encounterId->value}' not found in bracket.");
+        return $encounter;
     }
 }

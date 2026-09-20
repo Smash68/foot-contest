@@ -39,6 +39,18 @@ final class SingleEliminationBracket implements Bracket
         throw new \InvalidArgumentException("Round {$number} not found.");
     }
 
+    public function findEncounterById(EncounterId $encounterId): ?Encounter
+    {
+        foreach ($this->rounds as $round) {
+            $encounter = $round->findEncounterById($encounterId);
+            if ($encounter !== null) {
+                return $encounter;
+            }
+        }
+
+        return null;
+    }
+
     public function isComplete(): bool
     {
         if (empty($this->rounds)) {
@@ -59,17 +71,16 @@ final class SingleEliminationBracket implements Bracket
 
     public function recordResult(EncounterId $encounterId, EncounterResult $result): void
     {
-        foreach ($this->rounds as $roundIndex => $round) {
-            $encounter = $round->findEncounterById($encounterId);
-            if ($encounter === null) {
-                continue;
-            }
-            $encounter->play($result);
-            ($this->rounds[$roundIndex + 1] ?? null)?->resolveParticipant($encounterId, $encounter->getWinner());
+        $encounter = $this->findEncounterById($encounterId);
 
-            return;
+        if ($encounter === null) {
+            throw new \InvalidArgumentException("Encounter '{$encounterId->value}' not found in bracket.");
         }
 
-        throw new \InvalidArgumentException("Encounter '{$encounterId->value}' not found in bracket.");
+        $encounter->play($result);
+
+        foreach ($this->rounds as $round) {
+            $round->resolveParticipant($encounterId, $encounter->getWinner());
+        }
     }
 }
