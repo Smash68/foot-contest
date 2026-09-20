@@ -15,6 +15,8 @@ interface Bracket
 
     public function getRound(int $number): Round;
 
+    public function findEncounterById(EncounterId $encounterId): ?Encounter;
+
     public function isComplete(): bool;
 
     public function getChampion(): TeamId;

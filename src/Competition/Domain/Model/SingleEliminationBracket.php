@@ -39,6 +39,18 @@ final class SingleEliminationBracket implements Bracket
         throw new \InvalidArgumentException("Round {$number} not found.");
     }
 
+    public function findEncounterById(EncounterId $encounterId): ?Encounter
+    {
+        foreach ($this->rounds as $round) {
+            $encounter = $round->findEncounterById($encounterId);
+            if ($encounter !== null) {
+                return $encounter;
+            }
+        }
+
+        return null;
+    }
+
     public function isComplete(): bool
     {
         if (empty($this->rounds)) {

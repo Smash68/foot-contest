@@ -130,6 +130,11 @@ final class Competition
         return $this->getTeam($teamId)->getCaptainId();
     }
 
+    public function getTeamName(TeamId $teamId): string
+    {
+        return $this->getTeam($teamId)->getName();
+    }
+
     public function requestToJoinTeam(TeamId $teamId, PlayerId $playerId): void
     {
         $this->assertOpenForRegistration();
