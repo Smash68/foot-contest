@@ -87,8 +87,9 @@ Persistance de `Player` en agrégat indépendant avancée à la Priorité 5b (vo
 
 ## Priorité 7 — Gestion de la compétition en cours
 
-- Mise à jour des scores / résultats d'un encounter (exposer `Bracket::recordResult()`)
-- Consultation des matchs et rounds (exposer `getRounds()`, `getRound()`, `countEncounters()`, `isComplete()`, `getChampion()`)
+- ✅ Consultation du bracket (`GetBracket`) : `GET /competitions/{id}/bracket` — première Query CQRS du projet exposée à un vrai appelant externe (`IsOrganizerOwnerOfOrganization`, ADR 029, reste interne à l'ACL inter-modules). `GetBracketHandler` retourne un DTO de lecture dédié (`View\BracketView` et sa hiérarchie sous `Application/GetBracket/View/`), jamais le `Bracket` du domaine directement — celui-ci expose `recordResult()` (mutation), le retourner depuis une Query romprait la séparation lecture/écriture du CQRS. Mapping Domain → View concentré dans `BracketViewAssembler`, injecté au Handler (pas de méthode statique, pas de `fromDomain()` dispersé sur les DTOs de vue) : classes de vue `readonly` + `\JsonSerializable`, sans dépendance vers `Domain`. `404` si le bracket n'est pas encore généré (sous-ressource pas encore créée), `422` réservé à la compétition inconnue (ADR 015, inchangé). Voir ADR 034.
+- Mise à jour des scores / résultats d'un encounter (exposer `Bracket::recordResult()`, une Command cette fois)
+- Consultation des matchs et rounds au-delà du bracket complet (`getRound()`, `countEncounters()`, etc. — à évaluer si un besoin dépasse ce que `GetBracket` couvre déjà)
 
 ## Priorité 8 — Front
 
