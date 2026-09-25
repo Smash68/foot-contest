@@ -254,6 +254,9 @@ Priorité 5b (persistance réelle) ✅ implémentée. Priorité 5c (API REST pou
 
 **Priorité 7 (gestion de la compétition en cours) — démarrée.** `GetBracket` (Query, `GET /competitions/{id}/bracket`) ✅ **terminé** : premier use case de lecture du projet exposé à un vrai appelant externe, patron DTO de lecture + Assembler injecté posé pour les futures Queries — voir ADR 034. `GetEncounter` (Query, `GET /competitions/{id}/encounters/{encounterId}`) ✅ **terminé** : fiche complète d'un match (équipes, joueurs, score), a fait émerger `Bracket::findEncounterById()` côté Domain — voir ADR 035.
 
-**Prochaine étape concrète en reprenant** : mise à jour des scores/résultats d'un encounter (exposer `Bracket::recordResult()` en Application/HTTP, une Command cette fois — peut réutiliser `Bracket::findEncounterById()` si besoin d'une garde applicative). Voir détail dans `ROADMAP.md` (Priorité 7).
+**Prochaine étape concrète en reprenant**, dans cet ordre (détail et décisions déjà actées dans `ROADMAP.md`) :
+1. Poursuivre la migration des tests vers les Test Data Builders / assertions fluides (`tests/Support/`, fichier témoin `GetEncounterHandlerTest` fait) — Priorité 5c bis
+2. Effectif minimum du roster (cadrage validé : roster remplaçants compris, vérifié à `closeRegistration()`, clôture refusée en nommant les équipes incomplètes, paramètre choisi à la création, pas de maximum) — Priorité 6
+3. `RecordEncounterResult` (autorisation organisateur propriétaire seul validée, design cadré, risque de détection des mutations du bracket JSON par Doctrine à tester) — Priorité 7
 
 Après ça : choix du front (Vue 3 ou Twig) déplacé en toute dernière étape (Priorité 8), une fois l'API stabilisée. Le détail complet du plan est dans `ROADMAP.md`.
