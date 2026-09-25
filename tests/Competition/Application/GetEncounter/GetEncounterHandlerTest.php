@@ -7,21 +7,12 @@ namespace App\Tests\Competition\Application\GetEncounter;
 use App\Competition\Application\GetEncounter\EncounterViewAssembler;
 use App\Competition\Application\GetEncounter\GetEncounterHandler;
 use App\Competition\Application\GetEncounter\GetEncounterQuery;
-use App\Competition\Application\GetEncounter\View\ParticipantViewType;
-use App\Competition\Domain\Format\SingleElimination\SingleEliminationBracketGenerator;
-use App\Competition\Domain\Model\BracketConfiguration;
 use App\Competition\Domain\Model\Competition;
-use App\Competition\Domain\Model\CompetitionFormat;
-use App\Competition\Domain\Model\CompetitionId;
-use App\Competition\Domain\Model\OrganizationId;
-use App\Competition\Domain\Model\Player;
-use App\Competition\Domain\Model\PlayerId;
-use App\Competition\Domain\Model\Team;
-use App\Competition\Domain\Model\TeamCapacity;
-use App\Competition\Domain\Model\TeamId;
-use App\Competition\Domain\Service\BracketGeneratorFactory;
 use App\Competition\Infrastructure\Persistence\InMemory\InMemoryCompetitionRepository;
 use App\Competition\Infrastructure\Persistence\InMemory\InMemoryPlayerRepository;
+use App\Tests\Support\Assertion\EncounterSheetAssert;
+use App\Tests\Support\Builder\CompetitionBuilder;
+use App\Tests\Support\Builder\PlayerBuilder;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
@@ -30,42 +21,29 @@ final class GetEncounterHandlerTest extends TestCase
     #[Test]
     public function it_returns_the_sheet_of_an_encounter(): void
     {
-        $competitions = new InMemoryCompetitionRepository();
         $players = new InMemoryPlayerRepository();
-        $players->save(Player::register(new PlayerId('captain-a'), 'Alice', 'alice@example.com', 'hashed'));
-        $players->save(Player::register(new PlayerId('captain-b'), 'Bob', 'bob@example.com', 'hashed'));
+        $players->save(PlayerBuilder::aPlayer()->withId('captain-a')->build());
+        $players->save(PlayerBuilder::aPlayer()->withId('captain-b')->build());
 
-        $competition = Competition::create(new CompetitionId('c1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
-        $competition->register(Team::create(new TeamId('t1'), 'Team A', new PlayerId('captain-a')));
-        $competition->register(Team::create(new TeamId('t2'), 'Team B', new PlayerId('captain-b')));
-        $competition->closeRegistration();
-        $competition->generateBracket(new BracketGeneratorFactory([
-            CompetitionFormat::SingleElimination->value => new SingleEliminationBracketGenerator(),
-        ]));
+        $competition = CompetitionBuilder::aCompetition()
+            ->withTeam('Team A', captainId: 'captain-a')
+            ->withTeam('Team B', captainId: 'captain-b')
+            ->withBracketGenerated()
+            ->build();
+        $competitions = new InMemoryCompetitionRepository();
         $competitions->save($competition);
 
-        $bracket = $competition->getBracket();
-        self::assertNotNull($bracket);
-        $encounterId = $bracket->getRounds()[0]->getEncounters()[0]->id->value;
+        $encounterId = $this->firstEncounterIdOf($competition);
 
         $handler = new GetEncounterHandler($competitions, new EncounterViewAssembler($players));
 
-        $view = $handler(new GetEncounterQuery('c1', $encounterId));
+        $view = $handler(new GetEncounterQuery($competition->getId()->value, $encounterId));
 
-        self::assertNotNull($view);
-        self::assertSame($encounterId, $view->id);
-
-        self::assertSame(ParticipantViewType::Team, $view->home->type);
-        self::assertNotNull($view->home->team);
-        self::assertSame(ParticipantViewType::Team, $view->away->type);
-        self::assertNotNull($view->away->team);
-
-        $teamNames = [$view->home->team->name, $view->away->team->name];
-        self::assertEqualsCanonicalizing(['Team A', 'Team B'], $teamNames);
-        self::assertCount(1, $view->home->team->players);
-        self::assertSame($view->home->team->captainId, $view->home->team->players[0]->id);
-
-        self::assertNull($view->result);
+        EncounterSheetAssert::assertThat($view)
+            ->isForEncounter($encounterId)
+            ->opposes('Team A', 'Team B')
+            ->listsOnlyTheCaptainInEachTeam()
+            ->hasNoResultYet();
     }
 
     #[Test]
@@ -76,5 +54,13 @@ final class GetEncounterHandlerTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
 
         $handler(new GetEncounterQuery('unknown', 'enc-1'));
+    }
+
+    private function firstEncounterIdOf(Competition $competition): string
+    {
+        $bracket = $competition->getBracket();
+        self::assertNotNull($bracket);
+
+        return $bracket->getRounds()[0]->getEncounters()[0]->id->value;
     }
 }
