@@ -58,7 +58,13 @@ Reste à faire :
 - ✅ PHP-CS-Fixer `@Symfony` (revue règle par règle), intégré à la CI en vérification seule — voir ADR 019
 - Lisibilité des tests (en cours) : Test Data Builders fluides et immuables (`tests/Support/Builder/` — `aCompetition()->withTeam(...)->withBracketGenerated()->build()`, `aPlayer()`) et objets d'assertion fluides (`tests/Support/Assertion/`, ex. `EncounterSheetAssert`), pour réduire le boilerplate de construction (`Competition::create(` répété 96× dans 22 fichiers, `Team::create(` 66×) et rendre l'intention de chaque test lisible. Vocabulaire en anglais ; pas de trait ni de classe de base. Garde-fous : chaque méthode d'assertion porte un nom qui dit exactement ce qu'elle vérifie, un objet d'assertion par vue réellement réutilisée (pas de DSL générique) ; un builder ne masque jamais la précondition critique d'un test (ex. `->withRegistrationClosed()` reste visible) et n'enregistre rien dans un repository.
   - ✅ Fichier témoin : `GetEncounterHandlerTest` réécrit avec ces outils
-  - Migrer les autres tests, une famille à la fois (Application → HTTP → Doctrine ; `CompetitionTest` en dernier, voire jamais, puisqu'il teste `Competition::create()` directement), un commit `refactor(tests)` par famille, en enrichissant les builders à la demande (`withRegistrationClosed()`, `ownedBy()`, `withThirdPlaceMatch()`…)
+  - Objectif : migrer **l'intégralité de la suite de tests** (modules `Competition` et `Organization`, toutes les couches), pas seulement le fichier témoin. Une famille à la fois, un commit `refactor(tests)` par famille, en enrichissant les builders à la demande (`withRegistrationClosed()`, `ownedBy()`, `withThirdPlaceMatch()`…). Ordre :
+    - `Competition/Application` (13 dossiers de use cases, `GetEncounter` déjà fait)
+    - `Competition/Infrastructure/Http` (contrôleurs)
+    - `Competition/Infrastructure/Persistence/Doctrine`, `Security`, `Service`
+    - `Competition/E2E`
+    - `Competition/Domain` (y compris `Format/` et `Service/`), `CompetitionTest` en dernier : ses tests qui vérifient `Competition::create()` lui-même continuent de l'appeler directement, les autres passent par les builders
+    - `Organization` (Application, Domain, Infrastructure), avec ses propres builders (`Organizer`, `Organization`, `CheckoutSession`)
   - ADR courte en fin de migration
 
 #### 5c — API REST pour les autres use cases

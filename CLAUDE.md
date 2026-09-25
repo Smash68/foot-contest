@@ -255,7 +255,7 @@ Priorité 5b (persistance réelle) ✅ implémentée. Priorité 5c (API REST pou
 **Priorité 7 (gestion de la compétition en cours) — démarrée.** `GetBracket` (Query, `GET /competitions/{id}/bracket`) ✅ **terminé** : premier use case de lecture du projet exposé à un vrai appelant externe, patron DTO de lecture + Assembler injecté posé pour les futures Queries — voir ADR 034. `GetEncounter` (Query, `GET /competitions/{id}/encounters/{encounterId}`) ✅ **terminé** : fiche complète d'un match (équipes, joueurs, score), a fait émerger `Bracket::findEncounterById()` côté Domain — voir ADR 035.
 
 **Prochaine étape concrète en reprenant**, dans cet ordre (détail et décisions déjà actées dans `ROADMAP.md`) :
-1. Poursuivre la migration des tests vers les Test Data Builders / assertions fluides (`tests/Support/`, fichier témoin `GetEncounterHandlerTest` fait) — Priorité 5c bis
+1. Migrer l'intégralité de la suite de tests (`Competition` et `Organization`, toutes les couches) vers les Test Data Builders / assertions fluides (`tests/Support/`, fichier témoin `GetEncounterHandlerTest` fait), une famille par commit — ordre dans `ROADMAP.md` (Priorité 5c bis)
 2. Effectif minimum du roster (cadrage validé : roster remplaçants compris, vérifié à `closeRegistration()`, clôture refusée en nommant les équipes incomplètes, paramètre choisi à la création, pas de maximum) — Priorité 6
 3. `RecordEncounterResult` (autorisation organisateur propriétaire seul validée, design cadré, risque de détection des mutations du bracket JSON par Doctrine à tester) — Priorité 7
 
