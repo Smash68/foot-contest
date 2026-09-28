@@ -4,14 +4,6 @@ declare(strict_types=1);
 
 namespace App\Tests\Competition\Infrastructure\Http;
 
-use App\Competition\Domain\Model\BracketConfiguration;
-use App\Competition\Domain\Model\Competition;
-use App\Competition\Domain\Model\CompetitionFormat;
-use App\Competition\Domain\Model\OrganizationId;
-use App\Competition\Domain\Model\PlayerId;
-use App\Competition\Domain\Model\Team;
-use App\Competition\Domain\Model\TeamCapacity;
-use App\Competition\Domain\Model\TeamId;
 use App\Competition\Domain\Repository\CompetitionRepository;
 use App\Competition\Infrastructure\Persistence\InMemory\InMemoryCompetitionRepository;
 use App\Organization\Domain\Model\Organization;
@@ -19,6 +11,7 @@ use App\Organization\Domain\Model\Organizer;
 use App\Organization\Domain\Repository\OrganizationRepository;
 use App\Organization\Domain\Repository\OrganizerRepository;
 use App\Organization\Domain\Service\AccessTokenIssuer;
+use App\Tests\Support\Builder\CompetitionBuilder;
 use PHPUnit\Framework\Attributes\Test;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
@@ -34,9 +27,11 @@ final class CloseRegistrationControllerTest extends WebTestCase
 
         [$token, $organizationId] = $this->authenticatedOrganizer();
 
-        $competition = Competition::create($competitions->nextIdentity(), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId($organizationId));
-        $competition->register(Team::create(new TeamId('t1'), 'Team A', new PlayerId('captain-a@example.com')));
-        $competition->register(Team::create(new TeamId('t2'), 'Team B', new PlayerId('captain-b@example.com')));
+        $competition = CompetitionBuilder::aCompetition()
+            ->ownedBy($organizationId)
+            ->withTeam('Team A', captainId: 'captain-a')
+            ->withTeam('Team B', captainId: 'captain-b')
+            ->build();
         $competitions->save($competition);
 
         $client->request('POST', "/competitions/{$competition->getId()->value}/close-registration", server: [
@@ -54,7 +49,7 @@ final class CloseRegistrationControllerTest extends WebTestCase
         $competitions = new InMemoryCompetitionRepository();
         self::getContainer()->set(CompetitionRepository::class, $competitions);
 
-        $competition = Competition::create($competitions->nextIdentity(), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
+        $competition = CompetitionBuilder::aCompetition()->build();
         $competitions->save($competition);
 
         $client->request('POST', "/competitions/{$competition->getId()->value}/close-registration");
@@ -70,7 +65,7 @@ final class CloseRegistrationControllerTest extends WebTestCase
         $competitions = new InMemoryCompetitionRepository();
         self::getContainer()->set(CompetitionRepository::class, $competitions);
 
-        $competition = Competition::create($competitions->nextIdentity(), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('someone-elses-organization'));
+        $competition = CompetitionBuilder::aCompetition()->ownedBy('someone-elses-organization')->build();
         $competitions->save($competition);
 
         [$token] = $this->authenticatedOrganizer();
