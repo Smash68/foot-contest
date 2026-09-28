@@ -24,6 +24,8 @@ final class CompetitionBuilder
     /** @var list<array{name: string, captainId: string, id: ?string}> */
     private array $teams = [];
     /** @var list<array{teamId: string, playerId: string}> */
+    private array $teamMembers = [];
+    /** @var list<array{teamId: string, playerId: string}> */
     private array $pendingJoinRequests = [];
     private bool $registrationClosed = false;
     private bool $bracketGenerated = false;
@@ -38,6 +40,15 @@ final class CompetitionBuilder
     {
         $clone = clone $this;
         $clone->teams[] = ['name' => $name, 'captainId' => $captainId, 'id' => $id];
+
+        return $clone;
+    }
+
+    /** Adds a confirmed roster member (join request approved). The team must be registered with an explicit `id`. */
+    public function withTeamMember(string $teamId, string $playerId): self
+    {
+        $clone = clone $this;
+        $clone->teamMembers[] = ['teamId' => $teamId, 'playerId' => $playerId];
 
         return $clone;
     }
@@ -81,6 +92,11 @@ final class CompetitionBuilder
 
         foreach ($this->teams as $index => $team) {
             $competition->register(Team::create(new TeamId($team['id'] ?? 'team-'.($index + 1)), $team['name'], new PlayerId($team['captainId'])));
+        }
+
+        foreach ($this->teamMembers as $member) {
+            $competition->requestToJoinTeam(new TeamId($member['teamId']), new PlayerId($member['playerId']));
+            $competition->approveJoinRequest(new TeamId($member['teamId']), new PlayerId($member['playerId']));
         }
 
         foreach ($this->pendingJoinRequests as $request) {
