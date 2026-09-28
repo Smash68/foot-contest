@@ -23,6 +23,8 @@ final class CompetitionBuilder
 {
     /** @var list<array{name: string, captainId: string, id: ?string}> */
     private array $teams = [];
+    /** @var list<array{teamId: string, playerId: string}> */
+    private array $pendingJoinRequests = [];
     private bool $registrationClosed = false;
     private bool $bracketGenerated = false;
 
@@ -36,6 +38,15 @@ final class CompetitionBuilder
     {
         $clone = clone $this;
         $clone->teams[] = ['name' => $name, 'captainId' => $captainId, 'id' => $id];
+
+        return $clone;
+    }
+
+    /** The team must be registered with an explicit `id`; the request is applied while the registration is still open. */
+    public function withPendingJoinRequest(string $teamId, string $playerId): self
+    {
+        $clone = clone $this;
+        $clone->pendingJoinRequests[] = ['teamId' => $teamId, 'playerId' => $playerId];
 
         return $clone;
     }
@@ -70,6 +81,10 @@ final class CompetitionBuilder
 
         foreach ($this->teams as $index => $team) {
             $competition->register(Team::create(new TeamId($team['id'] ?? 'team-'.($index + 1)), $team['name'], new PlayerId($team['captainId'])));
+        }
+
+        foreach ($this->pendingJoinRequests as $request) {
+            $competition->requestToJoinTeam(new TeamId($request['teamId']), new PlayerId($request['playerId']));
         }
 
         if ($this->registrationClosed || $this->bracketGenerated) {
