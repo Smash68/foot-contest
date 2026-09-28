@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Tests\Competition\Infrastructure\Persistence\Doctrine;
 
-use App\Competition\Domain\Model\Player;
 use App\Competition\Infrastructure\Persistence\Doctrine\DoctrinePlayerRepository;
+use App\Tests\Support\Builder\PlayerBuilder;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\Test;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
@@ -18,8 +18,8 @@ final class DoctrinePlayerRepositoryTest extends KernelTestCase
         $entityManager = self::getContainer()->get(EntityManagerInterface::class);
         $repository = new DoctrinePlayerRepository($entityManager);
 
-        $id = $repository->nextIdentity();
-        $player = Player::register($id, 'Captain America', 'captain@example.com', 'hashed-password');
+        $player = PlayerBuilder::aPlayer()->withEmail('captain@example.com')->build();
+        $id = $player->getId();
 
         $repository->save($player);
         $entityManager->clear();
@@ -37,8 +37,8 @@ final class DoctrinePlayerRepositoryTest extends KernelTestCase
         $entityManager = self::getContainer()->get(EntityManagerInterface::class);
         $repository = new DoctrinePlayerRepository($entityManager);
 
-        $id = $repository->nextIdentity();
-        $player = Player::register($id, 'Captain America', 'captain@example.com', 'hashed-password');
+        $player = PlayerBuilder::aPlayer()->withEmail('captain@example.com')->build();
+        $id = $player->getId();
 
         $repository->save($player);
         $entityManager->clear();
