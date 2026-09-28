@@ -21,8 +21,13 @@ use App\Competition\Domain\Service\BracketGeneratorFactory;
  */
 final class CompetitionBuilder
 {
-    /** @var list<array{name: string, captainId: string}> */
+    /** @var list<array{name: string, captainId: string, id: ?string}> */
     private array $teams = [];
+    /** @var list<array{teamId: string, playerId: string}> */
+    private array $teamMembers = [];
+    /** @var list<array{teamId: string, playerId: string}> */
+    private array $pendingJoinRequests = [];
+    private bool $registrationClosed = false;
     private bool $bracketGenerated = false;
 
     public static function aCompetition(): self
@@ -30,10 +35,38 @@ final class CompetitionBuilder
         return new self();
     }
 
-    public function withTeam(string $name, string $captainId): self
+    /** The team id defaults to "team-N" (N = registration order); pass `id` when the test must refer to the team. */
+    public function withTeam(string $name, string $captainId, ?string $id = null): self
     {
         $clone = clone $this;
-        $clone->teams[] = ['name' => $name, 'captainId' => $captainId];
+        $clone->teams[] = ['name' => $name, 'captainId' => $captainId, 'id' => $id];
+
+        return $clone;
+    }
+
+    /** Adds a confirmed roster member (join request approved). The team must be registered with an explicit `id`. */
+    public function withTeamMember(string $teamId, string $playerId): self
+    {
+        $clone = clone $this;
+        $clone->teamMembers[] = ['teamId' => $teamId, 'playerId' => $playerId];
+
+        return $clone;
+    }
+
+    /** The team must be registered with an explicit `id`; the request is applied while the registration is still open. */
+    public function withPendingJoinRequest(string $teamId, string $playerId): self
+    {
+        $clone = clone $this;
+        $clone->pendingJoinRequests[] = ['teamId' => $teamId, 'playerId' => $playerId];
+
+        return $clone;
+    }
+
+    /** Closes the registration, without generating the bracket. */
+    public function withRegistrationClosed(): self
+    {
+        $clone = clone $this;
+        $clone->registrationClosed = true;
 
         return $clone;
     }
@@ -58,11 +91,23 @@ final class CompetitionBuilder
         );
 
         foreach ($this->teams as $index => $team) {
-            $competition->register(Team::create(new TeamId('team-'.($index + 1)), $team['name'], new PlayerId($team['captainId'])));
+            $competition->register(Team::create(new TeamId($team['id'] ?? 'team-'.($index + 1)), $team['name'], new PlayerId($team['captainId'])));
+        }
+
+        foreach ($this->teamMembers as $member) {
+            $competition->requestToJoinTeam(new TeamId($member['teamId']), new PlayerId($member['playerId']));
+            $competition->approveJoinRequest(new TeamId($member['teamId']), new PlayerId($member['playerId']));
+        }
+
+        foreach ($this->pendingJoinRequests as $request) {
+            $competition->requestToJoinTeam(new TeamId($request['teamId']), new PlayerId($request['playerId']));
+        }
+
+        if ($this->registrationClosed || $this->bracketGenerated) {
+            $competition->closeRegistration();
         }
 
         if ($this->bracketGenerated) {
-            $competition->closeRegistration();
             $competition->generateBracket(new BracketGeneratorFactory([
                 CompetitionFormat::SingleElimination->value => new SingleEliminationBracketGenerator(),
             ]));

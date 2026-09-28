@@ -6,17 +6,12 @@ namespace App\Tests\Competition\Application\RegisterTeam;
 
 use App\Competition\Application\RegisterTeam\RegisterTeamCommand;
 use App\Competition\Application\RegisterTeam\RegisterTeamHandler;
-use App\Competition\Domain\Model\BracketConfiguration;
-use App\Competition\Domain\Model\Competition;
-use App\Competition\Domain\Model\CompetitionFormat;
-use App\Competition\Domain\Model\CompetitionId;
-use App\Competition\Domain\Model\OrganizationId;
-use App\Competition\Domain\Model\Player;
-use App\Competition\Domain\Model\TeamCapacity;
 use App\Competition\Domain\Model\TeamId;
 use App\Competition\Infrastructure\Persistence\InMemory\InMemoryCompetitionRepository;
 use App\Competition\Infrastructure\Persistence\InMemory\InMemoryPlayerRepository;
 use App\Competition\Infrastructure\Persistence\InMemory\InMemoryTeamRepository;
+use App\Tests\Support\Builder\CompetitionBuilder;
+use App\Tests\Support\Builder\PlayerBuilder;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
@@ -25,17 +20,16 @@ final class RegisterTeamHandlerTest extends TestCase
     #[Test]
     public function it_registers_a_team_to_an_open_competition(): void
     {
+        $competition = CompetitionBuilder::aCompetition()->build();
         $competitions = new InMemoryCompetitionRepository();
-        $competition = Competition::create(new CompetitionId('c1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
         $competitions->save($competition);
 
         $players = new InMemoryPlayerRepository();
-        $captainId = $players->nextIdentity();
-        $players->save(Player::register($captainId, 'Captain', 'captain@example.com', 'hashed-password'));
+        $players->save(PlayerBuilder::aPlayer()->withId('captain-a')->build());
 
         $handler = new RegisterTeamHandler($competitions, $players, new InMemoryTeamRepository());
 
-        $handler(new RegisterTeamCommand('c1', 'Team A', $captainId->value));
+        $handler(new RegisterTeamCommand($competition->getId()->value, 'Team A', 'captain-a'));
 
         self::assertSame(1, $competition->countRegistrations());
     }
@@ -51,14 +45,15 @@ final class RegisterTeamHandlerTest extends TestCase
 
         $this->expectException(\InvalidArgumentException::class);
 
-        $handler(new RegisterTeamCommand('unknown', 'Team A', 'captain@example.com'));
+        $handler(new RegisterTeamCommand('unknown', 'Team A', 'captain-a'));
     }
 
     #[Test]
     public function it_rejects_registration_for_an_unknown_captain(): void
     {
+        $competition = CompetitionBuilder::aCompetition()->build();
         $competitions = new InMemoryCompetitionRepository();
-        $competitions->save(Competition::create(new CompetitionId('c1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1')));
+        $competitions->save($competition);
 
         $handler = new RegisterTeamHandler(
             $competitions,
@@ -68,22 +63,22 @@ final class RegisterTeamHandlerTest extends TestCase
 
         $this->expectException(\InvalidArgumentException::class);
 
-        $handler(new RegisterTeamCommand('c1', 'Team A', (new InMemoryPlayerRepository())->nextIdentity()->value));
+        $handler(new RegisterTeamCommand($competition->getId()->value, 'Team A', 'unknown-captain'));
     }
 
     #[Test]
     public function it_returns_the_registered_team_id(): void
     {
+        $competition = CompetitionBuilder::aCompetition()->build();
         $competitions = new InMemoryCompetitionRepository();
-        $competitions->save(Competition::create(new CompetitionId('c1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1')));
+        $competitions->save($competition);
 
         $players = new InMemoryPlayerRepository();
-        $captainId = $players->nextIdentity();
-        $players->save(Player::register($captainId, 'Captain', 'captain@example.com', 'hashed-password'));
+        $players->save(PlayerBuilder::aPlayer()->withId('captain-a')->build());
 
         $handler = new RegisterTeamHandler($competitions, $players, new InMemoryTeamRepository());
 
-        $teamId = $handler(new RegisterTeamCommand('c1', 'Team A', $captainId->value));
+        $teamId = $handler(new RegisterTeamCommand($competition->getId()->value, 'Team A', 'captain-a'));
 
         self::assertInstanceOf(TeamId::class, $teamId);
     }
