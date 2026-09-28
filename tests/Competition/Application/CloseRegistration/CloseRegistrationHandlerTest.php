@@ -7,17 +7,9 @@ namespace App\Tests\Competition\Application\CloseRegistration;
 use App\Competition\Application\CloseRegistration\CloseRegistrationCommand;
 use App\Competition\Application\CloseRegistration\CloseRegistrationHandler;
 use App\Competition\Domain\Exception\OrganizerNotAuthorizedForOrganizationException;
-use App\Competition\Domain\Model\BracketConfiguration;
-use App\Competition\Domain\Model\Competition;
-use App\Competition\Domain\Model\CompetitionFormat;
-use App\Competition\Domain\Model\CompetitionId;
-use App\Competition\Domain\Model\OrganizationId;
-use App\Competition\Domain\Model\PlayerId;
-use App\Competition\Domain\Model\Team;
-use App\Competition\Domain\Model\TeamCapacity;
-use App\Competition\Domain\Model\TeamId;
 use App\Competition\Infrastructure\Persistence\InMemory\InMemoryCompetitionRepository;
 use App\Competition\Infrastructure\Service\InMemoryOrganizerOrganizationAuthorization;
+use App\Tests\Support\Builder\CompetitionBuilder;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
@@ -26,17 +18,18 @@ final class CloseRegistrationHandlerTest extends TestCase
     #[Test]
     public function it_closes_registration_for_an_eligible_competition(): void
     {
+        $competition = CompetitionBuilder::aCompetition()
+            ->withTeam('Team A', captainId: 'captain-a')
+            ->withTeam('Team B', captainId: 'captain-b')
+            ->build();
         $competitions = new InMemoryCompetitionRepository();
-        $competition = Competition::create(new CompetitionId('c1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
-        $competition->register(Team::create(new TeamId('t1'), 'Team A', new PlayerId('captain-a@example.com')));
-        $competition->register(Team::create(new TeamId('t2'), 'Team B', new PlayerId('captain-b@example.com')));
         $competitions->save($competition);
         $authorization = new InMemoryOrganizerOrganizationAuthorization();
-        $authorization->grantOwnership('organizer-1', new OrganizationId('org-1'));
+        $authorization->grantOwnership('organizer-1', $competition->getOrganizationId());
 
         $handler = new CloseRegistrationHandler($competitions, $authorization);
 
-        $handler(new CloseRegistrationCommand('c1', 'organizer-1'));
+        $handler(new CloseRegistrationCommand($competition->getId()->value, 'organizer-1'));
 
         self::assertFalse($competition->isOpenForRegistration());
     }
@@ -54,16 +47,17 @@ final class CloseRegistrationHandlerTest extends TestCase
     #[Test]
     public function it_rejects_closing_when_the_organizer_does_not_own_the_organization(): void
     {
+        $competition = CompetitionBuilder::aCompetition()
+            ->withTeam('Team A', captainId: 'captain-a')
+            ->withTeam('Team B', captainId: 'captain-b')
+            ->build();
         $competitions = new InMemoryCompetitionRepository();
-        $competition = Competition::create(new CompetitionId('c1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
-        $competition->register(Team::create(new TeamId('t1'), 'Team A', new PlayerId('captain-a@example.com')));
-        $competition->register(Team::create(new TeamId('t2'), 'Team B', new PlayerId('captain-b@example.com')));
         $competitions->save($competition);
 
         $handler = new CloseRegistrationHandler($competitions, new InMemoryOrganizerOrganizationAuthorization());
 
         $this->expectException(OrganizerNotAuthorizedForOrganizationException::class);
 
-        $handler(new CloseRegistrationCommand('c1', 'organizer-1'));
+        $handler(new CloseRegistrationCommand($competition->getId()->value, 'organizer-1'));
     }
 }
