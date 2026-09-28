@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Tests\Competition\Infrastructure\Http;
 
-use App\Competition\Domain\Model\Player;
 use App\Competition\Infrastructure\Password\NativePasswordHasher;
 use App\Competition\Infrastructure\Persistence\Doctrine\DoctrinePlayerRepository;
+use App\Tests\Support\Builder\PlayerBuilder;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\Test;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
@@ -21,8 +21,10 @@ final class LoginControllerTest extends WebTestCase
         $entityManager = self::getContainer()->get(EntityManagerInterface::class);
         $players = new DoctrinePlayerRepository($entityManager);
 
-        $hashedPassword = (new NativePasswordHasher())->hash('super-secret');
-        $players->save(Player::register($players->nextIdentity(), 'Captain', 'captain@example.com', $hashedPassword));
+        $players->save(PlayerBuilder::aPlayer()
+            ->withEmail('captain@example.com')
+            ->withHashedPassword((new NativePasswordHasher())->hash('super-secret'))
+            ->build());
 
         $client->request('POST', '/players/login', server: ['CONTENT_TYPE' => 'application/json'], content: json_encode([
             'email' => 'captain@example.com',
