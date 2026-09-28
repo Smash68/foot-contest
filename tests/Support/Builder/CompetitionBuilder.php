@@ -27,12 +27,22 @@ final class CompetitionBuilder
     private array $teamMembers = [];
     /** @var list<array{teamId: string, playerId: string}> */
     private array $pendingJoinRequests = [];
+    private string $organizationId = 'organization-1';
     private bool $registrationClosed = false;
     private bool $bracketGenerated = false;
 
     public static function aCompetition(): self
     {
         return new self();
+    }
+
+    /** The owning organization; pass the id of a real Organization when the test goes through the authorization check. */
+    public function ownedBy(string $organizationId): self
+    {
+        $clone = clone $this;
+        $clone->organizationId = $organizationId;
+
+        return $clone;
     }
 
     /** The team id defaults to "team-N" (N = registration order); pass `id` when the test must refer to the team. */
@@ -87,7 +97,7 @@ final class CompetitionBuilder
             'Summer Cup',
             TeamCapacity::of(2, 16),
             new BracketConfiguration(CompetitionFormat::SingleElimination, false),
-            new OrganizationId('organization-1'),
+            new OrganizationId($this->organizationId),
         );
 
         foreach ($this->teams as $index => $team) {
