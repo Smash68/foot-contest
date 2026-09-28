@@ -23,6 +23,7 @@ final class CompetitionBuilder
 {
     /** @var list<array{name: string, captainId: string, id: ?string}> */
     private array $teams = [];
+    private bool $registrationClosed = false;
     private bool $bracketGenerated = false;
 
     public static function aCompetition(): self
@@ -35,6 +36,15 @@ final class CompetitionBuilder
     {
         $clone = clone $this;
         $clone->teams[] = ['name' => $name, 'captainId' => $captainId, 'id' => $id];
+
+        return $clone;
+    }
+
+    /** Closes the registration, without generating the bracket. */
+    public function withRegistrationClosed(): self
+    {
+        $clone = clone $this;
+        $clone->registrationClosed = true;
 
         return $clone;
     }
@@ -62,8 +72,11 @@ final class CompetitionBuilder
             $competition->register(Team::create(new TeamId($team['id'] ?? 'team-'.($index + 1)), $team['name'], new PlayerId($team['captainId'])));
         }
 
-        if ($this->bracketGenerated) {
+        if ($this->registrationClosed || $this->bracketGenerated) {
             $competition->closeRegistration();
+        }
+
+        if ($this->bracketGenerated) {
             $competition->generateBracket(new BracketGeneratorFactory([
                 CompetitionFormat::SingleElimination->value => new SingleEliminationBracketGenerator(),
             ]));
