@@ -28,6 +28,9 @@ final class CompetitionBuilder
     /** @var list<array{teamId: string, playerId: string}> */
     private array $pendingJoinRequests = [];
     private string $organizationId = 'organization-1';
+    private int $minTeams = 2;
+    private int $maxTeams = 16;
+    private bool $thirdPlaceMatch = false;
     private bool $registrationClosed = false;
     private bool $bracketGenerated = false;
 
@@ -41,6 +44,25 @@ final class CompetitionBuilder
     {
         $clone = clone $this;
         $clone->organizationId = $organizationId;
+
+        return $clone;
+    }
+
+    /** The team capacity; defaults to 2 to 16 teams, wide enough for a test that does not care about it. */
+    public function withCapacity(int $minTeams, int $maxTeams): self
+    {
+        $clone = clone $this;
+        $clone->minTeams = $minTeams;
+        $clone->maxTeams = $maxTeams;
+
+        return $clone;
+    }
+
+    /** Plays a third-place match; chosen at creation, like the format, so it applies once the bracket is generated. */
+    public function withThirdPlaceMatch(): self
+    {
+        $clone = clone $this;
+        $clone->thirdPlaceMatch = true;
 
         return $clone;
     }
@@ -95,8 +117,8 @@ final class CompetitionBuilder
         $competition = Competition::create(
             new CompetitionId('competition-1'),
             'Summer Cup',
-            TeamCapacity::of(2, 16),
-            new BracketConfiguration(CompetitionFormat::SingleElimination, false),
+            TeamCapacity::of($this->minTeams, $this->maxTeams),
+            new BracketConfiguration(CompetitionFormat::SingleElimination, $this->thirdPlaceMatch),
             new OrganizationId($this->organizationId),
         );
 

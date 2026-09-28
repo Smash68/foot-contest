@@ -5,20 +5,15 @@ declare(strict_types=1);
 namespace App\Tests\Competition\Infrastructure\Persistence\Doctrine;
 
 use App\Competition\Domain\Format\SingleElimination\BracketWithThirdPlaceMatch;
-use App\Competition\Domain\Format\SingleElimination\SingleEliminationBracketGenerator;
-use App\Competition\Domain\Model\BracketConfiguration;
-use App\Competition\Domain\Model\Competition;
 use App\Competition\Domain\Model\CompetitionFormat;
 use App\Competition\Domain\Model\EncounterId;
 use App\Competition\Domain\Model\EncounterResult;
-use App\Competition\Domain\Model\OrganizationId;
 use App\Competition\Domain\Model\PlayerId;
 use App\Competition\Domain\Model\Score;
 use App\Competition\Domain\Model\Team;
-use App\Competition\Domain\Model\TeamCapacity;
 use App\Competition\Domain\Model\TeamId;
-use App\Competition\Domain\Service\BracketGeneratorFactory;
 use App\Competition\Infrastructure\Persistence\Doctrine\DoctrineCompetitionRepository;
+use App\Tests\Support\Builder\CompetitionBuilder;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\Test;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
@@ -31,8 +26,8 @@ final class DoctrineCompetitionRepositoryTest extends KernelTestCase
         $entityManager = self::getContainer()->get(EntityManagerInterface::class);
         $repository = new DoctrineCompetitionRepository($entityManager);
 
-        $id = $repository->nextIdentity();
-        $competition = Competition::create($id, 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
+        $competition = CompetitionBuilder::aCompetition()->build();
+        $id = $competition->getId();
 
         $repository->save($competition);
         $entityManager->clear();
@@ -49,13 +44,12 @@ final class DoctrineCompetitionRepositoryTest extends KernelTestCase
         $entityManager = self::getContainer()->get(EntityManagerInterface::class);
         $repository = new DoctrineCompetitionRepository($entityManager);
 
-        $id = $repository->nextIdentity();
-        $competition = Competition::create($id, 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, true), new OrganizationId('org-1'));
+        $competition = CompetitionBuilder::aCompetition()->withThirdPlaceMatch()->build();
 
         $repository->save($competition);
         $entityManager->clear();
 
-        $found = $repository->ofId($id);
+        $found = $repository->ofId($competition->getId());
 
         self::assertNotNull($found);
         self::assertSame(CompetitionFormat::SingleElimination, $found->getFormat());
@@ -68,16 +62,16 @@ final class DoctrineCompetitionRepositoryTest extends KernelTestCase
         $entityManager = self::getContainer()->get(EntityManagerInterface::class);
         $repository = new DoctrineCompetitionRepository($entityManager);
 
-        $id = $repository->nextIdentity();
-        $competition = Competition::create($id, 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
-        $competition->register($this->team('a', 'Team A'));
-        $competition->register($this->team('b', 'Team B'));
-        $competition->closeRegistration();
+        $competition = CompetitionBuilder::aCompetition()
+            ->withTeam('Team A', captainId: 'captain-a')
+            ->withTeam('Team B', captainId: 'captain-b')
+            ->withRegistrationClosed()
+            ->build();
 
         $repository->save($competition);
         $entityManager->clear();
 
-        $found = $repository->ofId($id);
+        $found = $repository->ofId($competition->getId());
 
         self::assertFalse($found->isOpenForRegistration());
     }
@@ -88,15 +82,15 @@ final class DoctrineCompetitionRepositoryTest extends KernelTestCase
         $entityManager = self::getContainer()->get(EntityManagerInterface::class);
         $repository = new DoctrineCompetitionRepository($entityManager);
 
-        $id = $repository->nextIdentity();
-        $competition = Competition::create($id, 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
-        $competition->register($this->team('a', 'Team A'));
-        $competition->register($this->team('b', 'Team B'));
+        $competition = CompetitionBuilder::aCompetition()
+            ->withTeam('Team A', captainId: 'captain-a')
+            ->withTeam('Team B', captainId: 'captain-b')
+            ->build();
 
         $repository->save($competition);
         $entityManager->clear();
 
-        $found = $repository->ofId($id);
+        $found = $repository->ofId($competition->getId());
 
         self::assertSame(2, $found->countRegistrations());
     }
@@ -107,13 +101,12 @@ final class DoctrineCompetitionRepositoryTest extends KernelTestCase
         $entityManager = self::getContainer()->get(EntityManagerInterface::class);
         $repository = new DoctrineCompetitionRepository($entityManager);
 
-        $id = $repository->nextIdentity();
-        $competition = Competition::create($id, 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
+        $competition = CompetitionBuilder::aCompetition()->build();
 
         $repository->save($competition);
         $entityManager->clear();
 
-        $found = $repository->ofId($id);
+        $found = $repository->ofId($competition->getId());
 
         self::assertSame('Summer Cup', $found->getName());
     }
@@ -124,13 +117,12 @@ final class DoctrineCompetitionRepositoryTest extends KernelTestCase
         $entityManager = self::getContainer()->get(EntityManagerInterface::class);
         $repository = new DoctrineCompetitionRepository($entityManager);
 
-        $id = $repository->nextIdentity();
-        $competition = Competition::create($id, 'Summer Cup', TeamCapacity::of(2, 3), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
+        $competition = CompetitionBuilder::aCompetition()->withCapacity(2, 3)->build();
 
         $repository->save($competition);
         $entityManager->clear();
 
-        $found = $repository->ofId($id);
+        $found = $repository->ofId($competition->getId());
         $found->register($this->team('a', 'Team A'));
         $found->register($this->team('b', 'Team B'));
         $found->register($this->team('c', 'Team C'));
@@ -146,13 +138,12 @@ final class DoctrineCompetitionRepositoryTest extends KernelTestCase
         $entityManager = self::getContainer()->get(EntityManagerInterface::class);
         $repository = new DoctrineCompetitionRepository($entityManager);
 
-        $id = $repository->nextIdentity();
-        $competition = Competition::create($id, 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
+        $competition = CompetitionBuilder::aCompetition()->build();
 
         $repository->save($competition);
         $entityManager->clear();
 
-        $found = $repository->ofId($id);
+        $found = $repository->ofId($competition->getId());
 
         self::assertNull($found->getBracket());
     }
@@ -163,18 +154,17 @@ final class DoctrineCompetitionRepositoryTest extends KernelTestCase
         $entityManager = self::getContainer()->get(EntityManagerInterface::class);
         $repository = new DoctrineCompetitionRepository($entityManager);
 
-        $id = $repository->nextIdentity();
-        $competition = Competition::create($id, 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
-        $competition->register($this->team('a', 'Team A'));
-        $competition->register($this->team('b', 'Team B'));
-        $competition->register($this->team('c', 'Team C'));
-        $competition->closeRegistration();
-        $competition->generateBracket($this->bracketGeneratorFactory());
+        $competition = CompetitionBuilder::aCompetition()
+            ->withTeam('Team A', captainId: 'captain-a')
+            ->withTeam('Team B', captainId: 'captain-b')
+            ->withTeam('Team C', captainId: 'captain-c')
+            ->withBracketGenerated()
+            ->build();
 
         $repository->save($competition);
         $entityManager->clear();
 
-        $found = $repository->ofId($id);
+        $found = $repository->ofId($competition->getId());
         $bracket = $found->getBracket();
 
         self::assertNotNull($bracket);
@@ -189,13 +179,12 @@ final class DoctrineCompetitionRepositoryTest extends KernelTestCase
         $entityManager = self::getContainer()->get(EntityManagerInterface::class);
         $repository = new DoctrineCompetitionRepository($entityManager);
 
-        $id = $repository->nextIdentity();
-        $competition = Competition::create($id, 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
-        $competition->register($this->team('a', 'Team A'));
-        $competition->register($this->team('b', 'Team B'));
-        $competition->register($this->team('c', 'Team C'));
-        $competition->closeRegistration();
-        $competition->generateBracket($this->bracketGeneratorFactory());
+        $competition = CompetitionBuilder::aCompetition()
+            ->withTeam('Team A', captainId: 'captain-a')
+            ->withTeam('Team B', captainId: 'captain-b')
+            ->withTeam('Team C', captainId: 'captain-c')
+            ->withBracketGenerated()
+            ->build();
 
         $playedEncounterId = new EncounterId('encounter-2');
         $expectedWinner = $competition->getBracket()->getRound(1)->findEncounterById($playedEncounterId)->getHome()->getTeamId();
@@ -204,7 +193,7 @@ final class DoctrineCompetitionRepositoryTest extends KernelTestCase
         $repository->save($competition);
         $entityManager->clear();
 
-        $found = $repository->ofId($id);
+        $found = $repository->ofId($competition->getId());
         $playedEncounter = $found->getBracket()->getRound(1)->findEncounterById($playedEncounterId);
 
         self::assertTrue($playedEncounter->isCompleted());
@@ -217,19 +206,19 @@ final class DoctrineCompetitionRepositoryTest extends KernelTestCase
         $entityManager = self::getContainer()->get(EntityManagerInterface::class);
         $repository = new DoctrineCompetitionRepository($entityManager);
 
-        $id = $repository->nextIdentity();
-        $competition = Competition::create($id, 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, true), new OrganizationId('org-1'));
-        $competition->register($this->team('a', 'Team A'));
-        $competition->register($this->team('b', 'Team B'));
-        $competition->register($this->team('c', 'Team C'));
-        $competition->register($this->team('d', 'Team D'));
-        $competition->closeRegistration();
-        $competition->generateBracket($this->bracketGeneratorFactory());
+        $competition = CompetitionBuilder::aCompetition()
+            ->withThirdPlaceMatch()
+            ->withTeam('Team A', captainId: 'captain-a')
+            ->withTeam('Team B', captainId: 'captain-b')
+            ->withTeam('Team C', captainId: 'captain-c')
+            ->withTeam('Team D', captainId: 'captain-d')
+            ->withBracketGenerated()
+            ->build();
 
         $repository->save($competition);
         $entityManager->clear();
 
-        $found = $repository->ofId($id);
+        $found = $repository->ofId($competition->getId());
         $bracket = $found->getBracket();
 
         self::assertInstanceOf(BracketWithThirdPlaceMatch::class, $bracket);
@@ -242,14 +231,14 @@ final class DoctrineCompetitionRepositoryTest extends KernelTestCase
         $entityManager = self::getContainer()->get(EntityManagerInterface::class);
         $repository = new DoctrineCompetitionRepository($entityManager);
 
-        $id = $repository->nextIdentity();
-        $competition = Competition::create($id, 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, true), new OrganizationId('org-1'));
-        $competition->register($this->team('a', 'Team A'));
-        $competition->register($this->team('b', 'Team B'));
-        $competition->register($this->team('c', 'Team C'));
-        $competition->register($this->team('d', 'Team D'));
-        $competition->closeRegistration();
-        $competition->generateBracket($this->bracketGeneratorFactory());
+        $competition = CompetitionBuilder::aCompetition()
+            ->withThirdPlaceMatch()
+            ->withTeam('Team A', captainId: 'captain-a')
+            ->withTeam('Team B', captainId: 'captain-b')
+            ->withTeam('Team C', captainId: 'captain-c')
+            ->withTeam('Team D', captainId: 'captain-d')
+            ->withBracketGenerated()
+            ->build();
 
         $semiFinalOneId = new EncounterId('encounter-1');
         $semiFinalTwoId = new EncounterId('encounter-2');
@@ -262,7 +251,7 @@ final class DoctrineCompetitionRepositoryTest extends KernelTestCase
         $repository->save($competition);
         $entityManager->clear();
 
-        $found = $repository->ofId($id);
+        $found = $repository->ofId($competition->getId());
         $bracket = $found->getBracket();
         self::assertInstanceOf(BracketWithThirdPlaceMatch::class, $bracket);
         $thirdPlaceEncounter = $bracket->getThirdPlaceEncounter();
@@ -279,14 +268,14 @@ final class DoctrineCompetitionRepositoryTest extends KernelTestCase
         $entityManager = self::getContainer()->get(EntityManagerInterface::class);
         $repository = new DoctrineCompetitionRepository($entityManager);
 
-        $id = $repository->nextIdentity();
-        $competition = Competition::create($id, 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, true), new OrganizationId('org-1'));
-        $competition->register($this->team('a', 'Team A'));
-        $competition->register($this->team('b', 'Team B'));
-        $competition->register($this->team('c', 'Team C'));
-        $competition->register($this->team('d', 'Team D'));
-        $competition->closeRegistration();
-        $competition->generateBracket($this->bracketGeneratorFactory());
+        $competition = CompetitionBuilder::aCompetition()
+            ->withThirdPlaceMatch()
+            ->withTeam('Team A', captainId: 'captain-a')
+            ->withTeam('Team B', captainId: 'captain-b')
+            ->withTeam('Team C', captainId: 'captain-c')
+            ->withTeam('Team D', captainId: 'captain-d')
+            ->withBracketGenerated()
+            ->build();
 
         $competition->getBracket()->recordResult(new EncounterId('encounter-1'), EncounterResult::regularTime(Score::of(2, 0)));
         $competition->getBracket()->recordResult(new EncounterId('encounter-2'), EncounterResult::regularTime(Score::of(3, 1)));
@@ -297,7 +286,7 @@ final class DoctrineCompetitionRepositoryTest extends KernelTestCase
         $repository->save($competition);
         $entityManager->clear();
 
-        $found = $repository->ofId($id);
+        $found = $repository->ofId($competition->getId());
         $bracket = $found->getBracket();
         self::assertInstanceOf(BracketWithThirdPlaceMatch::class, $bracket);
         $reloadedThirdPlaceEncounter = $bracket->getThirdPlaceEncounter();
@@ -310,12 +299,5 @@ final class DoctrineCompetitionRepositoryTest extends KernelTestCase
     private function team(string $teamId, string $teamName): Team
     {
         return Team::create(new TeamId($teamId), $teamName, new PlayerId("{$teamId}@example.com"));
-    }
-
-    private function bracketGeneratorFactory(): BracketGeneratorFactory
-    {
-        return new BracketGeneratorFactory([
-            CompetitionFormat::SingleElimination->value => new SingleEliminationBracketGenerator(),
-        ]);
     }
 }
