@@ -28,6 +28,7 @@ final class CompetitionBuilder
     /** @var list<array{teamId: string, playerId: string}> */
     private array $pendingJoinRequests = [];
     private string $organizationId = 'organization-1';
+    private bool $thirdPlaceMatch = false;
     private bool $registrationClosed = false;
     private bool $bracketGenerated = false;
 
@@ -41,6 +42,15 @@ final class CompetitionBuilder
     {
         $clone = clone $this;
         $clone->organizationId = $organizationId;
+
+        return $clone;
+    }
+
+    /** Plays a third-place match; chosen at creation, like the format, so it applies once the bracket is generated. */
+    public function withThirdPlaceMatch(): self
+    {
+        $clone = clone $this;
+        $clone->thirdPlaceMatch = true;
 
         return $clone;
     }
@@ -96,7 +106,7 @@ final class CompetitionBuilder
             new CompetitionId('competition-1'),
             'Summer Cup',
             TeamCapacity::of(2, 16),
-            new BracketConfiguration(CompetitionFormat::SingleElimination, false),
+            new BracketConfiguration(CompetitionFormat::SingleElimination, $this->thirdPlaceMatch),
             new OrganizationId($this->organizationId),
         );
 
