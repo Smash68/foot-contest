@@ -7,17 +7,9 @@ namespace App\Tests\Competition\Application\Withdraw;
 use App\Competition\Application\Withdraw\WithdrawCommand;
 use App\Competition\Application\Withdraw\WithdrawHandler;
 use App\Competition\Domain\Exception\NotAuthorizedToWithdrawException;
-use App\Competition\Domain\Model\BracketConfiguration;
-use App\Competition\Domain\Model\Competition;
-use App\Competition\Domain\Model\CompetitionFormat;
-use App\Competition\Domain\Model\CompetitionId;
-use App\Competition\Domain\Model\OrganizationId;
-use App\Competition\Domain\Model\PlayerId;
-use App\Competition\Domain\Model\Team;
-use App\Competition\Domain\Model\TeamCapacity;
-use App\Competition\Domain\Model\TeamId;
 use App\Competition\Infrastructure\Persistence\InMemory\InMemoryCompetitionRepository;
 use App\Competition\Infrastructure\Service\InMemoryOrganizerOrganizationAuthorization;
+use App\Tests\Support\Builder\CompetitionBuilder;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
@@ -26,14 +18,15 @@ final class WithdrawHandlerTest extends TestCase
     #[Test]
     public function it_withdraws_a_registered_team_when_requested_by_its_captain(): void
     {
+        $competition = CompetitionBuilder::aCompetition()
+            ->withTeam('Team A', captainId: 'captain-a', id: 'team-a')
+            ->build();
         $competitions = new InMemoryCompetitionRepository();
-        $competition = Competition::create(new CompetitionId('c1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
-        $competition->register(Team::create(new TeamId('t1'), 'Team A', new PlayerId('captain@example.com')));
         $competitions->save($competition);
 
         $handler = new WithdrawHandler($competitions, new InMemoryOrganizerOrganizationAuthorization());
 
-        $handler(new WithdrawCommand('c1', 't1', 'captain@example.com'));
+        $handler(new WithdrawCommand($competition->getId()->value, 'team-a', 'captain-a'));
 
         self::assertSame(0, $competition->countRegistrations());
     }
@@ -45,37 +38,39 @@ final class WithdrawHandlerTest extends TestCase
 
         $this->expectException(\InvalidArgumentException::class);
 
-        $handler(new WithdrawCommand('unknown', 't1', 'captain@example.com'));
+        $handler(new WithdrawCommand('unknown', 'team-a', 'captain-a'));
     }
 
     #[Test]
     public function it_rejects_withdrawal_by_a_player_who_is_not_the_captain(): void
     {
+        $competition = CompetitionBuilder::aCompetition()
+            ->withTeam('Team A', captainId: 'captain-a', id: 'team-a')
+            ->build();
         $competitions = new InMemoryCompetitionRepository();
-        $competition = Competition::create(new CompetitionId('c1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
-        $competition->register(Team::create(new TeamId('t1'), 'Team A', new PlayerId('captain@example.com')));
         $competitions->save($competition);
 
         $handler = new WithdrawHandler($competitions, new InMemoryOrganizerOrganizationAuthorization());
 
         $this->expectException(NotAuthorizedToWithdrawException::class);
 
-        $handler(new WithdrawCommand('c1', 't1', 'someone-else@example.com'));
+        $handler(new WithdrawCommand($competition->getId()->value, 'team-a', 'someone-else'));
     }
 
     #[Test]
     public function it_withdraws_a_registered_team_when_requested_by_the_owning_organizer(): void
     {
+        $competition = CompetitionBuilder::aCompetition()
+            ->withTeam('Team A', captainId: 'captain-a', id: 'team-a')
+            ->build();
         $competitions = new InMemoryCompetitionRepository();
-        $competition = Competition::create(new CompetitionId('c1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
-        $competition->register(Team::create(new TeamId('t1'), 'Team A', new PlayerId('captain@example.com')));
         $competitions->save($competition);
         $authorization = new InMemoryOrganizerOrganizationAuthorization();
-        $authorization->grantOwnership('organizer-1', new OrganizationId('org-1'));
+        $authorization->grantOwnership('organizer-1', $competition->getOrganizationId());
 
         $handler = new WithdrawHandler($competitions, $authorization);
 
-        $handler(new WithdrawCommand('c1', 't1', 'organizer-1'));
+        $handler(new WithdrawCommand($competition->getId()->value, 'team-a', 'organizer-1'));
 
         self::assertSame(0, $competition->countRegistrations());
     }
@@ -83,17 +78,18 @@ final class WithdrawHandlerTest extends TestCase
     #[Test]
     public function it_rejects_withdrawal_by_an_organizer_who_does_not_own_the_organization(): void
     {
+        $competition = CompetitionBuilder::aCompetition()
+            ->withTeam('Team A', captainId: 'captain-a', id: 'team-a')
+            ->build();
         $competitions = new InMemoryCompetitionRepository();
-        $competition = Competition::create(new CompetitionId('c1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
-        $competition->register(Team::create(new TeamId('t1'), 'Team A', new PlayerId('captain@example.com')));
         $competitions->save($competition);
         $authorization = new InMemoryOrganizerOrganizationAuthorization();
-        $authorization->grantOwnership('the-real-owner', new OrganizationId('org-1'));
+        $authorization->grantOwnership('the-real-owner', $competition->getOrganizationId());
 
         $handler = new WithdrawHandler($competitions, $authorization);
 
         $this->expectException(NotAuthorizedToWithdrawException::class);
 
-        $handler(new WithdrawCommand('c1', 't1', 'someone-elses-organizer'));
+        $handler(new WithdrawCommand($competition->getId()->value, 'team-a', 'someone-elses-organizer'));
     }
 }
