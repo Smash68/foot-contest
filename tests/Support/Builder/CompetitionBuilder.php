@@ -21,7 +21,7 @@ use App\Competition\Domain\Service\BracketGeneratorFactory;
  */
 final class CompetitionBuilder
 {
-    /** @var list<array{name: string, captainId: string}> */
+    /** @var list<array{name: string, captainId: string, id: ?string}> */
     private array $teams = [];
     private bool $bracketGenerated = false;
 
@@ -30,10 +30,11 @@ final class CompetitionBuilder
         return new self();
     }
 
-    public function withTeam(string $name, string $captainId): self
+    /** The team id defaults to "team-N" (N = registration order); pass `id` when the test must refer to the team. */
+    public function withTeam(string $name, string $captainId, ?string $id = null): self
     {
         $clone = clone $this;
-        $clone->teams[] = ['name' => $name, 'captainId' => $captainId];
+        $clone->teams[] = ['name' => $name, 'captainId' => $captainId, 'id' => $id];
 
         return $clone;
     }
@@ -58,7 +59,7 @@ final class CompetitionBuilder
         );
 
         foreach ($this->teams as $index => $team) {
-            $competition->register(Team::create(new TeamId('team-'.($index + 1)), $team['name'], new PlayerId($team['captainId'])));
+            $competition->register(Team::create(new TeamId($team['id'] ?? 'team-'.($index + 1)), $team['name'], new PlayerId($team['captainId'])));
         }
 
         if ($this->bracketGenerated) {
