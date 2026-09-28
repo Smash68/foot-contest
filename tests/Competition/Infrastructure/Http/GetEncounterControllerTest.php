@@ -4,20 +4,11 @@ declare(strict_types=1);
 
 namespace App\Tests\Competition\Infrastructure\Http;
 
-use App\Competition\Domain\Format\SingleElimination\SingleEliminationBracketGenerator;
-use App\Competition\Domain\Model\BracketConfiguration;
-use App\Competition\Domain\Model\Competition;
-use App\Competition\Domain\Model\CompetitionFormat;
-use App\Competition\Domain\Model\OrganizationId;
-use App\Competition\Domain\Model\Player;
-use App\Competition\Domain\Model\PlayerId;
-use App\Competition\Domain\Model\Team;
-use App\Competition\Domain\Model\TeamCapacity;
-use App\Competition\Domain\Model\TeamId;
 use App\Competition\Domain\Repository\CompetitionRepository;
 use App\Competition\Domain\Repository\PlayerRepository;
-use App\Competition\Domain\Service\BracketGeneratorFactory;
 use App\Competition\Infrastructure\Persistence\InMemory\InMemoryCompetitionRepository;
+use App\Tests\Support\Builder\CompetitionBuilder;
+use App\Tests\Support\Builder\PlayerBuilder;
 use PHPUnit\Framework\Attributes\Test;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
@@ -33,16 +24,14 @@ final class GetEncounterControllerTest extends WebTestCase
 
         $players = self::getContainer()->get(PlayerRepository::class);
         assert($players instanceof PlayerRepository);
-        $players->save(Player::register(new PlayerId('captain-a'), 'Alice', 'alice@example.com', 'hashed'));
-        $players->save(Player::register(new PlayerId('captain-b'), 'Bob', 'bob@example.com', 'hashed'));
+        $players->save(PlayerBuilder::aPlayer()->withId('captain-a')->build());
+        $players->save(PlayerBuilder::aPlayer()->withId('captain-b')->build());
 
-        $competition = Competition::create($competitions->nextIdentity(), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
-        $competition->register(Team::create(new TeamId('t1'), 'Team A', new PlayerId('captain-a')));
-        $competition->register(Team::create(new TeamId('t2'), 'Team B', new PlayerId('captain-b')));
-        $competition->closeRegistration();
-        $competition->generateBracket(new BracketGeneratorFactory([
-            CompetitionFormat::SingleElimination->value => new SingleEliminationBracketGenerator(),
-        ]));
+        $competition = CompetitionBuilder::aCompetition()
+            ->withTeam('Team A', captainId: 'captain-a')
+            ->withTeam('Team B', captainId: 'captain-b')
+            ->withBracketGenerated()
+            ->build();
         $competitions->save($competition);
 
         $bracket = $competition->getBracket();
@@ -75,16 +64,14 @@ final class GetEncounterControllerTest extends WebTestCase
 
         $players = self::getContainer()->get(PlayerRepository::class);
         assert($players instanceof PlayerRepository);
-        $players->save(Player::register(new PlayerId('captain-a'), 'Alice', 'alice@example.com', 'hashed'));
-        $players->save(Player::register(new PlayerId('captain-b'), 'Bob', 'bob@example.com', 'hashed'));
+        $players->save(PlayerBuilder::aPlayer()->withId('captain-a')->build());
+        $players->save(PlayerBuilder::aPlayer()->withId('captain-b')->build());
 
-        $competition = Competition::create($competitions->nextIdentity(), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
-        $competition->register(Team::create(new TeamId('t1'), 'Team A', new PlayerId('captain-a')));
-        $competition->register(Team::create(new TeamId('t2'), 'Team B', new PlayerId('captain-b')));
-        $competition->closeRegistration();
-        $competition->generateBracket(new BracketGeneratorFactory([
-            CompetitionFormat::SingleElimination->value => new SingleEliminationBracketGenerator(),
-        ]));
+        $competition = CompetitionBuilder::aCompetition()
+            ->withTeam('Team A', captainId: 'captain-a')
+            ->withTeam('Team B', captainId: 'captain-b')
+            ->withBracketGenerated()
+            ->build();
         $competitions->save($competition);
 
         $client->request('GET', "/competitions/{$competition->getId()->value}/encounters/unknown-encounter");
