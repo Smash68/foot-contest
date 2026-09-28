@@ -7,17 +7,10 @@ namespace App\Tests\Competition\Application\GenerateBracket;
 use App\Competition\Application\GenerateBracket\GenerateBracketCommand;
 use App\Competition\Application\GenerateBracket\GenerateBracketHandler;
 use App\Competition\Domain\Format\SingleElimination\SingleEliminationBracketGenerator;
-use App\Competition\Domain\Model\BracketConfiguration;
-use App\Competition\Domain\Model\Competition;
 use App\Competition\Domain\Model\CompetitionFormat;
-use App\Competition\Domain\Model\CompetitionId;
-use App\Competition\Domain\Model\OrganizationId;
-use App\Competition\Domain\Model\PlayerId;
-use App\Competition\Domain\Model\Team;
-use App\Competition\Domain\Model\TeamCapacity;
-use App\Competition\Domain\Model\TeamId;
 use App\Competition\Domain\Service\BracketGeneratorFactory;
 use App\Competition\Infrastructure\Persistence\InMemory\InMemoryCompetitionRepository;
+use App\Tests\Support\Builder\CompetitionBuilder;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
@@ -26,16 +19,17 @@ final class GenerateBracketHandlerTest extends TestCase
     #[Test]
     public function it_generates_the_bracket_for_an_eligible_competition(): void
     {
+        $competition = CompetitionBuilder::aCompetition()
+            ->withTeam('Team A', captainId: 'captain-a')
+            ->withTeam('Team B', captainId: 'captain-b')
+            ->withRegistrationClosed()
+            ->build();
         $competitions = new InMemoryCompetitionRepository();
-        $competition = Competition::create(new CompetitionId('c1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
-        $competition->register(Team::create(new TeamId('t1'), 'Team A', new PlayerId('captain-a@example.com')));
-        $competition->register(Team::create(new TeamId('t2'), 'Team B', new PlayerId('captain-b@example.com')));
-        $competition->closeRegistration();
         $competitions->save($competition);
 
         $handler = new GenerateBracketHandler($competitions, $this->bracketGeneratorFactory());
 
-        $handler(new GenerateBracketCommand('c1'));
+        $handler(new GenerateBracketCommand($competition->getId()->value));
 
         self::assertNotNull($competition->getBracket());
     }
