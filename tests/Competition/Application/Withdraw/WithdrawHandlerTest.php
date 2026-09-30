@@ -9,6 +9,7 @@ use App\Competition\Application\Withdraw\WithdrawHandler;
 use App\Competition\Domain\Exception\NotAuthorizedToWithdrawException;
 use App\Competition\Infrastructure\Persistence\InMemory\InMemoryCompetitionRepository;
 use App\Competition\Infrastructure\Service\InMemoryOrganizerOrganizationAuthorization;
+use App\Tests\Support\Assertion\CompetitionAssert;
 use App\Tests\Support\Builder\CompetitionBuilder;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -28,7 +29,7 @@ final class WithdrawHandlerTest extends TestCase
 
         $handler(new WithdrawCommand($competition->getId()->value, 'team-a', 'captain-a'));
 
-        self::assertSame(0, $competition->countRegistrations());
+        CompetitionAssert::assertThat($competition)->hasRegisteredTeamsCount(0);
     }
 
     #[Test]
@@ -72,7 +73,7 @@ final class WithdrawHandlerTest extends TestCase
 
         $handler(new WithdrawCommand($competition->getId()->value, 'team-a', 'organizer-1'));
 
-        self::assertSame(0, $competition->countRegistrations());
+        CompetitionAssert::assertThat($competition)->hasRegisteredTeamsCount(0);
     }
 
     #[Test]
