@@ -6,9 +6,9 @@ namespace App\Tests\Competition\Application\RequestToJoinTeam;
 
 use App\Competition\Application\RequestToJoinTeam\RequestToJoinTeamCommand;
 use App\Competition\Application\RequestToJoinTeam\RequestToJoinTeamHandler;
-use App\Competition\Domain\Model\TeamId;
 use App\Competition\Infrastructure\Persistence\InMemory\InMemoryCompetitionRepository;
 use App\Competition\Infrastructure\Persistence\InMemory\InMemoryPlayerRepository;
+use App\Tests\Support\Assertion\CompetitionAssert;
 use App\Tests\Support\Builder\CompetitionBuilder;
 use App\Tests\Support\Builder\PlayerBuilder;
 use PHPUnit\Framework\Attributes\Test;
@@ -32,7 +32,7 @@ final class RequestToJoinTeamHandlerTest extends TestCase
 
         $handler(new RequestToJoinTeamCommand($competition->getId()->value, 'team-a', 'applicant'));
 
-        self::assertCount(1, $competition->getTeamPendingRequests(new TeamId('team-a')));
+        CompetitionAssert::assertThat($competition)->hasPendingRequestsCount('team-a', 1);
     }
 
     #[Test]
