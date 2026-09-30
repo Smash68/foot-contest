@@ -15,6 +15,7 @@ use App\Competition\Domain\Model\Team;
 use App\Competition\Domain\Model\TeamCapacity;
 use App\Competition\Domain\Model\TeamId;
 use App\Competition\Domain\Service\BracketGeneratorFactory;
+use App\Tests\Support\Builder\CompetitionBuilder;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
@@ -74,7 +75,7 @@ final class CompetitionTest extends TestCase
     #[Test]
     public function it_counts_a_registered_team(): void
     {
-        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
+        $competition = CompetitionBuilder::aCompetition()->build();
 
         $competition->register($this->team('a', 'Team A'));
 
@@ -84,9 +85,11 @@ final class CompetitionTest extends TestCase
     #[Test]
     public function it_rejects_a_registration_once_the_maximum_is_reached(): void
     {
-        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 2), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
-        $competition->register($this->team('a', 'Team A'));
-        $competition->register($this->team('b', 'Team B'));
+        $competition = CompetitionBuilder::aCompetition()
+            ->withCapacity(2, 2)
+            ->withTeam('Team A', captainId: 'a@example.com', id: 'a')
+            ->withTeam('Team B', captainId: 'b@example.com', id: 'b')
+            ->build();
 
         $this->expectException(\LogicException::class);
 
@@ -96,10 +99,11 @@ final class CompetitionTest extends TestCase
     #[Test]
     public function it_rejects_a_registration_once_closed(): void
     {
-        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
-        $competition->register($this->team('a', 'Team A'));
-        $competition->register($this->team('b', 'Team B'));
-        $competition->closeRegistration();
+        $competition = CompetitionBuilder::aCompetition()
+            ->withTeam('Team A', captainId: 'a@example.com', id: 'a')
+            ->withTeam('Team B', captainId: 'b@example.com', id: 'b')
+            ->withRegistrationClosed()
+            ->build();
 
         $this->expectException(\LogicException::class);
 
@@ -109,8 +113,9 @@ final class CompetitionTest extends TestCase
     #[Test]
     public function it_removes_a_withdrawn_team(): void
     {
-        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
-        $competition->register($this->team('a', 'Team A'));
+        $competition = CompetitionBuilder::aCompetition()
+            ->withTeam('Team A', captainId: 'a@example.com', id: 'a')
+            ->build();
 
         $competition->withdraw(new TeamId('a'));
 
@@ -120,7 +125,7 @@ final class CompetitionTest extends TestCase
     #[Test]
     public function it_rejects_withdrawing_an_unregistered_team(): void
     {
-        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
+        $competition = CompetitionBuilder::aCompetition()->build();
 
         $this->expectException(\InvalidArgumentException::class);
 
@@ -130,10 +135,11 @@ final class CompetitionTest extends TestCase
     #[Test]
     public function it_rejects_withdrawing_once_closed(): void
     {
-        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
-        $competition->register($this->team('a', 'Team A'));
-        $competition->register($this->team('b', 'Team B'));
-        $competition->closeRegistration();
+        $competition = CompetitionBuilder::aCompetition()
+            ->withTeam('Team A', captainId: 'a@example.com', id: 'a')
+            ->withTeam('Team B', captainId: 'b@example.com', id: 'b')
+            ->withRegistrationClosed()
+            ->build();
 
         $this->expectException(\LogicException::class);
 
@@ -143,8 +149,9 @@ final class CompetitionTest extends TestCase
     #[Test]
     public function it_exposes_the_captain_id_of_a_registered_team(): void
     {
-        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
-        $competition->register($this->team('a', 'Team A'));
+        $competition = CompetitionBuilder::aCompetition()
+            ->withTeam('Team A', captainId: 'a@example.com', id: 'a')
+            ->build();
 
         $captainId = $competition->getTeamCaptainId(new TeamId('a'));
 
@@ -154,7 +161,7 @@ final class CompetitionTest extends TestCase
     #[Test]
     public function it_rejects_getting_the_captain_id_of_an_unregistered_team(): void
     {
-        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
+        $competition = CompetitionBuilder::aCompetition()->build();
 
         $this->expectException(\InvalidArgumentException::class);
 
@@ -164,8 +171,9 @@ final class CompetitionTest extends TestCase
     #[Test]
     public function it_rejects_registering_the_same_team_twice(): void
     {
-        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
-        $competition->register($this->team('a', 'Team A'));
+        $competition = CompetitionBuilder::aCompetition()
+            ->withTeam('Team A', captainId: 'a@example.com', id: 'a')
+            ->build();
 
         $this->expectException(\LogicException::class);
 
@@ -175,8 +183,9 @@ final class CompetitionTest extends TestCase
     #[Test]
     public function it_rejects_registering_a_team_with_a_name_already_taken(): void
     {
-        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
-        $competition->register($this->team('a', 'Team A'));
+        $competition = CompetitionBuilder::aCompetition()
+            ->withTeam('Team A', captainId: 'a@example.com', id: 'a')
+            ->build();
 
         $this->expectException(\LogicException::class);
 
@@ -186,8 +195,9 @@ final class CompetitionTest extends TestCase
     #[Test]
     public function it_rejects_registering_a_team_with_a_name_already_taken_ignoring_case_and_whitespace(): void
     {
-        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
-        $competition->register($this->team('a', 'Team A'));
+        $competition = CompetitionBuilder::aCompetition()
+            ->withTeam('Team A', captainId: 'a@example.com', id: 'a')
+            ->build();
 
         $this->expectException(\LogicException::class);
 
@@ -197,8 +207,9 @@ final class CompetitionTest extends TestCase
     #[Test]
     public function it_rejects_registering_a_team_whose_captain_already_belongs_to_another_team(): void
     {
-        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
-        $competition->register($this->team('a', 'Team A'));
+        $competition = CompetitionBuilder::aCompetition()
+            ->withTeam('Team A', captainId: 'a@example.com', id: 'a')
+            ->build();
 
         $this->expectException(\LogicException::class);
 
@@ -208,8 +219,9 @@ final class CompetitionTest extends TestCase
     #[Test]
     public function it_rejects_closing_registration_below_the_minimum(): void
     {
-        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
-        $competition->register($this->team('a', 'Team A'));
+        $competition = CompetitionBuilder::aCompetition()
+            ->withTeam('Team A', captainId: 'a@example.com', id: 'a')
+            ->build();
 
         $this->expectException(\LogicException::class);
 
@@ -219,9 +231,10 @@ final class CompetitionTest extends TestCase
     #[Test]
     public function it_rejects_generating_the_bracket_while_open(): void
     {
-        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
-        $competition->register($this->team('a', 'Team A'));
-        $competition->register($this->team('b', 'Team B'));
+        $competition = CompetitionBuilder::aCompetition()
+            ->withTeam('Team A', captainId: 'a@example.com', id: 'a')
+            ->withTeam('Team B', captainId: 'b@example.com', id: 'b')
+            ->build();
 
         $this->expectException(\LogicException::class);
 
@@ -231,10 +244,11 @@ final class CompetitionTest extends TestCase
     #[Test]
     public function it_generates_the_bracket_from_registered_teams(): void
     {
-        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
-        $competition->register($this->team('a', 'Team A'));
-        $competition->register($this->team('b', 'Team B'));
-        $competition->closeRegistration();
+        $competition = CompetitionBuilder::aCompetition()
+            ->withTeam('Team A', captainId: 'a@example.com', id: 'a')
+            ->withTeam('Team B', captainId: 'b@example.com', id: 'b')
+            ->withRegistrationClosed()
+            ->build();
 
         $competition->generateBracket($this->bracketGeneratorFactory());
 
@@ -244,11 +258,11 @@ final class CompetitionTest extends TestCase
     #[Test]
     public function it_rejects_generating_the_bracket_twice(): void
     {
-        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
-        $competition->register($this->team('a', 'Team A'));
-        $competition->register($this->team('b', 'Team B'));
-        $competition->closeRegistration();
-        $competition->generateBracket($this->bracketGeneratorFactory());
+        $competition = CompetitionBuilder::aCompetition()
+            ->withTeam('Team A', captainId: 'a@example.com', id: 'a')
+            ->withTeam('Team B', captainId: 'b@example.com', id: 'b')
+            ->withBracketGenerated()
+            ->build();
 
         $this->expectException(\LogicException::class);
 
@@ -258,8 +272,9 @@ final class CompetitionTest extends TestCase
     #[Test]
     public function it_records_a_join_request_for_a_registered_team(): void
     {
-        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
-        $competition->register($this->team('a', 'Team A'));
+        $competition = CompetitionBuilder::aCompetition()
+            ->withTeam('Team A', captainId: 'a@example.com', id: 'a')
+            ->build();
         $applicantId = new PlayerId('applicant@example.com');
 
         $competition->requestToJoinTeam(new TeamId('a'), $applicantId);
@@ -272,7 +287,7 @@ final class CompetitionTest extends TestCase
     #[Test]
     public function it_rejects_a_join_request_for_an_unregistered_team(): void
     {
-        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
+        $competition = CompetitionBuilder::aCompetition()->build();
 
         $this->expectException(\InvalidArgumentException::class);
 
@@ -282,10 +297,11 @@ final class CompetitionTest extends TestCase
     #[Test]
     public function it_rejects_a_join_request_once_closed(): void
     {
-        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
-        $competition->register($this->team('a', 'Team A'));
-        $competition->register($this->team('b', 'Team B'));
-        $competition->closeRegistration();
+        $competition = CompetitionBuilder::aCompetition()
+            ->withTeam('Team A', captainId: 'a@example.com', id: 'a')
+            ->withTeam('Team B', captainId: 'b@example.com', id: 'b')
+            ->withRegistrationClosed()
+            ->build();
 
         $this->expectException(\LogicException::class);
 
@@ -295,9 +311,10 @@ final class CompetitionTest extends TestCase
     #[Test]
     public function it_rejects_a_join_request_from_a_player_already_in_another_team(): void
     {
-        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
-        $competition->register($this->team('a', 'Team A'));
-        $competition->register($this->team('b', 'Team B'));
+        $competition = CompetitionBuilder::aCompetition()
+            ->withTeam('Team A', captainId: 'a@example.com', id: 'a')
+            ->withTeam('Team B', captainId: 'b@example.com', id: 'b')
+            ->build();
 
         $this->expectException(\LogicException::class);
 
@@ -307,10 +324,11 @@ final class CompetitionTest extends TestCase
     #[Test]
     public function it_moves_an_approved_applicant_to_the_team_roster(): void
     {
-        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
-        $competition->register($this->team('a', 'Team A'));
+        $competition = CompetitionBuilder::aCompetition()
+            ->withTeam('Team A', captainId: 'a@example.com', id: 'a')
+            ->withPendingJoinRequest('a', 'applicant@example.com')
+            ->build();
         $applicantId = new PlayerId('applicant@example.com');
-        $competition->requestToJoinTeam(new TeamId('a'), $applicantId);
 
         $competition->approveJoinRequest(new TeamId('a'), $applicantId);
 
@@ -321,9 +339,12 @@ final class CompetitionTest extends TestCase
     #[Test]
     public function it_rejects_approving_a_join_request_from_a_player_already_in_another_team(): void
     {
-        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
-        $competition->register($this->team('a', 'Team A'));
-        $competition->register($this->team('b', 'Team B'));
+        // The two requests must both be recorded while still pending, before either is approved —
+        // that ordering is the precondition under test, so it stays explicit rather than via the builder.
+        $competition = CompetitionBuilder::aCompetition()
+            ->withTeam('Team A', captainId: 'a@example.com', id: 'a')
+            ->withTeam('Team B', captainId: 'b@example.com', id: 'b')
+            ->build();
         $applicantId = new PlayerId('applicant@example.com');
         $competition->requestToJoinTeam(new TeamId('a'), $applicantId);
         $competition->requestToJoinTeam(new TeamId('b'), $applicantId);
@@ -337,7 +358,7 @@ final class CompetitionTest extends TestCase
     #[Test]
     public function it_rejects_approving_a_join_request_for_an_unregistered_team(): void
     {
-        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
+        $competition = CompetitionBuilder::aCompetition()->build();
 
         $this->expectException(\InvalidArgumentException::class);
 
@@ -347,10 +368,11 @@ final class CompetitionTest extends TestCase
     #[Test]
     public function it_rejects_approving_a_join_request_once_closed(): void
     {
-        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
-        $competition->register($this->team('a', 'Team A'));
-        $competition->register($this->team('b', 'Team B'));
-        $competition->closeRegistration();
+        $competition = CompetitionBuilder::aCompetition()
+            ->withTeam('Team A', captainId: 'a@example.com', id: 'a')
+            ->withTeam('Team B', captainId: 'b@example.com', id: 'b')
+            ->withRegistrationClosed()
+            ->build();
 
         $this->expectException(\LogicException::class);
 
@@ -360,10 +382,11 @@ final class CompetitionTest extends TestCase
     #[Test]
     public function it_removes_a_rejected_join_request(): void
     {
-        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
-        $competition->register($this->team('a', 'Team A'));
+        $competition = CompetitionBuilder::aCompetition()
+            ->withTeam('Team A', captainId: 'a@example.com', id: 'a')
+            ->withPendingJoinRequest('a', 'applicant@example.com')
+            ->build();
         $applicantId = new PlayerId('applicant@example.com');
-        $competition->requestToJoinTeam(new TeamId('a'), $applicantId);
 
         $competition->rejectJoinRequest(new TeamId('a'), $applicantId);
 
@@ -374,7 +397,7 @@ final class CompetitionTest extends TestCase
     #[Test]
     public function it_rejects_rejecting_a_join_request_for_an_unregistered_team(): void
     {
-        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
+        $competition = CompetitionBuilder::aCompetition()->build();
 
         $this->expectException(\InvalidArgumentException::class);
 
@@ -384,10 +407,11 @@ final class CompetitionTest extends TestCase
     #[Test]
     public function it_rejects_rejecting_a_join_request_once_closed(): void
     {
-        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
-        $competition->register($this->team('a', 'Team A'));
-        $competition->register($this->team('b', 'Team B'));
-        $competition->closeRegistration();
+        $competition = CompetitionBuilder::aCompetition()
+            ->withTeam('Team A', captainId: 'a@example.com', id: 'a')
+            ->withTeam('Team B', captainId: 'b@example.com', id: 'b')
+            ->withRegistrationClosed()
+            ->build();
 
         $this->expectException(\LogicException::class);
 
@@ -397,13 +421,12 @@ final class CompetitionTest extends TestCase
     #[Test]
     public function it_removes_a_player_from_a_team_roster(): void
     {
-        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
-        $competition->register($this->team('a', 'Team A'));
-        $memberId = new PlayerId('member@example.com');
-        $competition->requestToJoinTeam(new TeamId('a'), $memberId);
-        $competition->approveJoinRequest(new TeamId('a'), $memberId);
+        $competition = CompetitionBuilder::aCompetition()
+            ->withTeam('Team A', captainId: 'a@example.com', id: 'a')
+            ->withTeamMember('a', 'member@example.com')
+            ->build();
 
-        $competition->removePlayerFromTeam(new TeamId('a'), $memberId);
+        $competition->removePlayerFromTeam(new TeamId('a'), new PlayerId('member@example.com'));
 
         self::assertCount(1, $competition->getTeamRoster(new TeamId('a')));
     }
@@ -411,23 +434,22 @@ final class CompetitionTest extends TestCase
     #[Test]
     public function it_rejects_removing_a_player_once_closed(): void
     {
-        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
-        $competition->register($this->team('a', 'Team A'));
-        $memberId = new PlayerId('member@example.com');
-        $competition->requestToJoinTeam(new TeamId('a'), $memberId);
-        $competition->approveJoinRequest(new TeamId('a'), $memberId);
-        $competition->register($this->team('b', 'Team B'));
-        $competition->closeRegistration();
+        $competition = CompetitionBuilder::aCompetition()
+            ->withTeam('Team A', captainId: 'a@example.com', id: 'a')
+            ->withTeamMember('a', 'member@example.com')
+            ->withTeam('Team B', captainId: 'b@example.com', id: 'b')
+            ->withRegistrationClosed()
+            ->build();
 
         $this->expectException(\LogicException::class);
 
-        $competition->removePlayerFromTeam(new TeamId('a'), $memberId);
+        $competition->removePlayerFromTeam(new TeamId('a'), new PlayerId('member@example.com'));
     }
 
     #[Test]
     public function it_rejects_removing_a_player_from_an_unregistered_team(): void
     {
-        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
+        $competition = CompetitionBuilder::aCompetition()->build();
 
         $this->expectException(\InvalidArgumentException::class);
 
