@@ -11,6 +11,7 @@ use App\Competition\Domain\Model\CompetitionFormat;
 use App\Competition\Domain\Model\OrganizationId;
 use App\Competition\Infrastructure\Persistence\InMemory\InMemoryCompetitionRepository;
 use App\Competition\Infrastructure\Service\InMemoryOrganizerOrganizationAuthorization;
+use App\Tests\Support\Assertion\CompetitionAssert;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
@@ -57,7 +58,7 @@ final class CreateCompetitionHandlerTest extends TestCase
 
         self::assertNotNull($competition);
         self::assertTrue($competition->isOpenForRegistration());
-        self::assertSame(0, $competition->countRegistrations());
+        CompetitionAssert::assertThat($competition)->hasRegisteredTeamsCount(0);
     }
 
     #[Test]
