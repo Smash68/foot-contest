@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Tests\Organization\Infrastructure\Http;
 
-use App\Organization\Domain\Model\Organizer;
 use App\Organization\Domain\Repository\OrganizerRepository;
 use App\Organization\Domain\Service\AccessTokenIssuer;
 use App\Organization\Infrastructure\Persistence\InMemory\InMemoryOrganizerRepository;
+use App\Tests\Support\Builder\OrganizerBuilder;
 use PHPUnit\Framework\Attributes\Test;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
@@ -20,12 +20,12 @@ final class InitiateOrganizationCheckoutControllerTest extends WebTestCase
 
         $organizers = new InMemoryOrganizerRepository();
         self::getContainer()->set(OrganizerRepository::class, $organizers);
-        $organizerId = $organizers->nextIdentity();
-        $organizers->save(Organizer::register($organizerId, 'organizer@example.com', 'hashed-password'));
+        $organizer = OrganizerBuilder::anOrganizer()->build();
+        $organizers->save($organizer);
 
         $accessTokenIssuer = self::getContainer()->get(AccessTokenIssuer::class);
         assert($accessTokenIssuer instanceof AccessTokenIssuer);
-        $token = $accessTokenIssuer->issue($organizerId);
+        $token = $accessTokenIssuer->issue($organizer->getId());
 
         $client->request('POST', '/organizations/checkout', server: [
             'CONTENT_TYPE' => 'application/json',

@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Tests\Organization\Infrastructure\Http;
 
-use App\Organization\Domain\Model\Organizer;
 use App\Organization\Domain\Repository\OrganizerRepository;
 use App\Organization\Infrastructure\Password\NativePasswordHasher;
 use App\Organization\Infrastructure\Persistence\InMemory\InMemoryOrganizerRepository;
+use App\Tests\Support\Builder\OrganizerBuilder;
 use PHPUnit\Framework\Attributes\Test;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
@@ -22,7 +22,7 @@ final class LoginControllerTest extends WebTestCase
         self::getContainer()->set(OrganizerRepository::class, $organizers);
 
         $hashedPassword = (new NativePasswordHasher())->hash('super-secret');
-        $organizer = Organizer::register($organizers->nextIdentity(), 'organizer@example.com', $hashedPassword);
+        $organizer = OrganizerBuilder::anOrganizer()->withEmail('organizer@example.com')->withHashedPassword($hashedPassword)->build();
         $organizers->save($organizer);
 
         $client->request('POST', '/login', server: ['CONTENT_TYPE' => 'application/json'], content: json_encode([
