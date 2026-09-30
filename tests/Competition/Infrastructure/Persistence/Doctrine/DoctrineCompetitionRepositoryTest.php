@@ -13,6 +13,7 @@ use App\Competition\Domain\Model\Score;
 use App\Competition\Domain\Model\Team;
 use App\Competition\Domain\Model\TeamId;
 use App\Competition\Infrastructure\Persistence\Doctrine\DoctrineCompetitionRepository;
+use App\Tests\Support\Assertion\CompetitionAssert;
 use App\Tests\Support\Builder\CompetitionBuilder;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\Test;
@@ -92,7 +93,8 @@ final class DoctrineCompetitionRepositoryTest extends KernelTestCase
 
         $found = $repository->ofId($competition->getId());
 
-        self::assertSame(2, $found->countRegistrations());
+        self::assertNotNull($found);
+        CompetitionAssert::assertThat($found)->hasRegisteredTeamsCount(2);
     }
 
     #[Test]

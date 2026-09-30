@@ -10,6 +10,7 @@ use App\Competition\Domain\Model\TeamId;
 use App\Competition\Infrastructure\Persistence\InMemory\InMemoryCompetitionRepository;
 use App\Competition\Infrastructure\Persistence\InMemory\InMemoryPlayerRepository;
 use App\Competition\Infrastructure\Persistence\InMemory\InMemoryTeamRepository;
+use App\Tests\Support\Assertion\CompetitionAssert;
 use App\Tests\Support\Builder\CompetitionBuilder;
 use App\Tests\Support\Builder\PlayerBuilder;
 use PHPUnit\Framework\Attributes\Test;
@@ -31,7 +32,7 @@ final class RegisterTeamHandlerTest extends TestCase
 
         $handler(new RegisterTeamCommand($competition->getId()->value, 'Team A', 'captain-a'));
 
-        self::assertSame(1, $competition->countRegistrations());
+        CompetitionAssert::assertThat($competition)->hasRegisteredTeamsCount(1);
     }
 
     #[Test]

@@ -15,6 +15,7 @@ use App\Competition\Domain\Model\Team;
 use App\Competition\Domain\Model\TeamCapacity;
 use App\Competition\Domain\Model\TeamId;
 use App\Competition\Domain\Service\BracketGeneratorFactory;
+use App\Tests\Support\Assertion\CompetitionAssert;
 use App\Tests\Support\Builder\CompetitionBuilder;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -69,7 +70,7 @@ final class CompetitionTest extends TestCase
         $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
 
         self::assertTrue($competition->isOpenForRegistration());
-        self::assertSame(0, $competition->countRegistrations());
+        CompetitionAssert::assertThat($competition)->hasRegisteredTeamsCount(0);
     }
 
     #[Test]
@@ -79,7 +80,7 @@ final class CompetitionTest extends TestCase
 
         $competition->register($this->team('a', 'Team A'));
 
-        self::assertSame(1, $competition->countRegistrations());
+        CompetitionAssert::assertThat($competition)->hasRegisteredTeamsCount(1);
     }
 
     #[Test]
@@ -119,7 +120,7 @@ final class CompetitionTest extends TestCase
 
         $competition->withdraw(new TeamId('a'));
 
-        self::assertSame(0, $competition->countRegistrations());
+        CompetitionAssert::assertThat($competition)->hasRegisteredTeamsCount(0);
     }
 
     #[Test]
@@ -279,9 +280,8 @@ final class CompetitionTest extends TestCase
 
         $competition->requestToJoinTeam(new TeamId('a'), $applicantId);
 
-        $pendingRequests = $competition->getTeamPendingRequests(new TeamId('a'));
-        self::assertCount(1, $pendingRequests);
-        self::assertTrue($applicantId->equals($pendingRequests[0]));
+        CompetitionAssert::assertThat($competition)->hasPendingRequestsCount('a', 1);
+        self::assertTrue($applicantId->equals($competition->getTeamPendingRequests(new TeamId('a'))[0]));
     }
 
     #[Test]
@@ -332,8 +332,9 @@ final class CompetitionTest extends TestCase
 
         $competition->approveJoinRequest(new TeamId('a'), $applicantId);
 
-        self::assertCount(0, $competition->getTeamPendingRequests(new TeamId('a')));
-        self::assertCount(2, $competition->getTeamRoster(new TeamId('a')));
+        CompetitionAssert::assertThat($competition)
+            ->hasPendingRequestsCount('a', 0)
+            ->hasRosterCount('a', 2);
     }
 
     #[Test]
@@ -390,8 +391,9 @@ final class CompetitionTest extends TestCase
 
         $competition->rejectJoinRequest(new TeamId('a'), $applicantId);
 
-        self::assertCount(0, $competition->getTeamPendingRequests(new TeamId('a')));
-        self::assertCount(1, $competition->getTeamRoster(new TeamId('a')));
+        CompetitionAssert::assertThat($competition)
+            ->hasPendingRequestsCount('a', 0)
+            ->hasRosterCount('a', 1);
     }
 
     #[Test]
@@ -428,7 +430,7 @@ final class CompetitionTest extends TestCase
 
         $competition->removePlayerFromTeam(new TeamId('a'), new PlayerId('member@example.com'));
 
-        self::assertCount(1, $competition->getTeamRoster(new TeamId('a')));
+        CompetitionAssert::assertThat($competition)->hasRosterCount('a', 1);
     }
 
     #[Test]

@@ -325,12 +325,6 @@ parameters:
 			path: tests/Competition/Infrastructure/Persistence/Doctrine/DoctrineCompetitionRepositoryTest.php
 
 		-
-			message: '#^Cannot call method countRegistrations\(\) on App\\Competition\\Domain\\Model\\Competition\|null\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: tests/Competition/Infrastructure/Persistence/Doctrine/DoctrineCompetitionRepositoryTest.php
-
-		-
 			message: '#^Cannot call method getAway\(\) on App\\Competition\\Domain\\Model\\Encounter\|null\.$#'
 			identifier: method.nonObject
 			count: 2

@@ -7,8 +7,8 @@ namespace App\Tests\Competition\Application\ApproveJoinRequest;
 use App\Competition\Application\ApproveJoinRequest\ApproveJoinRequestCommand;
 use App\Competition\Application\ApproveJoinRequest\ApproveJoinRequestHandler;
 use App\Competition\Domain\Exception\NotAuthorizedToManageJoinRequestException;
-use App\Competition\Domain\Model\TeamId;
 use App\Competition\Infrastructure\Persistence\InMemory\InMemoryCompetitionRepository;
+use App\Tests\Support\Assertion\CompetitionAssert;
 use App\Tests\Support\Builder\CompetitionBuilder;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -29,7 +29,7 @@ final class ApproveJoinRequestHandlerTest extends TestCase
 
         $handler(new ApproveJoinRequestCommand($competition->getId()->value, 'team-a', 'applicant', 'captain-a'));
 
-        self::assertCount(2, $competition->getTeamRoster(new TeamId('team-a')));
+        CompetitionAssert::assertThat($competition)->hasRosterCount('team-a', 2);
     }
 
     #[Test]
