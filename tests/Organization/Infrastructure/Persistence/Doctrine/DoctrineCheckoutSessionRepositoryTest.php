@@ -4,12 +4,10 @@ declare(strict_types=1);
 
 namespace App\Tests\Organization\Infrastructure\Persistence\Doctrine;
 
-use App\Organization\Domain\Model\CheckoutReference;
-use App\Organization\Domain\Model\CheckoutSession;
 use App\Organization\Domain\Model\CheckoutSessionStatus;
 use App\Organization\Domain\Model\OrganizationId;
-use App\Organization\Domain\Model\OrganizerId;
 use App\Organization\Infrastructure\Persistence\Doctrine\DoctrineCheckoutSessionRepository;
+use App\Tests\Support\Builder\CheckoutSessionBuilder;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\Test;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
@@ -23,10 +21,10 @@ final class DoctrineCheckoutSessionRepositoryTest extends KernelTestCase
         assert($entityManager instanceof EntityManagerInterface);
         $repository = new DoctrineCheckoutSessionRepository($entityManager);
 
-        $ownerId = new OrganizerId('11111111-1111-1111-1111-111111111111');
-        $checkoutReference = new CheckoutReference('checkout_ref_123');
-        $id = $repository->nextIdentity();
-        $session = CheckoutSession::initiate($id, 'Ligue amateur du Nord', $ownerId, $checkoutReference);
+        $session = CheckoutSessionBuilder::aCheckoutSession()->withCheckoutReference('checkout_ref_123')->build();
+        $id = $session->getId();
+        $ownerId = $session->getOwnerId();
+        $checkoutReference = $session->getCheckoutReference();
 
         $repository->save($session);
         $entityManager->clear();
@@ -35,7 +33,7 @@ final class DoctrineCheckoutSessionRepositoryTest extends KernelTestCase
 
         self::assertNotNull($found);
         self::assertTrue($id->equals($found->getId()));
-        self::assertSame('Ligue amateur du Nord', $found->getOrganizationName());
+        self::assertSame('Ligue amateur du 92', $found->getOrganizationName());
         self::assertTrue($ownerId->equals($found->getOwnerId()));
         self::assertTrue($checkoutReference->equals($found->getCheckoutReference()));
         self::assertSame(CheckoutSessionStatus::Pending, $found->getStatus());
@@ -48,17 +46,14 @@ final class DoctrineCheckoutSessionRepositoryTest extends KernelTestCase
         assert($entityManager instanceof EntityManagerInterface);
         $repository = new DoctrineCheckoutSessionRepository($entityManager);
 
-        $ownerId = new OrganizerId('11111111-1111-1111-1111-111111111111');
-        $checkoutReference = new CheckoutReference('checkout_ref_456');
-        $id = $repository->nextIdentity();
-        $session = CheckoutSession::initiate($id, 'Ligue amateur du Nord', $ownerId, $checkoutReference);
+        $session = CheckoutSessionBuilder::aCheckoutSession()->withCheckoutReference('checkout_ref_456')->build();
         $organizationId = new OrganizationId('22222222-2222-2222-2222-222222222222');
         $session->complete($organizationId);
 
         $repository->save($session);
         $entityManager->clear();
 
-        $found = $repository->ofCheckoutReference($checkoutReference);
+        $found = $repository->ofCheckoutReference($session->getCheckoutReference());
 
         self::assertNotNull($found);
         self::assertSame(CheckoutSessionStatus::Completed, $found->getStatus());
