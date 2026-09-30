@@ -21,6 +21,15 @@ final class CheckoutSessionBuilder
         return new self();
     }
 
+    /** The checkout reference returned by the payment gateway; pass one when the test looks the session up by it. */
+    public function withCheckoutReference(string $checkoutReference): self
+    {
+        $clone = clone $this;
+        $clone->checkoutReference = $checkoutReference;
+
+        return $clone;
+    }
+
     public function build(): CheckoutSession
     {
         return CheckoutSession::initiate(
