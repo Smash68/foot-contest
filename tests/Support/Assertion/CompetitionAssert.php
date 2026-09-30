@@ -35,4 +35,11 @@ final class CompetitionAssert
 
         return $this;
     }
+
+    public function hasRosterCount(string $teamId, int $count): self
+    {
+        Assert::assertCount($count, $this->competition->getTeamRoster(new TeamId($teamId)));
+
+        return $this;
+    }
 }
