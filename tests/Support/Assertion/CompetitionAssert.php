@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Support\Assertion;
 
 use App\Competition\Domain\Model\Competition;
+use App\Competition\Domain\Model\TeamId;
 use PHPUnit\Framework\Assert;
 
 /**
@@ -24,6 +25,13 @@ final class CompetitionAssert
     public function hasRegisteredTeamsCount(int $count): self
     {
         Assert::assertSame($count, $this->competition->countRegistrations());
+
+        return $this;
+    }
+
+    public function hasPendingRequestsCount(string $teamId, int $count): self
+    {
+        Assert::assertCount($count, $this->competition->getTeamPendingRequests(new TeamId($teamId)));
 
         return $this;
     }
