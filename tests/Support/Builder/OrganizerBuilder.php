@@ -27,6 +27,15 @@ final class OrganizerBuilder
         return $clone;
     }
 
+    /** Pass a real hash (from PasswordHasher) when the test goes through a credentials check. */
+    public function withHashedPassword(string $hashedPassword): self
+    {
+        $clone = clone $this;
+        $clone->hashedPassword = $hashedPassword;
+
+        return $clone;
+    }
+
     public function build(): Organizer
     {
         return Organizer::register(new OrganizerId($this->id), $this->email ?? "{$this->id}@example.com", $this->hashedPassword);
