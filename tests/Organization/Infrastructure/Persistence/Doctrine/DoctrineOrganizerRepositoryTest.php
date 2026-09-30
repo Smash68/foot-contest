@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Tests\Organization\Infrastructure\Persistence\Doctrine;
 
-use App\Organization\Domain\Model\Organizer;
 use App\Organization\Infrastructure\Persistence\Doctrine\DoctrineOrganizerRepository;
+use App\Tests\Support\Builder\OrganizerBuilder;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\Test;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
@@ -19,8 +19,8 @@ final class DoctrineOrganizerRepositoryTest extends KernelTestCase
         assert($entityManager instanceof EntityManagerInterface);
         $repository = new DoctrineOrganizerRepository($entityManager);
 
-        $id = $repository->nextIdentity();
-        $organizer = Organizer::register($id, 'organizer@example.com', 'hashed-password');
+        $organizer = OrganizerBuilder::anOrganizer()->withEmail('organizer@example.com')->build();
+        $id = $organizer->getId();
 
         $repository->save($organizer);
         $entityManager->clear();
