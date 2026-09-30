@@ -7,9 +7,9 @@ namespace App\Tests\Competition\Application\RemovePlayerFromTeam;
 use App\Competition\Application\RemovePlayerFromTeam\RemovePlayerFromTeamCommand;
 use App\Competition\Application\RemovePlayerFromTeam\RemovePlayerFromTeamHandler;
 use App\Competition\Domain\Exception\NotAuthorizedToRemoveTeamMemberException;
-use App\Competition\Domain\Model\TeamId;
 use App\Competition\Infrastructure\Persistence\InMemory\InMemoryCompetitionRepository;
 use App\Competition\Infrastructure\Service\InMemoryOrganizerOrganizationAuthorization;
+use App\Tests\Support\Assertion\CompetitionAssert;
 use App\Tests\Support\Builder\CompetitionBuilder;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -30,7 +30,7 @@ final class RemovePlayerFromTeamHandlerTest extends TestCase
 
         $handler(new RemovePlayerFromTeamCommand($competition->getId()->value, 'team-a', 'member', 'member'));
 
-        self::assertCount(1, $competition->getTeamRoster(new TeamId('team-a')));
+        CompetitionAssert::assertThat($competition)->hasRosterCount('team-a', 1);
     }
 
     #[Test]
