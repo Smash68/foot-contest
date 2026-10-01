@@ -30,6 +30,27 @@ final class EncounterAssert
         return $this;
     }
 
+    public function homeIsTeam(): self
+    {
+        Assert::assertTrue($this->encounter->getHome()->isTeam());
+
+        return $this;
+    }
+
+    public function awayIsTeam(): self
+    {
+        Assert::assertTrue($this->encounter->getAway()->isTeam());
+
+        return $this;
+    }
+
+    public function homeIsPending(): self
+    {
+        Assert::assertTrue($this->encounter->getHome()->isPending());
+
+        return $this;
+    }
+
     public function awayIsPending(): self
     {
         Assert::assertTrue($this->encounter->getAway()->isPending());
