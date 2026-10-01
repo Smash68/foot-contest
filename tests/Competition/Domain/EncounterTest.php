@@ -10,6 +10,7 @@ use App\Competition\Domain\Model\EncounterResult;
 use App\Competition\Domain\Model\Participant;
 use App\Competition\Domain\Model\Score;
 use App\Competition\Domain\Model\TeamId;
+use App\Tests\Support\Assertion\EncounterAssert;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
@@ -154,8 +155,7 @@ final class EncounterTest extends TestCase
 
         $encounter->resolveHome(Participant::forTeam($winner));
 
-        self::assertTrue($encounter->getHome()->isTeam());
-        self::assertSame($winner, $encounter->getHome()->getTeamId());
+        EncounterAssert::assertThat($encounter)->homeIsForTeam($winner);
     }
 
     #[Test]
@@ -170,8 +170,7 @@ final class EncounterTest extends TestCase
 
         $encounter->resolveAway(Participant::forTeam($winner));
 
-        self::assertTrue($encounter->getAway()->isTeam());
-        self::assertSame($winner, $encounter->getAway()->getTeamId());
+        EncounterAssert::assertThat($encounter)->awayIsForTeam($winner);
     }
 
     // --- helpers ---

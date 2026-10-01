@@ -36,41 +36,6 @@ parameters:
 			count: 1
 			path: tests/Competition/Domain/CompetitionTest.php
 
-		-
-			message: '#^Call to an undefined method App\\Competition\\Domain\\Model\\Bracket\:\:getThirdPlaceEncounter\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: tests/Competition/Domain/Format/SingleElimination/BracketGeneratorWithThirdPlaceMatchTest.php
-
-		-
-			message: '#^Cannot call method getAway\(\) on mixed\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: tests/Competition/Domain/Format/SingleElimination/BracketGeneratorWithThirdPlaceMatchTest.php
-
-		-
-			message: '#^Cannot call method getHome\(\) on mixed\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: tests/Competition/Domain/Format/SingleElimination/BracketGeneratorWithThirdPlaceMatchTest.php
-
-		-
-			message: '#^Cannot call method isTeam\(\) on mixed\.$#'
-			identifier: method.nonObject
-			count: 2
-			path: tests/Competition/Domain/Format/SingleElimination/BracketGeneratorWithThirdPlaceMatchTest.php
-
-		-
-			message: '#^Cannot access property \$id on App\\Competition\\Domain\\Model\\Encounter\|null\.$#'
-			identifier: property.nonObject
-			count: 2
-			path: tests/Competition/Domain/Format/SingleElimination/BracketWithThirdPlaceMatchTest.php
-
-		-
-			message: '#^Cannot call method getWinner\(\) on App\\Competition\\Domain\\Model\\Encounter\|null\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: tests/Competition/Domain/Format/SingleElimination/BracketWithThirdPlaceMatchTest.php
 
 		-
 			message: '#^Method App\\Tests\\Competition\\Domain\\SingleEliminationBracketGeneratorTest\:\:byeCountProvider\(\) return type has no value type specified in iterable type array\.$#'

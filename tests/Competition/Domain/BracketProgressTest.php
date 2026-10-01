@@ -13,6 +13,7 @@ use App\Competition\Domain\Model\Round;
 use App\Competition\Domain\Model\Score;
 use App\Competition\Domain\Model\SingleEliminationBracket;
 use App\Competition\Domain\Model\TeamId;
+use App\Tests\Support\Assertion\EncounterAssert;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
@@ -25,9 +26,8 @@ final class BracketProgressTest extends TestCase
 
         $bracket->recordResult(new EncounterId('enc-1'), EncounterResult::regularTime(Score::of(2, 0)));
 
-        $homeParticipant = $bracket->getRound(2)->getEncounters()[0]->getHome();
-        self::assertTrue($homeParticipant->isTeam());
-        self::assertSame($teamA, $homeParticipant->getTeamId());
+        $encounter = $bracket->getRound(2)->getEncounters()[0];
+        EncounterAssert::assertThat($encounter)->homeIsForTeam($teamA);
     }
 
     #[Test]
@@ -37,9 +37,8 @@ final class BracketProgressTest extends TestCase
 
         $bracket->recordResult(new EncounterId('enc-1'), EncounterResult::regularTime(Score::of(0, 3)));
 
-        $homeParticipant = $bracket->getRound(2)->getEncounters()[0]->getHome();
-        self::assertTrue($homeParticipant->isTeam());
-        self::assertSame($teamB, $homeParticipant->getTeamId());
+        $encounter = $bracket->getRound(2)->getEncounters()[0];
+        EncounterAssert::assertThat($encounter)->homeIsForTeam($teamB);
     }
 
     #[Test]
@@ -50,8 +49,8 @@ final class BracketProgressTest extends TestCase
         $bracket->recordResult(new EncounterId('enc-1'), EncounterResult::regularTime(Score::of(2, 0)));
 
         // enc-2 not yet played — away participant of the final still pending
-        $awayParticipant = $bracket->getRound(2)->getEncounters()[0]->getAway();
-        self::assertTrue($awayParticipant->isPending());
+        $encounter = $bracket->getRound(2)->getEncounters()[0];
+        EncounterAssert::assertThat($encounter)->awayIsPending();
     }
 
     #[Test]

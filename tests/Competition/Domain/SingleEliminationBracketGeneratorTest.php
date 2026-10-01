@@ -6,6 +6,7 @@ namespace App\Tests\Competition\Domain;
 
 use App\Competition\Domain\Format\SingleElimination\SingleEliminationBracketGenerator;
 use App\Competition\Domain\Model\TeamId;
+use App\Tests\Support\Assertion\EncounterAssert;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -86,8 +87,7 @@ final class SingleEliminationBracketGeneratorTest extends TestCase
         $bracket = $this->generator->generate($this->makeTeamIds(4));
 
         foreach ($bracket->getRound(1)->getEncounters() as $encounter) {
-            self::assertTrue($encounter->getHome()->isTeam());
-            self::assertTrue($encounter->getAway()->isTeam());
+            EncounterAssert::assertThat($encounter)->homeIsTeam()->awayIsTeam();
         }
     }
 
@@ -99,8 +99,7 @@ final class SingleEliminationBracketGeneratorTest extends TestCase
         // Round 2 (the final) must reference winners of round 1 encounters
         $round2Encounter = $bracket->getRound(2)->getEncounters()[0];
 
-        self::assertTrue($round2Encounter->getHome()->isPending());
-        self::assertTrue($round2Encounter->getAway()->isPending());
+        EncounterAssert::assertThat($round2Encounter)->homeIsPending()->awayIsPending();
     }
 
     #[Test]
@@ -113,8 +112,7 @@ final class SingleEliminationBracketGeneratorTest extends TestCase
 
         $round2Encounter = $bracket->getRound(2)->getEncounters()[0];
 
-        self::assertTrue($round2Encounter->getHome()->isTeam());
-        self::assertTrue($round2Encounter->getAway()->isPending());
+        EncounterAssert::assertThat($round2Encounter)->homeIsTeam()->awayIsPending();
     }
 
     #[Test]
