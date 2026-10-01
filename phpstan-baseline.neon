@@ -36,17 +36,6 @@ parameters:
 			count: 1
 			path: tests/Competition/Domain/CompetitionTest.php
 
-		-
-			message: '#^Cannot access property \$id on App\\Competition\\Domain\\Model\\Encounter\|null\.$#'
-			identifier: property.nonObject
-			count: 2
-			path: tests/Competition/Domain/Format/SingleElimination/BracketWithThirdPlaceMatchTest.php
-
-		-
-			message: '#^Cannot call method getWinner\(\) on App\\Competition\\Domain\\Model\\Encounter\|null\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: tests/Competition/Domain/Format/SingleElimination/BracketWithThirdPlaceMatchTest.php
 
 		-
 			message: '#^Method App\\Tests\\Competition\\Domain\\SingleEliminationBracketGeneratorTest\:\:byeCountProvider\(\) return type has no value type specified in iterable type array\.$#'

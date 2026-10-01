@@ -14,6 +14,7 @@ use App\Competition\Domain\Model\Round;
 use App\Competition\Domain\Model\Score;
 use App\Competition\Domain\Model\SingleEliminationBracket;
 use App\Competition\Domain\Model\TeamId;
+use App\Tests\Support\Assertion\EncounterAssert;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
@@ -48,8 +49,7 @@ final class BracketWithThirdPlaceMatchTest extends TestCase
         $thirdPlaceEncounter = $bracket->getThirdPlaceEncounter();
 
         self::assertNotNull($thirdPlaceEncounter);
-        self::assertSame($teamB, $thirdPlaceEncounter->getHome()->getTeamId());
-        self::assertSame($teamC, $thirdPlaceEncounter->getAway()->getTeamId());
+        EncounterAssert::assertThat($thirdPlaceEncounter)->homeIsForTeam($teamB)->awayIsForTeam($teamC);
     }
 
     #[Test]
@@ -58,11 +58,12 @@ final class BracketWithThirdPlaceMatchTest extends TestCase
         ['bracket' => $bracket, 'teamB' => $teamB] = $this->makeFourTeamBracketWithThirdPlaceMatch();
         $bracket->recordResult(new EncounterId('semi-1'), EncounterResult::regularTime(Score::of(2, 0)));
         $bracket->recordResult(new EncounterId('semi-2'), EncounterResult::regularTime(Score::of(0, 1)));
-        $thirdPlaceId = $bracket->getThirdPlaceEncounter()->id;
+        $thirdPlaceEncounter = $bracket->getThirdPlaceEncounter();
+        self::assertNotNull($thirdPlaceEncounter);
 
-        $bracket->recordResult($thirdPlaceId, EncounterResult::regularTime(Score::of(3, 1)));
+        $bracket->recordResult($thirdPlaceEncounter->id, EncounterResult::regularTime(Score::of(3, 1)));
 
-        self::assertSame($teamB, $bracket->getThirdPlaceEncounter()->getWinner());
+        self::assertSame($teamB, $thirdPlaceEncounter->getWinner());
     }
 
     #[Test]
@@ -84,9 +85,10 @@ final class BracketWithThirdPlaceMatchTest extends TestCase
         ['bracket' => $bracket] = $this->makeFourTeamBracketWithThirdPlaceMatch();
         $bracket->recordResult(new EncounterId('semi-1'), EncounterResult::regularTime(Score::of(2, 0)));
         $bracket->recordResult(new EncounterId('semi-2'), EncounterResult::regularTime(Score::of(0, 1)));
-        $thirdPlaceId = $bracket->getThirdPlaceEncounter()->id;
+        $thirdPlaceEncounter = $bracket->getThirdPlaceEncounter();
+        self::assertNotNull($thirdPlaceEncounter);
 
-        $bracket->recordResult($thirdPlaceId, EncounterResult::regularTime(Score::of(3, 1)));
+        $bracket->recordResult($thirdPlaceEncounter->id, EncounterResult::regularTime(Score::of(3, 1)));
 
         self::assertFalse($bracket->isComplete()); // final not played yet
     }
