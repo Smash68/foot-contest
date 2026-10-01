@@ -1,0 +1,32 @@
+name: Feature métier
+description: Un nouveau besoin exprimé par un acteur du projet (organisateur, capitaine, joueur) — aucun détail technique ici, la conception émerge à l'implémentation.
+title: "[Feature] "
+labels:
+  - enhancement
+  - "status: needs-definition"
+body:
+  - type: textarea
+    id: user-story
+    attributes:
+      label: Besoin
+      description: "Format : En tant que [acteur], je veux [objectif], afin de [valeur]."
+      placeholder: "En tant que ..., je veux ..., afin de ..."
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Critères d'acceptation
+      description: Des scénarios observables en langage métier — ce qui rend ce ticket "prêt", pas une liste de classes ou de routes à créer.
+      placeholder: |
+        - Étant donné ..., quand ..., alors ...
+        - ...
+    validations:
+      required: true
+  - type: textarea
+    id: out-of-scope
+    attributes:
+      label: Hors périmètre
+      description: Ce que ce ticket ne couvre délibérément pas, en termes métier.
+    validations:
+      required: false

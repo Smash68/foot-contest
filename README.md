@@ -41,7 +41,7 @@ Un `Makefile` raccourcit les commandes `docker compose` les plus courantes — `
 
 ## Documentation
 
-- [`ROADMAP.md`](ROADMAP.md) — roadmap et plan d'implémentation
+- [Issues/Milestones GitHub](https://github.com/Smash68/foot-contest/issues) — avancement et prochaines features (voir ADR 037)
 - [`docs/adr/`](docs/adr/) — décisions d'architecture (ADR)
 - [`CLAUDE.md`](CLAUDE.md) — modèle de domaine, conventions, workflow
 

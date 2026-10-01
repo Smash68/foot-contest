@@ -1,0 +1,21 @@
+name: Dette technique
+description: Un chantier technique sans histoire utilisateur (nettoyage, refactor, outillage) — exception assumée au principe "issue = intention métier".
+title: "[Tech debt] "
+labels:
+  - tech-debt
+  - "status: needs-definition"
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Ce qui doit être fait, et pourquoi (le constat qui déclenche ce chantier).
+    validations:
+      required: true
+  - type: textarea
+    id: done
+    attributes:
+      label: Critères de fin
+      description: Comment on sait que c'est terminé (ex: commande qui doit passer sans erreur, fichier qui doit disparaître).
+    validations:
+      required: true
