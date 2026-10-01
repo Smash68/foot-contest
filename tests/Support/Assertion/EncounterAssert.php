@@ -30,6 +30,14 @@ final class EncounterAssert
         return $this;
     }
 
+    public function awayIsForTeam(TeamId $teamId): self
+    {
+        Assert::assertTrue($this->encounter->getAway()->isTeam());
+        Assert::assertSame($teamId, $this->encounter->getAway()->getTeamId());
+
+        return $this;
+    }
+
     public function homeIsTeam(): self
     {
         Assert::assertTrue($this->encounter->getHome()->isTeam());
