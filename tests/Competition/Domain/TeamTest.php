@@ -19,7 +19,7 @@ final class TeamTest extends TestCase
 
         $team = Team::create(new TeamId('a'), 'Team A', $captainId);
 
-        self::assertTrue($captainId->equals($team->getCaptainId()));
+        self::assertEquals($captainId, $team->getCaptainId());
     }
 
     #[Test]
@@ -30,7 +30,7 @@ final class TeamTest extends TestCase
         $team = Team::create(new TeamId('a'), 'Team A', $captainId);
 
         self::assertCount(1, $team->getRoster());
-        self::assertTrue($captainId->equals($team->getRoster()[0]));
+        self::assertEquals($captainId, $team->getRoster()[0]);
     }
 
     #[Test]
@@ -42,7 +42,7 @@ final class TeamTest extends TestCase
         $team->requestToJoin($applicantId);
 
         self::assertCount(1, $team->getPendingRequests());
-        self::assertTrue($applicantId->equals($team->getPendingRequests()[0]));
+        self::assertEquals($applicantId, $team->getPendingRequests()[0]);
     }
 
     #[Test]
@@ -79,7 +79,7 @@ final class TeamTest extends TestCase
 
         self::assertCount(0, $team->getPendingRequests());
         self::assertCount(2, $team->getRoster());
-        self::assertTrue($applicantId->equals($team->getRoster()[1]));
+        self::assertEquals($applicantId, $team->getRoster()[1]);
     }
 
     #[Test]

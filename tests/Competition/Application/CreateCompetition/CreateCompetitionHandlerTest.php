@@ -30,7 +30,7 @@ final class CreateCompetitionHandlerTest extends TestCase
         $competition = $repository->ofId($id);
 
         self::assertNotNull($competition);
-        self::assertTrue($competition->getOrganizationId()->equals(new OrganizationId('org-1')));
+        self::assertEquals(new OrganizationId('org-1'), $competition->getOrganizationId());
     }
 
     #[Test]

@@ -28,7 +28,7 @@ final class CompetitionTest extends TestCase
         $id = new CompetitionId('t1');
         $competition = Competition::create($id, 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
 
-        self::assertTrue($competition->getId()->equals($id));
+        self::assertEquals($id, $competition->getId());
     }
 
     #[Test]
@@ -37,7 +37,7 @@ final class CompetitionTest extends TestCase
         $organizationId = new OrganizationId('org-1');
         $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), $organizationId);
 
-        self::assertTrue($competition->getOrganizationId()->equals($organizationId));
+        self::assertEquals($organizationId, $competition->getOrganizationId());
     }
 
     #[Test]
@@ -156,7 +156,7 @@ final class CompetitionTest extends TestCase
 
         $captainId = $competition->getTeamCaptainId(new TeamId('a'));
 
-        self::assertTrue($captainId->equals(new PlayerId('a@example.com')));
+        self::assertEquals(new PlayerId('a@example.com'), $captainId);
     }
 
     #[Test]
@@ -281,7 +281,7 @@ final class CompetitionTest extends TestCase
         $competition->requestToJoinTeam(new TeamId('a'), $applicantId);
 
         CompetitionAssert::assertThat($competition)->hasPendingRequestsCount('a', 1);
-        self::assertTrue($applicantId->equals($competition->getTeamPendingRequests(new TeamId('a'))[0]));
+        self::assertEquals($applicantId, $competition->getTeamPendingRequests(new TeamId('a'))[0]);
     }
 
     #[Test]

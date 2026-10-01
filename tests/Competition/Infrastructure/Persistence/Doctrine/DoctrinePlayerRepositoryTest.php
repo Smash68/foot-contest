@@ -27,7 +27,7 @@ final class DoctrinePlayerRepositoryTest extends KernelTestCase
         $found = $repository->ofId($id);
 
         self::assertNotNull($found);
-        self::assertTrue($id->equals($found->getId()));
+        self::assertEquals($id, $found->getId());
         self::assertSame('captain@example.com', $found->getEmail());
     }
 
@@ -46,6 +46,6 @@ final class DoctrinePlayerRepositoryTest extends KernelTestCase
         $found = $repository->ofEmail('captain@example.com');
 
         self::assertNotNull($found);
-        self::assertTrue($id->equals($found->getId()));
+        self::assertEquals($id, $found->getId());
     }
 }
