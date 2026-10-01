@@ -23,7 +23,7 @@ final class RegisterPlayerHandlerTest extends TestCase
 
         $player = $players->ofEmail('captain@example.com');
         self::assertNotNull($player);
-        self::assertTrue($id->equals($player->getId()));
+        self::assertEquals($id, $player->getId());
         self::assertSame('Captain', $player->getName());
         self::assertSame('captain@example.com', $player->getEmail());
         self::assertNotSame('super-secret', $player->getHashedPassword());
@@ -38,7 +38,7 @@ final class RegisterPlayerHandlerTest extends TestCase
         $firstId = $handler(new RegisterPlayerCommand('Captain', 'captain@example.com', 'super-secret'));
         $secondId = $handler(new RegisterPlayerCommand('Impostor', 'captain@example.com', 'another-password'));
 
-        self::assertTrue($firstId->equals($secondId));
+        self::assertEquals($firstId, $secondId);
 
         $player = $players->ofEmail('captain@example.com');
         self::assertNotNull($player);

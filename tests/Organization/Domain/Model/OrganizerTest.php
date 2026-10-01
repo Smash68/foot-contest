@@ -18,7 +18,7 @@ final class OrganizerTest extends TestCase
 
         $organizer = Organizer::register($id, 'organizer@example.com', 'hashed-password');
 
-        self::assertTrue($id->equals($organizer->getId()));
+        self::assertEquals($id, $organizer->getId());
         self::assertSame('organizer@example.com', $organizer->getEmail());
         self::assertSame('hashed-password', $organizer->getHashedPassword());
     }

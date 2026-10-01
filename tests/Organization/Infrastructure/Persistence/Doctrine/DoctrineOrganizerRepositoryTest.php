@@ -28,7 +28,7 @@ final class DoctrineOrganizerRepositoryTest extends KernelTestCase
         $found = $repository->ofEmail('organizer@example.com');
 
         self::assertNotNull($found);
-        self::assertTrue($id->equals($found->getId()));
+        self::assertEquals($id, $found->getId());
         self::assertSame('organizer@example.com', $found->getEmail());
         self::assertSame('hashed-password', $found->getHashedPassword());
     }

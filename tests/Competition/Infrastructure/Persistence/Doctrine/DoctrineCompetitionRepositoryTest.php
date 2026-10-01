@@ -36,7 +36,7 @@ final class DoctrineCompetitionRepositoryTest extends KernelTestCase
         $found = $repository->ofId($id);
 
         self::assertNotNull($found);
-        self::assertTrue($id->equals($found->getId()));
+        self::assertEquals($id, $found->getId());
     }
 
     #[Test]

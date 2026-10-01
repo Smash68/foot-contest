@@ -32,10 +32,10 @@ final class DoctrineCheckoutSessionRepositoryTest extends KernelTestCase
         $found = $repository->ofCheckoutReference($checkoutReference);
 
         self::assertNotNull($found);
-        self::assertTrue($id->equals($found->getId()));
+        self::assertEquals($id, $found->getId());
         self::assertSame('Ligue amateur du 92', $found->getOrganizationName());
-        self::assertTrue($ownerId->equals($found->getOwnerId()));
-        self::assertTrue($checkoutReference->equals($found->getCheckoutReference()));
+        self::assertEquals($ownerId, $found->getOwnerId());
+        self::assertEquals($checkoutReference, $found->getCheckoutReference());
         self::assertSame(CheckoutSessionStatus::Pending, $found->getStatus());
     }
 
@@ -57,6 +57,6 @@ final class DoctrineCheckoutSessionRepositoryTest extends KernelTestCase
 
         self::assertNotNull($found);
         self::assertSame(CheckoutSessionStatus::Completed, $found->getStatus());
-        self::assertTrue($organizationId->equals($found->getOrganizationId()));
+        self::assertEquals($organizationId, $found->getOrganizationId());
     }
 }

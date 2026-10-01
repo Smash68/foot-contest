@@ -29,8 +29,8 @@ final class DoctrineOrganizationRepositoryTest extends KernelTestCase
         $found = $repository->ofId($id);
 
         self::assertNotNull($found);
-        self::assertTrue($id->equals($found->getId()));
+        self::assertEquals($id, $found->getId());
         self::assertSame('Ligue amateur du Nord', $found->getName());
-        self::assertTrue((new OrganizerId('organizer-1'))->equals($found->getOwnerId()));
+        self::assertEquals(new OrganizerId('organizer-1'), $found->getOwnerId());
     }
 }

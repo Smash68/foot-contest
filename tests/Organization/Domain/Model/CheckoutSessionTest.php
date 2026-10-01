@@ -24,10 +24,10 @@ final class CheckoutSessionTest extends TestCase
 
         $session = CheckoutSession::initiate($id, 'Ligue amateur du 92', $ownerId, $reference);
 
-        self::assertTrue($id->equals($session->getId()));
+        self::assertEquals($id, $session->getId());
         self::assertSame('Ligue amateur du 92', $session->getOrganizationName());
-        self::assertTrue($ownerId->equals($session->getOwnerId()));
-        self::assertTrue($reference->equals($session->getCheckoutReference()));
+        self::assertEquals($ownerId, $session->getOwnerId());
+        self::assertEquals($reference, $session->getCheckoutReference());
         self::assertSame(CheckoutSessionStatus::Pending, $session->getStatus());
     }
 
@@ -40,7 +40,7 @@ final class CheckoutSessionTest extends TestCase
         $session->complete($organizationId);
 
         self::assertSame(CheckoutSessionStatus::Completed, $session->getStatus());
-        self::assertTrue($organizationId->equals($session->getOrganizationId()));
+        self::assertEquals($organizationId, $session->getOrganizationId());
     }
 
     #[Test]
