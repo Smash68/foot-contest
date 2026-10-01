@@ -20,8 +20,8 @@ final class OrganizationTest extends TestCase
 
         $organization = Organization::create($id, 'Ligue amateur du 92', $ownerId);
 
-        self::assertTrue($id->equals($organization->getId()));
+        self::assertEquals($id, $organization->getId());
         self::assertSame('Ligue amateur du 92', $organization->getName());
-        self::assertTrue($ownerId->equals($organization->getOwnerId()));
+        self::assertEquals($ownerId, $organization->getOwnerId());
     }
 }

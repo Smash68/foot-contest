@@ -61,6 +61,6 @@ final class ConfirmOrganizationCheckoutHandlerTest extends TestCase
 
         self::assertNotNull($first);
         self::assertNotNull($second);
-        self::assertTrue($first->equals($second));
+        self::assertEquals($first, $second);
     }
 }
