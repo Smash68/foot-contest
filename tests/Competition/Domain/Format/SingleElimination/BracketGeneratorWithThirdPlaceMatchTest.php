@@ -10,6 +10,7 @@ use App\Competition\Domain\Format\SingleElimination\SingleEliminationBracketGene
 use App\Competition\Domain\Model\EncounterResult;
 use App\Competition\Domain\Model\Score;
 use App\Competition\Domain\Model\TeamId;
+use App\Tests\Support\Assertion\EncounterAssert;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
@@ -40,10 +41,10 @@ final class BracketGeneratorWithThirdPlaceMatchTest extends TestCase
         $bracket->recordResult($semiFinals[0]->id, EncounterResult::regularTime(Score::of(2, 0)));
         $bracket->recordResult($semiFinals[1]->id, EncounterResult::regularTime(Score::of(0, 1)));
 
+        self::assertInstanceOf(BracketWithThirdPlaceMatch::class, $bracket);
         $thirdPlaceEncounter = $bracket->getThirdPlaceEncounter();
         self::assertNotNull($thirdPlaceEncounter);
-        self::assertTrue($thirdPlaceEncounter->getHome()->isTeam());
-        self::assertTrue($thirdPlaceEncounter->getAway()->isTeam());
+        EncounterAssert::assertThat($thirdPlaceEncounter)->homeIsTeam()->awayIsTeam();
     }
 
     #[Test]
