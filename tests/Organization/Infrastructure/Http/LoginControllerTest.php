@@ -28,11 +28,12 @@ final class LoginControllerTest extends WebTestCase
         $client->request('POST', '/login', server: ['CONTENT_TYPE' => 'application/json'], content: json_encode([
             'email' => 'organizer@example.com',
             'password' => 'super-secret',
-        ]));
+        ], JSON_THROW_ON_ERROR));
 
         self::assertResponseStatusCodeSame(200);
 
-        $payload = json_decode($client->getResponse()->getContent(), true);
+        $payload = json_decode((string) $client->getResponse()->getContent(), true);
+        self::assertIsArray($payload);
         self::assertArrayHasKey('token', $payload);
     }
 
@@ -47,7 +48,7 @@ final class LoginControllerTest extends WebTestCase
         $client->request('POST', '/login', server: ['CONTENT_TYPE' => 'application/json'], content: json_encode([
             'email' => 'unknown@example.com',
             'password' => 'super-secret',
-        ]));
+        ], JSON_THROW_ON_ERROR));
 
         self::assertResponseStatusCodeSame(401);
     }
