@@ -55,6 +55,15 @@ security:
             stateless: true
             provider: organizers
             jwt: ~
+        # JWT-authenticated firewall for the one Competition endpoint that needs to know the
+        # current organizer (POST /competitions/{id}/generate-bracket, only the organizer
+        # owning the competition may generate its bracket). Every other Competition route
+        # falls through to "main" untouched.
+        generate_bracket:
+            pattern: ^/competitions/[^/]+/generate-bracket$
+            stateless: true
+            provider: organizers
+            jwt: ~
         # JWT-authenticated firewall for the one Competition endpoint that accepts two actor
         # types (DELETE /competitions/{id}/teams/{teamId}) : the team's captain (Player) or
         # the organizer owning the competition (Organizer) may withdraw a team. Every other
