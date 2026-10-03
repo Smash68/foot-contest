@@ -124,6 +124,7 @@ security:
         - { path: ^/competitions$, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/competitions/[^/]+/teams$, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/competitions/[^/]+/close-registration$, roles: IS_AUTHENTICATED_FULLY }
+        - { path: ^/competitions/[^/]+/generate-bracket$, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/competitions/[^/]+/teams/[^/]+/join-requests$, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/competitions/[^/]+/teams/[^/]+/join-requests/[^/]+/approve$, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/competitions/[^/]+/teams/[^/]+/join-requests/[^/]+/reject$, roles: IS_AUTHENTICATED_FULLY }
