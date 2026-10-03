@@ -18,11 +18,12 @@ final class RegisterPlayerControllerTest extends WebTestCase
             'name' => 'Captain',
             'email' => 'captain@example.com',
             'password' => 'super-secret',
-        ]));
+        ], JSON_THROW_ON_ERROR));
 
         self::assertResponseStatusCodeSame(201);
 
-        $payload = json_decode($client->getResponse()->getContent(), true);
+        $payload = json_decode((string) $client->getResponse()->getContent(), true);
+        self::assertIsArray($payload);
         self::assertArrayHasKey('id', $payload);
         self::assertNotEmpty($payload['id']);
     }
@@ -36,7 +37,7 @@ final class RegisterPlayerControllerTest extends WebTestCase
             'name' => 'Captain',
             'email' => 'not-an-email',
             'password' => 'super-secret',
-        ]));
+        ], JSON_THROW_ON_ERROR));
 
         self::assertResponseStatusCodeSame(422);
     }
@@ -49,7 +50,7 @@ final class RegisterPlayerControllerTest extends WebTestCase
         $client->request('POST', '/players', server: ['CONTENT_TYPE' => 'application/json'], content: json_encode([
             'email' => 'captain@example.com',
             'password' => 'super-secret',
-        ]));
+        ], JSON_THROW_ON_ERROR));
 
         self::assertResponseStatusCodeSame(422);
     }
