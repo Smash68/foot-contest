@@ -24,6 +24,7 @@ final class CreateCompetitionEndToEndTest extends WebTestCase
         $client = static::createClient();
 
         $entityManager = self::getContainer()->get(EntityManagerInterface::class);
+        assert($entityManager instanceof EntityManagerInterface);
         $doctrineRepository = new DoctrineCompetitionRepository($entityManager);
         self::getContainer()->set(CompetitionRepository::class, $doctrineRepository);
 
@@ -51,11 +52,13 @@ final class CreateCompetitionEndToEndTest extends WebTestCase
             'format' => 'single_elimination',
             'includeThirdPlaceMatch' => false,
             'organizationId' => $organizationId->value,
-        ]));
+        ], JSON_THROW_ON_ERROR));
 
         self::assertResponseStatusCodeSame(201);
 
-        $payload = json_decode($client->getResponse()->getContent(), true);
+        $payload = json_decode((string) $client->getResponse()->getContent(), true);
+        self::assertIsArray($payload);
+        self::assertIsString($payload['id']);
         $competition = $doctrineRepository->ofId(new CompetitionId($payload['id']));
 
         self::assertNotNull($competition);

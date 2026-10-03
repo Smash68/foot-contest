@@ -4,36 +4,6 @@ parameters:
 			message: '#^Cannot access offset ''id'' on mixed\.$#'
 			identifier: offsetAccess.nonOffsetAccessible
 			count: 1
-			path: tests/Competition/E2E/CreateCompetitionEndToEndTest.php
-
-		-
-			message: '#^Parameter \#1 \$entityManager of class App\\Competition\\Infrastructure\\Persistence\\Doctrine\\DoctrineCompetitionRepository constructor expects Doctrine\\ORM\\EntityManagerInterface, object given\.$#'
-			identifier: argument.type
-			count: 1
-			path: tests/Competition/E2E/CreateCompetitionEndToEndTest.php
-
-		-
-			message: '#^Parameter \#1 \$json of function json_decode expects string, string\|false given\.$#'
-			identifier: argument.type
-			count: 1
-			path: tests/Competition/E2E/CreateCompetitionEndToEndTest.php
-
-		-
-			message: '#^Parameter \#1 \$value of class App\\Competition\\Domain\\Model\\CompetitionId constructor expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: tests/Competition/E2E/CreateCompetitionEndToEndTest.php
-
-		-
-			message: '#^Parameter \$content of method Symfony\\Component\\BrowserKit\\AbstractBrowser\<Symfony\\Component\\HttpFoundation\\Request,Symfony\\Component\\HttpFoundation\\Response\>\:\:request\(\) expects string\|null, string\|false given\.$#'
-			identifier: argument.type
-			count: 1
-			path: tests/Competition/E2E/CreateCompetitionEndToEndTest.php
-
-		-
-			message: '#^Cannot access offset ''id'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
 			path: tests/Competition/Infrastructure/Http/CreateCompetitionControllerTest.php
 
 		-
