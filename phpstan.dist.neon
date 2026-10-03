@@ -1,7 +1,6 @@
 includes:
     - vendor/phpstan/phpstan-symfony/extension.neon
     - vendor/phpstan/phpstan-doctrine/extension.neon
-    - phpstan-baseline.neon
 
 parameters:
     level: max
@@ -15,3 +14,8 @@ parameters:
             # PHPStan ne trace pas les appels à une méthode privée qui surcharge celle du trait.
             message: '#^Method App\\Kernel::getAllowedEnvs\(\) is unused\.$#'
             path: src/Kernel.php
+        -
+            # Fichier généré par la recipe Symfony Flex, pas du code du projet : le modifier
+            # créerait une divergence avec la recipe à chaque mise à jour.
+            message: '#^Call to function method_exists\(\) with ''Symfony\\\\Component\\\\Dotenv\\\\Dotenv'' and ''bootEnv'' will always evaluate to true\.$#'
+            path: tests/bootstrap.php
