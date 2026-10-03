@@ -1,7 +1,7 @@
 # 037. Suivi de projet par Issues/Milestones GitHub plutôt que ROADMAP.md
 
 Date: 2026-10-01
-Status: Accepted
+Status: Accepted — partie « Milestones » remplacée par ADR 040
 
 ## Contexte
 
