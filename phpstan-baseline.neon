@@ -31,25 +31,6 @@ parameters:
 			path: tests/Competition/Application/CreateCompetition/CreateCompetitionThroughMessageBusTest.php
 
 		-
-			message: '#^Cannot call method countEncounters\(\) on App\\Competition\\Domain\\Model\\Bracket\|null\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: tests/Competition/Domain/CompetitionTest.php
-
-
-		-
-			message: '#^Method App\\Tests\\Competition\\Domain\\SingleEliminationBracketGeneratorTest\:\:byeCountProvider\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: tests/Competition/Domain/SingleEliminationBracketGeneratorTest.php
-
-		-
-			message: '#^Method App\\Tests\\Competition\\Domain\\SingleEliminationBracketGeneratorTest\:\:teamCountProvider\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: tests/Competition/Domain/SingleEliminationBracketGeneratorTest.php
-
-		-
 			message: '#^Cannot access offset ''id'' on mixed\.$#'
 			identifier: offsetAccess.nonOffsetAccessible
 			count: 1

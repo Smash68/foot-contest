@@ -253,7 +253,9 @@ final class CompetitionTest extends TestCase
 
         $competition->generateBracket($this->bracketGeneratorFactory());
 
-        self::assertSame(1, $competition->getBracket()->countEncounters());
+        $bracket = $competition->getBracket();
+        self::assertNotNull($bracket);
+        self::assertSame(1, $bracket->countEncounters());
     }
 
     #[Test]

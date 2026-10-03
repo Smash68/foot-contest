@@ -43,6 +43,9 @@ final class SingleEliminationBracketGeneratorTest extends TestCase
         self::assertSame($expectedTotalEncounters, $bracket->countEncounters());
     }
 
+    /**
+     * @return array<string, array{int, int, int}>
+     */
     public static function teamCountProvider(): array
     {
         return [
@@ -69,6 +72,9 @@ final class SingleEliminationBracketGeneratorTest extends TestCase
         self::assertSame($expectedRound1Encounters, $bracket->getRound(1)->countEncounters());
     }
 
+    /**
+     * @return array<string, array{int, int}>
+     */
     public static function byeCountProvider(): array
     {
         return [
