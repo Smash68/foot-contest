@@ -6,6 +6,7 @@ namespace App\Tests\Competition\Application\CreateCompetition;
 
 use App\Competition\Application\CreateCompetition\CreateCompetitionCommand;
 use App\Competition\Domain\Model\CompetitionFormat;
+use App\Competition\Domain\Model\CompetitionId;
 use App\Competition\Domain\Repository\CompetitionRepository;
 use App\Organization\Domain\Model\Organization;
 use App\Organization\Domain\Model\OrganizerId;
@@ -27,13 +28,20 @@ final class CreateCompetitionThroughMessageBusTest extends KernelTestCase
         $organizationId = $organizations->nextIdentity();
         $organizations->save(Organization::create($organizationId, 'Ligue amateur du Nord', new OrganizerId('organizer-1')));
 
-        $envelope = $container->get(MessageBusInterface::class)->dispatch(
+        $bus = $container->get(MessageBusInterface::class);
+        assert($bus instanceof MessageBusInterface);
+        $envelope = $bus->dispatch(
             new CreateCompetitionCommand('Summer Cup', 2, 4, CompetitionFormat::SingleElimination->value, false, 'organizer-1', $organizationId->value),
         );
 
-        $id = $envelope->last(HandledStamp::class)->getResult();
+        $handledStamp = $envelope->last(HandledStamp::class);
+        assert($handledStamp instanceof HandledStamp);
+        $id = $handledStamp->getResult();
+        assert($id instanceof CompetitionId);
 
-        $competition = $container->get(CompetitionRepository::class)->ofId($id);
+        $competitions = $container->get(CompetitionRepository::class);
+        assert($competitions instanceof CompetitionRepository);
+        $competition = $competitions->ofId($id);
 
         self::assertNotNull($competition);
         self::assertTrue($competition->isOpenForRegistration());
