@@ -17,11 +17,12 @@ final class RegisterOrganizerControllerTest extends WebTestCase
         $client->request('POST', '/organizers', server: ['CONTENT_TYPE' => 'application/json'], content: json_encode([
             'email' => 'organizer@example.com',
             'password' => 'super-secret',
-        ]));
+        ], JSON_THROW_ON_ERROR));
 
         self::assertResponseStatusCodeSame(201);
 
-        $payload = json_decode($client->getResponse()->getContent(), true);
+        $payload = json_decode((string) $client->getResponse()->getContent(), true);
+        self::assertIsArray($payload);
         self::assertArrayHasKey('id', $payload);
     }
 }

@@ -25,11 +25,12 @@ final class ConfirmOrganizationCheckoutControllerTest extends WebTestCase
         $client->request('POST', '/organizations/checkout-webhook', server: ['CONTENT_TYPE' => 'application/json'], content: json_encode([
             'checkoutReference' => 'checkout_ref_789',
             'succeeded' => true,
-        ]));
+        ], JSON_THROW_ON_ERROR));
 
         self::assertResponseStatusCodeSame(200);
 
-        $payload = json_decode($client->getResponse()->getContent(), true);
+        $payload = json_decode((string) $client->getResponse()->getContent(), true);
+        self::assertIsArray($payload);
         self::assertArrayHasKey('organizationId', $payload);
         self::assertNotNull($payload['organizationId']);
     }

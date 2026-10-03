@@ -33,11 +33,12 @@ final class RegisterTeamControllerTest extends WebTestCase
             'HTTP_AUTHORIZATION' => "Bearer {$token}",
         ], content: json_encode([
             'name' => 'Team A',
-        ]));
+        ], JSON_THROW_ON_ERROR));
 
         self::assertResponseStatusCodeSame(201);
 
-        $payload = json_decode($client->getResponse()->getContent(), true);
+        $payload = json_decode((string) $client->getResponse()->getContent(), true);
+        self::assertIsArray($payload);
         self::assertArrayHasKey('id', $payload);
         self::assertNotEmpty($payload['id']);
     }
@@ -62,7 +63,7 @@ final class RegisterTeamControllerTest extends WebTestCase
             'HTTP_AUTHORIZATION' => "Bearer {$token}",
         ], content: json_encode([
             'name' => 'Team A',
-        ]));
+        ], JSON_THROW_ON_ERROR));
 
         self::assertResponseStatusCodeSame(409);
     }
@@ -80,7 +81,7 @@ final class RegisterTeamControllerTest extends WebTestCase
 
         $client->request('POST', "/competitions/{$competition->getId()->value}/teams", server: ['CONTENT_TYPE' => 'application/json'], content: json_encode([
             'name' => 'Team A',
-        ]));
+        ], JSON_THROW_ON_ERROR));
 
         self::assertResponseStatusCodeSame(401);
     }

@@ -19,6 +19,8 @@ final class LoginControllerTest extends WebTestCase
         $client = static::createClient();
 
         $entityManager = self::getContainer()->get(EntityManagerInterface::class);
+
+        assert($entityManager instanceof EntityManagerInterface);
         $players = new DoctrinePlayerRepository($entityManager);
 
         $players->save(PlayerBuilder::aPlayer()
@@ -29,11 +31,12 @@ final class LoginControllerTest extends WebTestCase
         $client->request('POST', '/players/login', server: ['CONTENT_TYPE' => 'application/json'], content: json_encode([
             'email' => 'captain@example.com',
             'password' => 'super-secret',
-        ]));
+        ], JSON_THROW_ON_ERROR));
 
         self::assertResponseStatusCodeSame(200);
 
-        $payload = json_decode($client->getResponse()->getContent(), true);
+        $payload = json_decode((string) $client->getResponse()->getContent(), true);
+        self::assertIsArray($payload);
         self::assertArrayHasKey('token', $payload);
     }
 
@@ -45,7 +48,7 @@ final class LoginControllerTest extends WebTestCase
         $client->request('POST', '/players/login', server: ['CONTENT_TYPE' => 'application/json'], content: json_encode([
             'email' => 'unknown@example.com',
             'password' => 'super-secret',
-        ]));
+        ], JSON_THROW_ON_ERROR));
 
         self::assertResponseStatusCodeSame(401);
     }

@@ -32,11 +32,12 @@ final class InitiateOrganizationCheckoutControllerTest extends WebTestCase
             'HTTP_AUTHORIZATION' => "Bearer {$token}",
         ], content: json_encode([
             'organizationName' => 'Ligue amateur du Nord',
-        ]));
+        ], JSON_THROW_ON_ERROR));
 
         self::assertResponseStatusCodeSame(201);
 
-        $payload = json_decode($client->getResponse()->getContent(), true);
+        $payload = json_decode((string) $client->getResponse()->getContent(), true);
+        self::assertIsArray($payload);
         self::assertArrayHasKey('checkoutReference', $payload);
     }
 
@@ -47,7 +48,7 @@ final class InitiateOrganizationCheckoutControllerTest extends WebTestCase
 
         $client->request('POST', '/organizations/checkout', server: ['CONTENT_TYPE' => 'application/json'], content: json_encode([
             'organizationName' => 'Ligue amateur du Nord',
-        ]));
+        ], JSON_THROW_ON_ERROR));
 
         self::assertResponseStatusCodeSame(401);
     }
