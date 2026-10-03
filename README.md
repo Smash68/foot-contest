@@ -43,7 +43,9 @@ Un `Makefile` raccourcit les commandes `docker compose` les plus courantes — `
 
 - [Issues/Milestones GitHub](https://github.com/Smash68/foot-contest/issues) — avancement et prochaines features (voir ADR 037)
 - [`docs/adr/`](docs/adr/) — décisions d'architecture (ADR)
-- [`CLAUDE.md`](CLAUDE.md) — modèle de domaine, conventions, workflow
+- [`docs/architecture.md`](docs/architecture.md) — conventions d'architecture
+- [`docs/glossary.md`](docs/glossary.md) — langage métier
+- [`AGENTS.md`](AGENTS.md) — commandes et workflow de développement (instructions pour les agents de code et les contributeurs)
 
 ## Acteurs
 

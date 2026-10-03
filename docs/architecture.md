@@ -71,7 +71,7 @@ En lecture, une sous-ressource pas encore créée (tableau non généré) répon
 
 ## Tests
 
-- Chaque couche teste sa propre API publique ; une règle métier se teste une seule fois, dans la couche qui la porte (voir le Workflow de [`CLAUDE.md`](../CLAUDE.md#workflow)).
+- Chaque couche teste sa propre API publique ; une règle métier se teste une seule fois, dans la couche qui la porte (voir le Workflow d'[`AGENTS.md`](../AGENTS.md#workflow)).
 - Arrange via des Test Data Builders (`tests/Support/Builder/`, [ADR 036](adr/036-test-data-builders-arrange.md)) et des objets d'assertion fluides (`tests/Support/Assertion/`).
 - Tests HTTP de contrôleur sur repositories InMemory ([ADR 013](adr/013-in-memory-tests-http-controleur.md)) ; persistance testée contre une vraie base, remise à zéro par transaction ([ADR 012](adr/012-reset-base-tests-dama.md)).
 - PHPStan au niveau `max` sur `src/` et `tests/`, sans baseline ; idiomes de narrowing dans les tests décrits dans [ADR 038](adr/038-phpstan-baseline-resorption.md).
