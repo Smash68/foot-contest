@@ -30,11 +30,12 @@ final class CreateCompetitionControllerTest extends WebTestCase
             'format' => 'single_elimination',
             'includeThirdPlaceMatch' => false,
             'organizationId' => $organizationId,
-        ]));
+        ], JSON_THROW_ON_ERROR));
 
         self::assertResponseStatusCodeSame(201);
 
-        $payload = json_decode($client->getResponse()->getContent(), true);
+        $payload = json_decode((string) $client->getResponse()->getContent(), true);
+        self::assertIsArray($payload);
         self::assertArrayHasKey('id', $payload);
         self::assertNotEmpty($payload['id']);
     }
@@ -51,7 +52,7 @@ final class CreateCompetitionControllerTest extends WebTestCase
             'format' => 'single_elimination',
             'includeThirdPlaceMatch' => false,
             'organizationId' => 'org-1',
-        ]));
+        ], JSON_THROW_ON_ERROR));
 
         self::assertResponseStatusCodeSame(401);
     }
@@ -72,7 +73,7 @@ final class CreateCompetitionControllerTest extends WebTestCase
             'format' => 'single_elimination',
             'includeThirdPlaceMatch' => false,
             'organizationId' => 'someone-elses-organization',
-        ]));
+        ], JSON_THROW_ON_ERROR));
 
         self::assertResponseStatusCodeSame(403);
     }
@@ -93,7 +94,7 @@ final class CreateCompetitionControllerTest extends WebTestCase
             'format' => 'single_elimination',
             'includeThirdPlaceMatch' => false,
             'organizationId' => $organizationId,
-        ]));
+        ], JSON_THROW_ON_ERROR));
 
         self::assertResponseStatusCodeSame(422);
     }
@@ -113,7 +114,7 @@ final class CreateCompetitionControllerTest extends WebTestCase
             'format' => 'single_elimination',
             'includeThirdPlaceMatch' => false,
             'organizationId' => $organizationId,
-        ]));
+        ], JSON_THROW_ON_ERROR));
 
         self::assertResponseStatusCodeSame(422);
     }
@@ -134,7 +135,7 @@ final class CreateCompetitionControllerTest extends WebTestCase
             'format' => 'single_elimination',
             'includeThirdPlaceMatch' => false,
             'organizationId' => $organizationId,
-        ]));
+        ], JSON_THROW_ON_ERROR));
 
         self::assertResponseStatusCodeSame(422);
     }
