@@ -16,6 +16,7 @@ final class DoctrinePlayerRepositoryTest extends KernelTestCase
     public function it_retrieves_a_saved_player_by_its_id(): void
     {
         $entityManager = self::getContainer()->get(EntityManagerInterface::class);
+        assert($entityManager instanceof EntityManagerInterface);
         $repository = new DoctrinePlayerRepository($entityManager);
 
         $player = PlayerBuilder::aPlayer()->withEmail('captain@example.com')->build();
@@ -35,6 +36,7 @@ final class DoctrinePlayerRepositoryTest extends KernelTestCase
     public function it_retrieves_a_saved_player_by_its_email(): void
     {
         $entityManager = self::getContainer()->get(EntityManagerInterface::class);
+        assert($entityManager instanceof EntityManagerInterface);
         $repository = new DoctrinePlayerRepository($entityManager);
 
         $player = PlayerBuilder::aPlayer()->withEmail('captain@example.com')->build();
