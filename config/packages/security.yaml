@@ -55,6 +55,15 @@ security:
             stateless: true
             provider: organizers
             jwt: ~
+        # JWT-authenticated firewall for the one Competition endpoint that needs to know the
+        # current organizer (POST /competitions/{id}/generate-bracket, only the organizer
+        # owning the competition may generate its bracket). Every other Competition route
+        # falls through to "main" untouched.
+        generate_bracket:
+            pattern: ^/competitions/[^/]+/generate-bracket$
+            stateless: true
+            provider: organizers
+            jwt: ~
         # JWT-authenticated firewall for the one Competition endpoint that accepts two actor
         # types (DELETE /competitions/{id}/teams/{teamId}) : the team's captain (Player) or
         # the organizer owning the competition (Organizer) may withdraw a team. Every other
@@ -115,6 +124,7 @@ security:
         - { path: ^/competitions$, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/competitions/[^/]+/teams$, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/competitions/[^/]+/close-registration$, roles: IS_AUTHENTICATED_FULLY }
+        - { path: ^/competitions/[^/]+/generate-bracket$, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/competitions/[^/]+/teams/[^/]+/join-requests$, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/competitions/[^/]+/teams/[^/]+/join-requests/[^/]+/approve$, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/competitions/[^/]+/teams/[^/]+/join-requests/[^/]+/reject$, roles: IS_AUTHENTICATED_FULLY }

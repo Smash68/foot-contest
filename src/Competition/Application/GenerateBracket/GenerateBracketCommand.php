@@ -8,6 +8,7 @@ final readonly class GenerateBracketCommand
 {
     public function __construct(
         public string $competitionId,
+        public string $organizerId,
     ) {
     }
 }
