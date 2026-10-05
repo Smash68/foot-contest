@@ -18,6 +18,14 @@ final class OrganizerBuilder
         return new self();
     }
 
+    public function withId(string $id): self
+    {
+        $clone = clone $this;
+        $clone->id = $id;
+
+        return $clone;
+    }
+
     /** The email defaults to "{id}@example.com"; pass one when the test looks the organizer up by email. */
     public function withEmail(string $email): self
     {
