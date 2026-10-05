@@ -85,6 +85,15 @@ La paire de clés JWT (`config/jwt/*.pem`) n'est pas versionnée (voir `.gitigno
 docker compose exec app php bin/console lexik:jwt:generate-keypair
 ```
 
+Appliquer les migrations, puis servir l'API sur http://localhost:8000 :
+
+```bash
+docker compose exec app php bin/console doctrine:migrations:migrate --no-interaction
+docker compose exec -d app php -S 0.0.0.0:8000 -t public
+```
+
+Les routes exposées se listent avec `docker compose exec app php bin/console debug:router`.
+
 ## Lancer les tests
 
 ```bash
