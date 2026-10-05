@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Competition\Domain\Model;
 
+use App\Competition\Domain\Exception\IncompleteTeamsException;
 use App\Competition\Domain\Service\BracketGeneratorFactory;
 
 final class Competition
@@ -21,12 +22,13 @@ final class Competition
         private readonly TeamCapacity $capacity,
         private readonly BracketConfiguration $bracketConfiguration,
         private readonly OrganizationId $organizationId,
+        private readonly MinimumRosterSize $minimumRosterSize,
     ) {
     }
 
-    public static function create(CompetitionId $id, string $name, TeamCapacity $capacity, BracketConfiguration $bracketConfiguration, OrganizationId $organizationId): self
+    public static function create(CompetitionId $id, string $name, TeamCapacity $capacity, BracketConfiguration $bracketConfiguration, OrganizationId $organizationId, MinimumRosterSize $minimumRosterSize): self
     {
-        return new self($id, $name, $capacity, $bracketConfiguration, $organizationId);
+        return new self($id, $name, $capacity, $bracketConfiguration, $organizationId, $minimumRosterSize);
     }
 
     public function getId(): CompetitionId
@@ -113,7 +115,25 @@ final class Competition
             throw new \LogicException("Competition '{$this->id->value}' has not reached its minimum number of teams.");
         }
 
+        $incompleteTeamNamesById = $this->incompleteTeamNamesById();
+        if ($incompleteTeamNamesById !== []) {
+            throw new IncompleteTeamsException($this->id->value, $incompleteTeamNamesById);
+        }
+
         $this->closed = true;
+    }
+
+    /** @return array<string, string> the teams below the minimum roster size, names keyed by team id */
+    private function incompleteTeamNamesById(): array
+    {
+        $incompleteTeamNamesById = [];
+        foreach ($this->teams as $team) {
+            if (count($team->getRoster()) < $this->minimumRosterSize->value) {
+                $incompleteTeamNamesById[$team->getId()->value] = $team->getName();
+            }
+        }
+
+        return $incompleteTeamNamesById;
     }
 
     public function withdraw(TeamId $teamId): void

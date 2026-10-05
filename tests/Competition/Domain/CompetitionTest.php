@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Tests\Competition\Domain;
 
+use App\Competition\Domain\Exception\IncompleteTeamsException;
 use App\Competition\Domain\Format\SingleElimination\SingleEliminationBracketGenerator;
 use App\Competition\Domain\Model\BracketConfiguration;
 use App\Competition\Domain\Model\Competition;
 use App\Competition\Domain\Model\CompetitionFormat;
 use App\Competition\Domain\Model\CompetitionId;
+use App\Competition\Domain\Model\MinimumRosterSize;
 use App\Competition\Domain\Model\OrganizationId;
 use App\Competition\Domain\Model\PlayerId;
 use App\Competition\Domain\Model\Team;
@@ -26,7 +28,7 @@ final class CompetitionTest extends TestCase
     public function it_exposes_its_id(): void
     {
         $id = new CompetitionId('t1');
-        $competition = Competition::create($id, 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
+        $competition = Competition::create($id, 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'), MinimumRosterSize::of(1));
 
         self::assertEquals($id, $competition->getId());
     }
@@ -35,7 +37,7 @@ final class CompetitionTest extends TestCase
     public function it_exposes_its_organization_id(): void
     {
         $organizationId = new OrganizationId('org-1');
-        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), $organizationId);
+        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), $organizationId, MinimumRosterSize::of(1));
 
         self::assertEquals($organizationId, $competition->getOrganizationId());
     }
@@ -43,7 +45,7 @@ final class CompetitionTest extends TestCase
     #[Test]
     public function it_exposes_its_format(): void
     {
-        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
+        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'), MinimumRosterSize::of(1));
 
         self::assertSame(CompetitionFormat::SingleElimination, $competition->getFormat());
     }
@@ -51,7 +53,7 @@ final class CompetitionTest extends TestCase
     #[Test]
     public function it_exposes_whether_it_includes_a_third_place_match(): void
     {
-        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, true), new OrganizationId('org-1'));
+        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, true), new OrganizationId('org-1'), MinimumRosterSize::of(1));
 
         self::assertTrue($competition->includesThirdPlaceMatch());
     }
@@ -59,7 +61,7 @@ final class CompetitionTest extends TestCase
     #[Test]
     public function it_exposes_its_name(): void
     {
-        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
+        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'), MinimumRosterSize::of(1));
 
         self::assertSame('Summer Cup', $competition->getName());
     }
@@ -67,7 +69,7 @@ final class CompetitionTest extends TestCase
     #[Test]
     public function it_starts_open_for_registration_with_no_teams(): void
     {
-        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'));
+        $competition = Competition::create(new CompetitionId('t1'), 'Summer Cup', TeamCapacity::of(2, 4), new BracketConfiguration(CompetitionFormat::SingleElimination, false), new OrganizationId('org-1'), MinimumRosterSize::of(1));
 
         self::assertTrue($competition->isOpenForRegistration());
         CompetitionAssert::assertThat($competition)->hasRegisteredTeamsCount(0);
@@ -227,6 +229,39 @@ final class CompetitionTest extends TestCase
         $this->expectException(\LogicException::class);
 
         $competition->closeRegistration();
+    }
+
+    #[Test]
+    public function it_rejects_closing_registration_while_a_team_is_below_the_minimum_roster_size(): void
+    {
+        $competition = CompetitionBuilder::aCompetition()
+            ->withMinimumRosterSize(2)
+            ->withTeam('Team A', captainId: 'a@example.com', id: 'a')
+            ->withTeam('Team B', captainId: 'b@example.com', id: 'b')
+            ->build();
+
+        $this->expectException(\LogicException::class);
+
+        $competition->closeRegistration();
+    }
+
+    #[Test]
+    public function it_names_the_teams_below_the_minimum_roster_size_when_rejecting_the_closing(): void
+    {
+        $competition = CompetitionBuilder::aCompetition()
+            ->withMinimumRosterSize(2)
+            ->withTeam('Team A', captainId: 'a@example.com', id: 'a')
+            ->withTeam('Team B', captainId: 'b@example.com', id: 'b')
+            ->withTeamMember('b', 'b-member@example.com')
+            ->withTeam('Team C', captainId: 'c@example.com', id: 'c')
+            ->build();
+
+        try {
+            $competition->closeRegistration();
+            self::fail('Closing the registration should have been rejected.');
+        } catch (IncompleteTeamsException $exception) {
+            self::assertSame(['a' => 'Team A', 'c' => 'Team C'], $exception->teamNamesById);
+        }
     }
 
     #[Test]

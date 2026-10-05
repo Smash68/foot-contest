@@ -9,6 +9,7 @@ use App\Competition\Domain\Model\BracketConfiguration;
 use App\Competition\Domain\Model\Competition;
 use App\Competition\Domain\Model\CompetitionFormat;
 use App\Competition\Domain\Model\CompetitionId;
+use App\Competition\Domain\Model\MinimumRosterSize;
 use App\Competition\Domain\Model\OrganizationId;
 use App\Competition\Domain\Model\PlayerId;
 use App\Competition\Domain\Model\Team;
@@ -30,6 +31,7 @@ final class CompetitionBuilder
     private string $organizationId = 'organization-1';
     private int $minTeams = 2;
     private int $maxTeams = 16;
+    private int $minimumRosterSize = 1;
     private bool $thirdPlaceMatch = false;
     private bool $registrationClosed = false;
     private bool $bracketGenerated = false;
@@ -54,6 +56,15 @@ final class CompetitionBuilder
         $clone = clone $this;
         $clone->minTeams = $minTeams;
         $clone->maxTeams = $maxTeams;
+
+        return $clone;
+    }
+
+    /** The minimum roster size; defaults to 1 (the captain alone), which imposes no constraint. */
+    public function withMinimumRosterSize(int $minimumRosterSize): self
+    {
+        $clone = clone $this;
+        $clone->minimumRosterSize = $minimumRosterSize;
 
         return $clone;
     }
@@ -120,6 +131,7 @@ final class CompetitionBuilder
             TeamCapacity::of($this->minTeams, $this->maxTeams),
             new BracketConfiguration(CompetitionFormat::SingleElimination, $this->thirdPlaceMatch),
             new OrganizationId($this->organizationId),
+            MinimumRosterSize::of($this->minimumRosterSize),
         );
 
         foreach ($this->teams as $index => $team) {
