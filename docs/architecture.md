@@ -66,6 +66,9 @@ Mappées par des listeners `kernel.exception` globaux, **jamais par un try/catch
 | `\LogicException` | 409 | [ADR 032](adr/032-coherence-inter-equipes.md) |
 | `NotAuthorizedException` (et sous-classes) | 403 | [ADR 031](adr/031-listener-not-authorized-unifie.md) |
 | `InvalidCredentialsException` | 401 | [ADR 027](adr/027-organization-bounded-context-auth-paiement.md) |
+| `IncompleteTeamsException` | 409 + `incompleteTeams` | [ADR 043](adr/043-effectif-minimum-par-equipe.md) |
+
+Une exception rejoint toujours l'une de ces familles ; elle n'a son propre listener que si le format de réponse diffère. Ce listener dédié porte alors une priorité supérieure à celui de sa famille, et conserve la clé `error` commune à toutes les réponses d'erreur ([ADR 043](adr/043-effectif-minimum-par-equipe.md) §3).
 
 En lecture, une sous-ressource pas encore créée (tableau non généré) répond **404**, distinct du 422 d'une compétition inconnue ([ADR 034](adr/034-get-bracket-query-read-model.md)).
 

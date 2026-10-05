@@ -27,7 +27,11 @@ Le minimum d'équipes (règle préexistante) est vérifié avant l'effectif des 
 
 ### 3. Une exception dédiée, qui porte les équipes incomplètes
 
-La clôture refusée doit nommer les équipes en défaut. Une `IncompleteTeamsException extends \LogicException` porte la liste de ces équipes (identifiant et nom), plutôt que de les noyer dans le texte du message. En tant que `\LogicException`, elle est d'emblée mappée en 409 par le listener générique ; un listener dédié l'exposera en réponse structurée, `incompleteTeams: [{id, name}]`, le format de réponse différent étant l'exception explicitement prévue par [ADR 031](031-listener-not-authorized-unifie.md). L'identifiant est indispensable au client pour retirer l'équipe concernée.
+La clôture refusée doit nommer les équipes en défaut. Une `IncompleteTeamsException extends \LogicException` porte la liste de ces équipes (identifiant et nom), plutôt que de les noyer dans le texte du message. En tant que `\LogicException`, elle est d'emblée mappée en 409 par le listener générique ; un listener dédié l'expose en réponse structurée, le format de réponse différent étant l'exception explicitement prévue par [ADR 031](031-listener-not-authorized-unifie.md). L'identifiant est indispensable au client pour retirer l'équipe concernée.
+
+La réponse conserve la clé `error` commune à toutes les erreurs de l'API et y ajoute la liste des équipes : `{"error": "...", "incompleteTeams": [{"id": "...", "name": "..."}]}`. Un client qui ne traite que `error` reste fonctionnel.
+
+L'exception relevant à la fois du listener dédié et du listener générique des `\LogicException`, le listener dédié est déclaré avec une priorité supérieure : il s'exécute en premier, et poser la réponse (`ExceptionEvent::setResponse()`) arrête la propagation de l'événement. À priorité égale, l'ordre dépendrait de l'ordre d'enregistrement des services, implicite et instable.
 
 ### 4. Retirer une équipe incomplète : aucun nouveau comportement
 
