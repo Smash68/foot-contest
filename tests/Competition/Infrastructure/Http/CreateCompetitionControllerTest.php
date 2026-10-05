@@ -23,17 +23,7 @@ final class CreateCompetitionControllerTest extends WebTestCase
     {
         $organizer = AuthenticatedOrganizer::signIn(self::getContainer());
 
-        $this->client->request('POST', '/competitions', server: [
-            'CONTENT_TYPE' => 'application/json',
-            ...$organizer->authorizationHeader(),
-        ], content: json_encode([
-            'name' => 'Summer Cup',
-            'minTeams' => 2,
-            'maxTeams' => 4,
-            'format' => 'single_elimination',
-            'includeThirdPlaceMatch' => false,
-            'organizationId' => $organizer->organizationId,
-        ], JSON_THROW_ON_ERROR));
+        $this->postCompetition($this->validPayload($organizer->organizationId), $organizer);
 
         self::assertResponseStatusCodeSame(201);
 
@@ -46,14 +36,7 @@ final class CreateCompetitionControllerTest extends WebTestCase
     #[Test]
     public function it_returns_401_without_a_token(): void
     {
-        $this->client->request('POST', '/competitions', server: ['CONTENT_TYPE' => 'application/json'], content: json_encode([
-            'name' => 'Summer Cup',
-            'minTeams' => 2,
-            'maxTeams' => 4,
-            'format' => 'single_elimination',
-            'includeThirdPlaceMatch' => false,
-            'organizationId' => 'org-1',
-        ], JSON_THROW_ON_ERROR));
+        $this->postCompetition($this->validPayload('org-1'));
 
         self::assertResponseStatusCodeSame(401);
     }
@@ -63,17 +46,7 @@ final class CreateCompetitionControllerTest extends WebTestCase
     {
         $organizer = AuthenticatedOrganizer::signIn(self::getContainer());
 
-        $this->client->request('POST', '/competitions', server: [
-            'CONTENT_TYPE' => 'application/json',
-            ...$organizer->authorizationHeader(),
-        ], content: json_encode([
-            'name' => 'Summer Cup',
-            'minTeams' => 2,
-            'maxTeams' => 4,
-            'format' => 'single_elimination',
-            'includeThirdPlaceMatch' => false,
-            'organizationId' => 'someone-elses-organization',
-        ], JSON_THROW_ON_ERROR));
+        $this->postCompetition($this->validPayload('someone-elses-organization'), $organizer);
 
         self::assertResponseStatusCodeSame(403);
     }
@@ -83,17 +56,7 @@ final class CreateCompetitionControllerTest extends WebTestCase
     {
         $organizer = AuthenticatedOrganizer::signIn(self::getContainer());
 
-        $this->client->request('POST', '/competitions', server: [
-            'CONTENT_TYPE' => 'application/json',
-            ...$organizer->authorizationHeader(),
-        ], content: json_encode([
-            'name' => 'Summer Cup',
-            'minTeams' => 1,
-            'maxTeams' => 4,
-            'format' => 'single_elimination',
-            'includeThirdPlaceMatch' => false,
-            'organizationId' => $organizer->organizationId,
-        ], JSON_THROW_ON_ERROR));
+        $this->postCompetition([...$this->validPayload($organizer->organizationId), 'minTeams' => 1], $organizer);
 
         self::assertResponseStatusCodeSame(422);
     }
@@ -103,16 +66,17 @@ final class CreateCompetitionControllerTest extends WebTestCase
     {
         $organizer = AuthenticatedOrganizer::signIn(self::getContainer());
 
-        $this->client->request('POST', '/competitions', server: [
-            'CONTENT_TYPE' => 'application/json',
-            ...$organizer->authorizationHeader(),
-        ], content: json_encode([
-            'minTeams' => 2,
-            'maxTeams' => 4,
-            'format' => 'single_elimination',
-            'includeThirdPlaceMatch' => false,
-            'organizationId' => $organizer->organizationId,
-        ], JSON_THROW_ON_ERROR));
+        $this->postCompetition($this->withoutField($this->validPayload($organizer->organizationId), 'name'), $organizer);
+
+        self::assertResponseStatusCodeSame(422);
+    }
+
+    #[Test]
+    public function it_returns_422_when_the_minimum_roster_size_is_missing(): void
+    {
+        $organizer = AuthenticatedOrganizer::signIn(self::getContainer());
+
+        $this->postCompetition($this->withoutField($this->validPayload($organizer->organizationId), 'minRosterSize'), $organizer);
 
         self::assertResponseStatusCodeSame(422);
     }
@@ -122,17 +86,7 @@ final class CreateCompetitionControllerTest extends WebTestCase
     {
         $organizer = AuthenticatedOrganizer::signIn(self::getContainer());
 
-        $this->client->request('POST', '/competitions', server: [
-            'CONTENT_TYPE' => 'application/json',
-            ...$organizer->authorizationHeader(),
-        ], content: json_encode([
-            'name' => 'Summer Cup',
-            'minTeams' => 'not-a-number',
-            'maxTeams' => 4,
-            'format' => 'single_elimination',
-            'includeThirdPlaceMatch' => false,
-            'organizationId' => $organizer->organizationId,
-        ], JSON_THROW_ON_ERROR));
+        $this->postCompetition([...$this->validPayload($organizer->organizationId), 'minTeams' => 'not-a-number'], $organizer);
 
         self::assertResponseStatusCodeSame(422);
     }
@@ -148,5 +102,40 @@ final class CreateCompetitionControllerTest extends WebTestCase
         ], content: '{not valid json');
 
         self::assertResponseStatusCodeSame(400);
+    }
+
+    /** @return array<string, mixed> */
+    private function validPayload(string $organizationId): array
+    {
+        return [
+            'name' => 'Summer Cup',
+            'minTeams' => 2,
+            'maxTeams' => 4,
+            'format' => 'single_elimination',
+            'includeThirdPlaceMatch' => false,
+            'minRosterSize' => 1,
+            'organizationId' => $organizationId,
+        ];
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     *
+     * @return array<string, mixed>
+     */
+    private function withoutField(array $payload, string $field): array
+    {
+        unset($payload[$field]);
+
+        return $payload;
+    }
+
+    /** @param array<string, mixed> $payload */
+    private function postCompetition(array $payload, ?AuthenticatedOrganizer $organizer = null): void
+    {
+        $this->client->request('POST', '/competitions', server: [
+            'CONTENT_TYPE' => 'application/json',
+            ...($organizer?->authorizationHeader() ?? []),
+        ], content: json_encode($payload, JSON_THROW_ON_ERROR));
     }
 }

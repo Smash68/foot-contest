@@ -31,6 +31,7 @@ final class CreateCompetitionController
             $request->maxTeams,
             $request->format,
             $request->includeThirdPlaceMatch,
+            $request->minRosterSize,
             $organizer->getUserIdentifier(),
             $request->organizationId,
         ));

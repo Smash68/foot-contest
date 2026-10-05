@@ -37,7 +37,7 @@ final readonly class CreateCompetitionHandler
             TeamCapacity::of($command->minTeams, $command->maxTeams),
             new BracketConfiguration(CompetitionFormat::fromValue($command->format), $command->includeThirdPlaceMatch),
             $organizationId,
-            MinimumRosterSize::of(1),
+            MinimumRosterSize::of($command->minRosterSize),
         );
 
         $this->repository->save($competition);
