@@ -4,12 +4,10 @@ declare(strict_types=1);
 
 namespace App\Tests\Competition\Infrastructure\Http;
 
-use App\Competition\Domain\Model\Player;
 use App\Competition\Domain\Repository\CompetitionRepository;
-use App\Competition\Domain\Repository\PlayerRepository;
-use App\Competition\Domain\Service\AccessTokenIssuer;
 use App\Competition\Infrastructure\Persistence\InMemory\InMemoryCompetitionRepository;
 use App\Tests\Support\Builder\CompetitionBuilder;
+use App\Tests\Support\Http\AuthenticatedPlayer;
 use PHPUnit\Framework\Attributes\Test;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
@@ -33,11 +31,11 @@ final class RegisterTeamControllerTest extends WebTestCase
         $competition = CompetitionBuilder::aCompetition()->build();
         $this->competitions->save($competition);
 
-        $token = $this->authenticatedPlayer();
+        $player = AuthenticatedPlayer::signIn(self::getContainer());
 
         $this->client->request('POST', "/competitions/{$competition->getId()->value}/teams", server: [
             'CONTENT_TYPE' => 'application/json',
-            'HTTP_AUTHORIZATION' => "Bearer {$token}",
+            ...$player->authorizationHeader(),
         ], content: json_encode([
             'name' => 'Team A',
         ], JSON_THROW_ON_ERROR));
@@ -58,11 +56,11 @@ final class RegisterTeamControllerTest extends WebTestCase
             ->build();
         $this->competitions->save($competition);
 
-        $token = $this->authenticatedPlayer();
+        $player = AuthenticatedPlayer::signIn(self::getContainer());
 
         $this->client->request('POST', "/competitions/{$competition->getId()->value}/teams", server: [
             'CONTENT_TYPE' => 'application/json',
-            'HTTP_AUTHORIZATION' => "Bearer {$token}",
+            ...$player->authorizationHeader(),
         ], content: json_encode([
             'name' => 'Team A',
         ], JSON_THROW_ON_ERROR));
@@ -81,18 +79,5 @@ final class RegisterTeamControllerTest extends WebTestCase
         ], JSON_THROW_ON_ERROR));
 
         self::assertResponseStatusCodeSame(401);
-    }
-
-    private function authenticatedPlayer(): string
-    {
-        $players = self::getContainer()->get(PlayerRepository::class);
-        assert($players instanceof PlayerRepository);
-        $playerId = $players->nextIdentity();
-        $players->save(Player::register($playerId, 'Captain', 'captain@example.com', 'hashed-password'));
-
-        $accessTokenIssuer = self::getContainer()->get(AccessTokenIssuer::class);
-        assert($accessTokenIssuer instanceof AccessTokenIssuer);
-
-        return $accessTokenIssuer->issue($playerId);
     }
 }
