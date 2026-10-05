@@ -11,26 +11,33 @@ use App\Competition\Domain\Service\AccessTokenIssuer;
 use App\Competition\Infrastructure\Persistence\InMemory\InMemoryCompetitionRepository;
 use App\Tests\Support\Builder\CompetitionBuilder;
 use PHPUnit\Framework\Attributes\Test;
+use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 final class RequestToJoinTeamControllerTest extends WebTestCase
 {
+    private KernelBrowser $client;
+    private InMemoryCompetitionRepository $competitions;
+
+    protected function setUp(): void
+    {
+        $this->client = static::createClient();
+
+        $this->competitions = new InMemoryCompetitionRepository();
+        self::getContainer()->set(CompetitionRepository::class, $this->competitions);
+    }
+
     #[Test]
     public function it_records_a_join_request(): void
     {
-        $client = static::createClient();
-
-        $competitions = new InMemoryCompetitionRepository();
-        self::getContainer()->set(CompetitionRepository::class, $competitions);
-
         $competition = CompetitionBuilder::aCompetition()
             ->withTeam('Team A', captainId: 'captain-a', id: 'team-a')
             ->build();
-        $competitions->save($competition);
+        $this->competitions->save($competition);
 
         $token = $this->authenticatedPlayer();
 
-        $client->request('POST', "/competitions/{$competition->getId()->value}/teams/team-a/join-requests", server: [
+        $this->client->request('POST', "/competitions/{$competition->getId()->value}/teams/team-a/join-requests", server: [
             'HTTP_AUTHORIZATION' => "Bearer {$token}",
         ]);
 
@@ -40,17 +47,12 @@ final class RequestToJoinTeamControllerTest extends WebTestCase
     #[Test]
     public function it_returns_401_without_a_token(): void
     {
-        $client = static::createClient();
-
-        $competitions = new InMemoryCompetitionRepository();
-        self::getContainer()->set(CompetitionRepository::class, $competitions);
-
         $competition = CompetitionBuilder::aCompetition()
             ->withTeam('Team A', captainId: 'captain-a', id: 'team-a')
             ->build();
-        $competitions->save($competition);
+        $this->competitions->save($competition);
 
-        $client->request('POST', "/competitions/{$competition->getId()->value}/teams/team-a/join-requests");
+        $this->client->request('POST', "/competitions/{$competition->getId()->value}/teams/team-a/join-requests");
 
         self::assertResponseStatusCodeSame(401);
     }
