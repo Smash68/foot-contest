@@ -19,6 +19,14 @@ final class OrganizationBuilder
         return new self();
     }
 
+    public function withId(string $id): self
+    {
+        $clone = clone $this;
+        $clone->id = $id;
+
+        return $clone;
+    }
+
     /** The owning organizer. */
     public function ownedBy(string $ownerId): self
     {
