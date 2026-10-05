@@ -21,12 +21,13 @@ final class Competition
         private readonly TeamCapacity $capacity,
         private readonly BracketConfiguration $bracketConfiguration,
         private readonly OrganizationId $organizationId,
+        private readonly MinimumRosterSize $minimumRosterSize,
     ) {
     }
 
-    public static function create(CompetitionId $id, string $name, TeamCapacity $capacity, BracketConfiguration $bracketConfiguration, OrganizationId $organizationId): self
+    public static function create(CompetitionId $id, string $name, TeamCapacity $capacity, BracketConfiguration $bracketConfiguration, OrganizationId $organizationId, MinimumRosterSize $minimumRosterSize): self
     {
-        return new self($id, $name, $capacity, $bracketConfiguration, $organizationId);
+        return new self($id, $name, $capacity, $bracketConfiguration, $organizationId, $minimumRosterSize);
     }
 
     public function getId(): CompetitionId
@@ -111,6 +112,12 @@ final class Competition
     {
         if ($this->countRegistrations() < $this->capacity->min) {
             throw new \LogicException("Competition '{$this->id->value}' has not reached its minimum number of teams.");
+        }
+
+        foreach ($this->teams as $team) {
+            if (count($team->getRoster()) < $this->minimumRosterSize->value) {
+                throw new \LogicException("Team '{$team->getName()}' has not reached the minimum roster size of competition '{$this->id->value}'.");
+            }
         }
 
         $this->closed = true;

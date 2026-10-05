@@ -9,6 +9,7 @@ use App\Competition\Domain\Model\BracketConfiguration;
 use App\Competition\Domain\Model\Competition;
 use App\Competition\Domain\Model\CompetitionFormat;
 use App\Competition\Domain\Model\CompetitionId;
+use App\Competition\Domain\Model\MinimumRosterSize;
 use App\Competition\Domain\Model\OrganizationId;
 use App\Competition\Domain\Model\TeamCapacity;
 use App\Competition\Domain\Repository\CompetitionRepository;
@@ -36,6 +37,7 @@ final readonly class CreateCompetitionHandler
             TeamCapacity::of($command->minTeams, $command->maxTeams),
             new BracketConfiguration(CompetitionFormat::fromValue($command->format), $command->includeThirdPlaceMatch),
             $organizationId,
+            MinimumRosterSize::of(1),
         );
 
         $this->repository->save($competition);
