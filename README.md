@@ -102,3 +102,7 @@ Un `Makefile` raccourcit les commandes `docker compose` les plus courantes — `
 - [`docs/architecture.md`](docs/architecture.md) — conventions d'architecture
 - [`docs/glossary.md`](docs/glossary.md) — langage métier
 - [`AGENTS.md`](AGENTS.md) — commandes et workflow de développement (instructions pour les agents de code et les contributeurs)
+
+## Licence
+
+Projet sous [licence MIT](LICENSE).
