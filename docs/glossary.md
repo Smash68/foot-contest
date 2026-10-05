@@ -15,6 +15,7 @@ Ce fichier ne change que lorsque le domaine change — un nouveau concept métie
 | Inscription | — | Phase pendant laquelle les équipes s'inscrivent et composent leur effectif. Close manuellement par l'organisateur, une fois le minimum d'équipes atteint ; les effectifs sont alors figés |
 | Équipe | `Team` | Inscrite à une compétition par son capitaine **seul** ; l'effectif se compose ensuite par demandes d'adhésion. Inscrire une équipe déjà complète court-circuiterait la validation du capitaine |
 | Effectif | `roster` | Les joueurs confirmés d'une équipe. Un joueur n'appartient qu'à une seule équipe par compétition |
+| Effectif minimum | `MinimumRosterSize` | Nombre minimum de joueurs, capitaine et remplaçants compris, qu'une équipe doit compter pour que l'inscription puisse être close. Fixé par l'organisateur à la création de la compétition |
 | Demande d'adhésion | `pendingRequests` | Candidature d'un joueur pour rejoindre une équipe, acceptée ou refusée par le capitaine. Un joueur peut candidater à plusieurs équipes |
 
 ## Tableau et rencontres
