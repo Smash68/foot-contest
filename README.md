@@ -37,7 +37,7 @@ flowchart LR
         oInfra["Infrastructure<br/>HTTP, Doctrine, Security, paiement"] --> oApp["Application<br/>use cases CQRS"]
         oApp --> oDomain["Domain<br/>PHP pur"]
     end
-    cApp -- "Query à primitifs<br/>via le bus Messenger" --> oApp
+    cInfra -- "Query à primitifs<br/>via le bus Messenger" --> oApp
 ```
 
 Les conventions détaillées (par couche, autorisation, erreurs HTTP, tests) sont dans [`docs/architecture.md`](docs/architecture.md).
