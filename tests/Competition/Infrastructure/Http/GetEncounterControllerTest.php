@@ -10,18 +10,25 @@ use App\Competition\Infrastructure\Persistence\InMemory\InMemoryCompetitionRepos
 use App\Tests\Support\Builder\CompetitionBuilder;
 use App\Tests\Support\Builder\PlayerBuilder;
 use PHPUnit\Framework\Attributes\Test;
+use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 final class GetEncounterControllerTest extends WebTestCase
 {
+    private KernelBrowser $client;
+    private InMemoryCompetitionRepository $competitions;
+
+    protected function setUp(): void
+    {
+        $this->client = static::createClient();
+
+        $this->competitions = new InMemoryCompetitionRepository();
+        self::getContainer()->set(CompetitionRepository::class, $this->competitions);
+    }
+
     #[Test]
     public function it_returns_the_sheet_of_an_encounter(): void
     {
-        $client = static::createClient();
-
-        $competitions = new InMemoryCompetitionRepository();
-        self::getContainer()->set(CompetitionRepository::class, $competitions);
-
         $players = self::getContainer()->get(PlayerRepository::class);
         assert($players instanceof PlayerRepository);
         $players->save(PlayerBuilder::aPlayer()->withId('captain-a')->build());
@@ -32,17 +39,17 @@ final class GetEncounterControllerTest extends WebTestCase
             ->withTeam('Team B', captainId: 'captain-b')
             ->withBracketGenerated()
             ->build();
-        $competitions->save($competition);
+        $this->competitions->save($competition);
 
         $bracket = $competition->getBracket();
         self::assertNotNull($bracket);
         $encounterId = $bracket->getRounds()[0]->getEncounters()[0]->id->value;
 
-        $client->request('GET', "/competitions/{$competition->getId()->value}/encounters/{$encounterId}");
+        $this->client->request('GET', "/competitions/{$competition->getId()->value}/encounters/{$encounterId}");
 
         self::assertResponseStatusCodeSame(200);
 
-        $data = json_decode((string) $client->getResponse()->getContent(), true);
+        $data = json_decode((string) $this->client->getResponse()->getContent(), true);
 
         self::assertIsArray($data);
         self::assertArrayHasKey('id', $data);
@@ -54,11 +61,6 @@ final class GetEncounterControllerTest extends WebTestCase
     #[Test]
     public function it_returns_404_when_the_encounter_does_not_exist_in_the_bracket(): void
     {
-        $client = static::createClient();
-
-        $competitions = new InMemoryCompetitionRepository();
-        self::getContainer()->set(CompetitionRepository::class, $competitions);
-
         $players = self::getContainer()->get(PlayerRepository::class);
         assert($players instanceof PlayerRepository);
         $players->save(PlayerBuilder::aPlayer()->withId('captain-a')->build());
@@ -69,9 +71,9 @@ final class GetEncounterControllerTest extends WebTestCase
             ->withTeam('Team B', captainId: 'captain-b')
             ->withBracketGenerated()
             ->build();
-        $competitions->save($competition);
+        $this->competitions->save($competition);
 
-        $client->request('GET', "/competitions/{$competition->getId()->value}/encounters/unknown-encounter");
+        $this->client->request('GET', "/competitions/{$competition->getId()->value}/encounters/unknown-encounter");
 
         self::assertResponseStatusCodeSame(404);
     }
