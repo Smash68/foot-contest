@@ -11,27 +11,34 @@ use App\Competition\Domain\Service\AccessTokenIssuer;
 use App\Competition\Infrastructure\Persistence\InMemory\InMemoryCompetitionRepository;
 use App\Tests\Support\Builder\CompetitionBuilder;
 use PHPUnit\Framework\Attributes\Test;
+use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 final class RejectJoinRequestControllerTest extends WebTestCase
 {
+    private KernelBrowser $client;
+    private InMemoryCompetitionRepository $competitions;
+
+    protected function setUp(): void
+    {
+        $this->client = static::createClient();
+
+        $this->competitions = new InMemoryCompetitionRepository();
+        self::getContainer()->set(CompetitionRepository::class, $this->competitions);
+    }
+
     #[Test]
     public function it_rejects_a_join_request_when_requested_by_the_captain(): void
     {
-        $client = static::createClient();
-
-        $competitions = new InMemoryCompetitionRepository();
-        self::getContainer()->set(CompetitionRepository::class, $competitions);
-
         [$token, $captainId] = $this->authenticatedPlayer();
 
         $competition = CompetitionBuilder::aCompetition()
             ->withTeam('Team A', captainId: $captainId, id: 'team-a')
             ->withPendingJoinRequest('team-a', 'applicant')
             ->build();
-        $competitions->save($competition);
+        $this->competitions->save($competition);
 
-        $client->request('POST', "/competitions/{$competition->getId()->value}/teams/team-a/join-requests/applicant/reject", server: [
+        $this->client->request('POST', "/competitions/{$competition->getId()->value}/teams/team-a/join-requests/applicant/reject", server: [
             'HTTP_AUTHORIZATION' => "Bearer {$token}",
         ]);
 
@@ -41,18 +48,13 @@ final class RejectJoinRequestControllerTest extends WebTestCase
     #[Test]
     public function it_returns_401_without_a_token(): void
     {
-        $client = static::createClient();
-
-        $competitions = new InMemoryCompetitionRepository();
-        self::getContainer()->set(CompetitionRepository::class, $competitions);
-
         $competition = CompetitionBuilder::aCompetition()
             ->withTeam('Team A', captainId: 'captain-a', id: 'team-a')
             ->withPendingJoinRequest('team-a', 'applicant')
             ->build();
-        $competitions->save($competition);
+        $this->competitions->save($competition);
 
-        $client->request('POST', "/competitions/{$competition->getId()->value}/teams/team-a/join-requests/applicant/reject");
+        $this->client->request('POST', "/competitions/{$competition->getId()->value}/teams/team-a/join-requests/applicant/reject");
 
         self::assertResponseStatusCodeSame(401);
     }
@@ -60,20 +62,15 @@ final class RejectJoinRequestControllerTest extends WebTestCase
     #[Test]
     public function it_returns_403_when_the_requester_is_not_the_captain(): void
     {
-        $client = static::createClient();
-
-        $competitions = new InMemoryCompetitionRepository();
-        self::getContainer()->set(CompetitionRepository::class, $competitions);
-
         $competition = CompetitionBuilder::aCompetition()
             ->withTeam('Team A', captainId: 'captain-a', id: 'team-a')
             ->withPendingJoinRequest('team-a', 'applicant')
             ->build();
-        $competitions->save($competition);
+        $this->competitions->save($competition);
 
         [$token] = $this->authenticatedPlayer();
 
-        $client->request('POST', "/competitions/{$competition->getId()->value}/teams/team-a/join-requests/applicant/reject", server: [
+        $this->client->request('POST', "/competitions/{$competition->getId()->value}/teams/team-a/join-requests/applicant/reject", server: [
             'HTTP_AUTHORIZATION' => "Bearer {$token}",
         ]);
 
