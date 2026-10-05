@@ -10,17 +10,24 @@ use App\Organization\Domain\Repository\OrganizationRepository;
 use App\Organization\Domain\Repository\OrganizerRepository;
 use App\Organization\Domain\Service\AccessTokenIssuer;
 use PHPUnit\Framework\Attributes\Test;
+use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 final class CreateCompetitionControllerTest extends WebTestCase
 {
+    private KernelBrowser $client;
+
+    protected function setUp(): void
+    {
+        $this->client = static::createClient();
+    }
+
     #[Test]
     public function it_creates_a_competition(): void
     {
-        $client = static::createClient();
         [$token, $organizationId] = $this->authenticatedOrganizer();
 
-        $client->request('POST', '/competitions', server: [
+        $this->client->request('POST', '/competitions', server: [
             'CONTENT_TYPE' => 'application/json',
             'HTTP_AUTHORIZATION' => "Bearer {$token}",
         ], content: json_encode([
@@ -34,7 +41,7 @@ final class CreateCompetitionControllerTest extends WebTestCase
 
         self::assertResponseStatusCodeSame(201);
 
-        $payload = json_decode((string) $client->getResponse()->getContent(), true);
+        $payload = json_decode((string) $this->client->getResponse()->getContent(), true);
         self::assertIsArray($payload);
         self::assertArrayHasKey('id', $payload);
         self::assertNotEmpty($payload['id']);
@@ -43,9 +50,7 @@ final class CreateCompetitionControllerTest extends WebTestCase
     #[Test]
     public function it_returns_401_without_a_token(): void
     {
-        $client = static::createClient();
-
-        $client->request('POST', '/competitions', server: ['CONTENT_TYPE' => 'application/json'], content: json_encode([
+        $this->client->request('POST', '/competitions', server: ['CONTENT_TYPE' => 'application/json'], content: json_encode([
             'name' => 'Summer Cup',
             'minTeams' => 2,
             'maxTeams' => 4,
@@ -60,10 +65,9 @@ final class CreateCompetitionControllerTest extends WebTestCase
     #[Test]
     public function it_returns_403_when_the_organizer_does_not_own_the_organization(): void
     {
-        $client = static::createClient();
         [$token] = $this->authenticatedOrganizer();
 
-        $client->request('POST', '/competitions', server: [
+        $this->client->request('POST', '/competitions', server: [
             'CONTENT_TYPE' => 'application/json',
             'HTTP_AUTHORIZATION' => "Bearer {$token}",
         ], content: json_encode([
@@ -81,10 +85,9 @@ final class CreateCompetitionControllerTest extends WebTestCase
     #[Test]
     public function it_returns_422_when_team_capacity_is_invalid(): void
     {
-        $client = static::createClient();
         [$token, $organizationId] = $this->authenticatedOrganizer();
 
-        $client->request('POST', '/competitions', server: [
+        $this->client->request('POST', '/competitions', server: [
             'CONTENT_TYPE' => 'application/json',
             'HTTP_AUTHORIZATION' => "Bearer {$token}",
         ], content: json_encode([
@@ -102,10 +105,9 @@ final class CreateCompetitionControllerTest extends WebTestCase
     #[Test]
     public function it_returns_422_when_a_required_field_is_missing(): void
     {
-        $client = static::createClient();
         [$token, $organizationId] = $this->authenticatedOrganizer();
 
-        $client->request('POST', '/competitions', server: [
+        $this->client->request('POST', '/competitions', server: [
             'CONTENT_TYPE' => 'application/json',
             'HTTP_AUTHORIZATION' => "Bearer {$token}",
         ], content: json_encode([
@@ -122,10 +124,9 @@ final class CreateCompetitionControllerTest extends WebTestCase
     #[Test]
     public function it_returns_422_when_a_field_has_the_wrong_type(): void
     {
-        $client = static::createClient();
         [$token, $organizationId] = $this->authenticatedOrganizer();
 
-        $client->request('POST', '/competitions', server: [
+        $this->client->request('POST', '/competitions', server: [
             'CONTENT_TYPE' => 'application/json',
             'HTTP_AUTHORIZATION' => "Bearer {$token}",
         ], content: json_encode([
@@ -143,10 +144,9 @@ final class CreateCompetitionControllerTest extends WebTestCase
     #[Test]
     public function it_returns_400_when_the_request_body_is_malformed_json(): void
     {
-        $client = static::createClient();
         [$token] = $this->authenticatedOrganizer();
 
-        $client->request('POST', '/competitions', server: [
+        $this->client->request('POST', '/competitions', server: [
             'CONTENT_TYPE' => 'application/json',
             'HTTP_AUTHORIZATION' => "Bearer {$token}",
         ], content: '{not valid json');
