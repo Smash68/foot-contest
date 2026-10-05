@@ -16,26 +16,33 @@ use App\Organization\Domain\Repository\OrganizerRepository;
 use App\Organization\Domain\Service\AccessTokenIssuer as OrganizationAccessTokenIssuer;
 use App\Tests\Support\Builder\CompetitionBuilder;
 use PHPUnit\Framework\Attributes\Test;
+use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 final class WithdrawControllerTest extends WebTestCase
 {
+    private KernelBrowser $client;
+    private InMemoryCompetitionRepository $competitions;
+
+    protected function setUp(): void
+    {
+        $this->client = static::createClient();
+
+        $this->competitions = new InMemoryCompetitionRepository();
+        self::getContainer()->set(CompetitionRepository::class, $this->competitions);
+    }
+
     #[Test]
     public function it_withdraws_a_team_when_requested_by_its_captain(): void
     {
-        $client = static::createClient();
-
-        $competitions = new InMemoryCompetitionRepository();
-        self::getContainer()->set(CompetitionRepository::class, $competitions);
-
         [$token, $captainId] = $this->authenticatedPlayer();
 
         $competition = CompetitionBuilder::aCompetition()
             ->withTeam('Team A', captainId: $captainId, id: 'team-a')
             ->build();
-        $competitions->save($competition);
+        $this->competitions->save($competition);
 
-        $client->request('DELETE', "/competitions/{$competition->getId()->value}/teams/team-a", server: [
+        $this->client->request('DELETE', "/competitions/{$competition->getId()->value}/teams/team-a", server: [
             'HTTP_AUTHORIZATION' => "Bearer {$token}",
         ]);
 
@@ -45,20 +52,15 @@ final class WithdrawControllerTest extends WebTestCase
     #[Test]
     public function it_withdraws_a_team_when_requested_by_the_owning_organizer(): void
     {
-        $client = static::createClient();
-
-        $competitions = new InMemoryCompetitionRepository();
-        self::getContainer()->set(CompetitionRepository::class, $competitions);
-
         [$token, $organizationId] = $this->authenticatedOrganizer();
 
         $competition = CompetitionBuilder::aCompetition()
             ->ownedBy($organizationId)
             ->withTeam('Team A', captainId: 'captain-a', id: 'team-a')
             ->build();
-        $competitions->save($competition);
+        $this->competitions->save($competition);
 
-        $client->request('DELETE', "/competitions/{$competition->getId()->value}/teams/team-a", server: [
+        $this->client->request('DELETE', "/competitions/{$competition->getId()->value}/teams/team-a", server: [
             'HTTP_AUTHORIZATION' => "Bearer {$token}",
         ]);
 
@@ -68,17 +70,12 @@ final class WithdrawControllerTest extends WebTestCase
     #[Test]
     public function it_returns_401_without_a_token(): void
     {
-        $client = static::createClient();
-
-        $competitions = new InMemoryCompetitionRepository();
-        self::getContainer()->set(CompetitionRepository::class, $competitions);
-
         $competition = CompetitionBuilder::aCompetition()
             ->withTeam('Team A', captainId: 'captain-a', id: 'team-a')
             ->build();
-        $competitions->save($competition);
+        $this->competitions->save($competition);
 
-        $client->request('DELETE', "/competitions/{$competition->getId()->value}/teams/team-a");
+        $this->client->request('DELETE', "/competitions/{$competition->getId()->value}/teams/team-a");
 
         self::assertResponseStatusCodeSame(401);
     }
@@ -86,20 +83,15 @@ final class WithdrawControllerTest extends WebTestCase
     #[Test]
     public function it_returns_403_when_neither_the_captain_nor_the_owning_organizer(): void
     {
-        $client = static::createClient();
-
-        $competitions = new InMemoryCompetitionRepository();
-        self::getContainer()->set(CompetitionRepository::class, $competitions);
-
         $competition = CompetitionBuilder::aCompetition()
             ->ownedBy('someone-elses-organization')
             ->withTeam('Team A', captainId: 'captain-a', id: 'team-a')
             ->build();
-        $competitions->save($competition);
+        $this->competitions->save($competition);
 
         [$token] = $this->authenticatedPlayer();
 
-        $client->request('DELETE', "/competitions/{$competition->getId()->value}/teams/team-a", server: [
+        $this->client->request('DELETE', "/competitions/{$competition->getId()->value}/teams/team-a", server: [
             'HTTP_AUTHORIZATION' => "Bearer {$token}",
         ]);
 
