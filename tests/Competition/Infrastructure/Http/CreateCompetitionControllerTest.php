@@ -32,6 +32,7 @@ final class CreateCompetitionControllerTest extends WebTestCase
             'maxTeams' => 4,
             'format' => 'single_elimination',
             'includeThirdPlaceMatch' => false,
+            'minRosterSize' => 1,
             'organizationId' => $organizer->organizationId,
         ], JSON_THROW_ON_ERROR));
 
@@ -52,6 +53,7 @@ final class CreateCompetitionControllerTest extends WebTestCase
             'maxTeams' => 4,
             'format' => 'single_elimination',
             'includeThirdPlaceMatch' => false,
+            'minRosterSize' => 1,
             'organizationId' => 'org-1',
         ], JSON_THROW_ON_ERROR));
 
@@ -72,6 +74,7 @@ final class CreateCompetitionControllerTest extends WebTestCase
             'maxTeams' => 4,
             'format' => 'single_elimination',
             'includeThirdPlaceMatch' => false,
+            'minRosterSize' => 1,
             'organizationId' => 'someone-elses-organization',
         ], JSON_THROW_ON_ERROR));
 
@@ -92,6 +95,7 @@ final class CreateCompetitionControllerTest extends WebTestCase
             'maxTeams' => 4,
             'format' => 'single_elimination',
             'includeThirdPlaceMatch' => false,
+            'minRosterSize' => 1,
             'organizationId' => $organizer->organizationId,
         ], JSON_THROW_ON_ERROR));
 
@@ -107,6 +111,27 @@ final class CreateCompetitionControllerTest extends WebTestCase
             'CONTENT_TYPE' => 'application/json',
             ...$organizer->authorizationHeader(),
         ], content: json_encode([
+            'minTeams' => 2,
+            'maxTeams' => 4,
+            'format' => 'single_elimination',
+            'includeThirdPlaceMatch' => false,
+            'minRosterSize' => 1,
+            'organizationId' => $organizer->organizationId,
+        ], JSON_THROW_ON_ERROR));
+
+        self::assertResponseStatusCodeSame(422);
+    }
+
+    #[Test]
+    public function it_returns_422_when_the_minimum_roster_size_is_missing(): void
+    {
+        $organizer = AuthenticatedOrganizer::signIn(self::getContainer());
+
+        $this->client->request('POST', '/competitions', server: [
+            'CONTENT_TYPE' => 'application/json',
+            ...$organizer->authorizationHeader(),
+        ], content: json_encode([
+            'name' => 'Summer Cup',
             'minTeams' => 2,
             'maxTeams' => 4,
             'format' => 'single_elimination',
@@ -131,6 +156,7 @@ final class CreateCompetitionControllerTest extends WebTestCase
             'maxTeams' => 4,
             'format' => 'single_elimination',
             'includeThirdPlaceMatch' => false,
+            'minRosterSize' => 1,
             'organizationId' => $organizer->organizationId,
         ], JSON_THROW_ON_ERROR));
 

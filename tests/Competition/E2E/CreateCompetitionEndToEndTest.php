@@ -51,6 +51,7 @@ final class CreateCompetitionEndToEndTest extends WebTestCase
             'maxTeams' => 4,
             'format' => 'single_elimination',
             'includeThirdPlaceMatch' => false,
+            'minRosterSize' => 1,
             'organizationId' => $organizationId->value,
         ], JSON_THROW_ON_ERROR));
 

@@ -12,6 +12,7 @@ final readonly class CreateCompetitionRequest
         public int $maxTeams,
         public string $format,
         public bool $includeThirdPlaceMatch,
+        public int $minRosterSize,
         public string $organizationId,
     ) {
     }
