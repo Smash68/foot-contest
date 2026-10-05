@@ -4,13 +4,11 @@ declare(strict_types=1);
 
 namespace App\Tests\Competition\Infrastructure\Http;
 
-use App\Competition\Domain\Model\Player;
 use App\Competition\Domain\Repository\CompetitionRepository;
-use App\Competition\Domain\Repository\PlayerRepository;
-use App\Competition\Domain\Service\AccessTokenIssuer as PlayerAccessTokenIssuer;
 use App\Competition\Infrastructure\Persistence\InMemory\InMemoryCompetitionRepository;
 use App\Tests\Support\Builder\CompetitionBuilder;
 use App\Tests\Support\Http\AuthenticatedOrganizer;
+use App\Tests\Support\Http\AuthenticatedPlayer;
 use PHPUnit\Framework\Attributes\Test;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
@@ -83,36 +81,18 @@ final class GenerateBracketControllerTest extends WebTestCase
     #[Test]
     public function it_returns_401_for_a_captain_of_the_competition(): void
     {
-        [$token, $captainId] = $this->authenticatedPlayer();
+        $captain = AuthenticatedPlayer::signIn(self::getContainer());
 
         $competition = CompetitionBuilder::aCompetition()
-            ->withTeam('Team A', captainId: $captainId)
+            ->withTeam('Team A', captainId: $captain->playerId)
             ->withTeam('Team B', captainId: 'captain-b')
             ->withRegistrationClosed()
             ->build();
         $this->competitions->save($competition);
 
-        $this->client->request('POST', "/competitions/{$competition->getId()->value}/generate-bracket", server: [
-            'HTTP_AUTHORIZATION' => "Bearer {$token}",
-        ]);
+        $this->client->request('POST', "/competitions/{$competition->getId()->value}/generate-bracket", server: $captain->authorizationHeader());
 
         self::assertResponseStatusCodeSame(401);
         self::assertNull($competition->getBracket());
-    }
-
-    /**
-     * @return array{0: string, 1: string}
-     */
-    private function authenticatedPlayer(): array
-    {
-        $players = self::getContainer()->get(PlayerRepository::class);
-        assert($players instanceof PlayerRepository);
-        $playerId = $players->nextIdentity();
-        $players->save(Player::register($playerId, 'Captain', 'captain@example.com', 'hashed-password'));
-
-        $accessTokenIssuer = self::getContainer()->get(PlayerAccessTokenIssuer::class);
-        assert($accessTokenIssuer instanceof PlayerAccessTokenIssuer);
-
-        return [$accessTokenIssuer->issue($playerId), $playerId->value];
     }
 }
