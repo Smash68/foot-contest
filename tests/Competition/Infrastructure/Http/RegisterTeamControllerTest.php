@@ -11,24 +11,31 @@ use App\Competition\Domain\Service\AccessTokenIssuer;
 use App\Competition\Infrastructure\Persistence\InMemory\InMemoryCompetitionRepository;
 use App\Tests\Support\Builder\CompetitionBuilder;
 use PHPUnit\Framework\Attributes\Test;
+use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 final class RegisterTeamControllerTest extends WebTestCase
 {
+    private KernelBrowser $client;
+    private InMemoryCompetitionRepository $competitions;
+
+    protected function setUp(): void
+    {
+        $this->client = static::createClient();
+
+        $this->competitions = new InMemoryCompetitionRepository();
+        self::getContainer()->set(CompetitionRepository::class, $this->competitions);
+    }
+
     #[Test]
     public function it_registers_a_team(): void
     {
-        $client = static::createClient();
-
-        $competitions = new InMemoryCompetitionRepository();
-        self::getContainer()->set(CompetitionRepository::class, $competitions);
-
         $competition = CompetitionBuilder::aCompetition()->build();
-        $competitions->save($competition);
+        $this->competitions->save($competition);
 
         $token = $this->authenticatedPlayer();
 
-        $client->request('POST', "/competitions/{$competition->getId()->value}/teams", server: [
+        $this->client->request('POST', "/competitions/{$competition->getId()->value}/teams", server: [
             'CONTENT_TYPE' => 'application/json',
             'HTTP_AUTHORIZATION' => "Bearer {$token}",
         ], content: json_encode([
@@ -37,7 +44,7 @@ final class RegisterTeamControllerTest extends WebTestCase
 
         self::assertResponseStatusCodeSame(201);
 
-        $payload = json_decode((string) $client->getResponse()->getContent(), true);
+        $payload = json_decode((string) $this->client->getResponse()->getContent(), true);
         self::assertIsArray($payload);
         self::assertArrayHasKey('id', $payload);
         self::assertNotEmpty($payload['id']);
@@ -46,19 +53,14 @@ final class RegisterTeamControllerTest extends WebTestCase
     #[Test]
     public function it_returns_409_when_the_team_name_is_already_taken(): void
     {
-        $client = static::createClient();
-
-        $competitions = new InMemoryCompetitionRepository();
-        self::getContainer()->set(CompetitionRepository::class, $competitions);
-
         $competition = CompetitionBuilder::aCompetition()
             ->withTeam('Team A', captainId: 'existing-captain')
             ->build();
-        $competitions->save($competition);
+        $this->competitions->save($competition);
 
         $token = $this->authenticatedPlayer();
 
-        $client->request('POST', "/competitions/{$competition->getId()->value}/teams", server: [
+        $this->client->request('POST', "/competitions/{$competition->getId()->value}/teams", server: [
             'CONTENT_TYPE' => 'application/json',
             'HTTP_AUTHORIZATION' => "Bearer {$token}",
         ], content: json_encode([
@@ -71,15 +73,10 @@ final class RegisterTeamControllerTest extends WebTestCase
     #[Test]
     public function it_returns_401_without_a_token(): void
     {
-        $client = static::createClient();
-
-        $competitions = new InMemoryCompetitionRepository();
-        self::getContainer()->set(CompetitionRepository::class, $competitions);
-
         $competition = CompetitionBuilder::aCompetition()->build();
-        $competitions->save($competition);
+        $this->competitions->save($competition);
 
-        $client->request('POST', "/competitions/{$competition->getId()->value}/teams", server: ['CONTENT_TYPE' => 'application/json'], content: json_encode([
+        $this->client->request('POST', "/competitions/{$competition->getId()->value}/teams", server: ['CONTENT_TYPE' => 'application/json'], content: json_encode([
             'name' => 'Team A',
         ], JSON_THROW_ON_ERROR));
 
