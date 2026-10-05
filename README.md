@@ -21,6 +21,13 @@ Le vocabulaire métier est défini dans le [glossaire](docs/glossary.md).
 | Capitaine | Inscrit et gère une équipe (est aussi joueur) |
 | Joueur | Rejoint une équipe pour un tournoi |
 
+## Stack
+
+- PHP 8.4 / Symfony 8.1
+- PostgreSQL (Doctrine ORM)
+- PHPUnit 13
+- Docker Compose pour l'environnement de développement et la CI (GitHub Actions)
+
 ## Architecture
 
 Deux bounded contexts, `Competition` et `Organization`, chacun en architecture hexagonale (`Domain`, `Application`, `Infrastructure`). La dépendance entre modules est à sens unique, vérifiée par [Deptrac](deptrac.yaml) en CI.
