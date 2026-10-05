@@ -31,6 +31,7 @@ final class CreateCompetitionController
             $request->maxTeams,
             $request->format,
             $request->includeThirdPlaceMatch,
+            1,
             $organizer->getUserIdentifier(),
             $request->organizationId,
         ));
