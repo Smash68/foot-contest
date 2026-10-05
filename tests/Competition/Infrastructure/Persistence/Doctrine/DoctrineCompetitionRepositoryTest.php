@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Competition\Infrastructure\Persistence\Doctrine;
 
+use App\Competition\Domain\Exception\IncompleteTeamsException;
 use App\Competition\Domain\Format\SingleElimination\BracketWithThirdPlaceMatch;
 use App\Competition\Domain\Model\CompetitionFormat;
 use App\Competition\Domain\Model\EncounterId;
@@ -141,6 +142,30 @@ final class DoctrineCompetitionRepositoryTest extends KernelTestCase
         $this->expectException(\LogicException::class);
 
         $found->register($this->team('d', 'Team D'));
+    }
+
+    #[Test]
+    public function it_persists_the_minimum_roster_size(): void
+    {
+        $entityManager = self::getContainer()->get(EntityManagerInterface::class);
+        assert($entityManager instanceof EntityManagerInterface);
+        $repository = new DoctrineCompetitionRepository($entityManager);
+
+        $competition = CompetitionBuilder::aCompetition()
+            ->withMinimumRosterSize(2)
+            ->withTeam('Team A', captainId: 'captain-a')
+            ->withTeam('Team B', captainId: 'captain-b')
+            ->build();
+
+        $repository->save($competition);
+        $entityManager->clear();
+
+        $found = $repository->ofId($competition->getId());
+        self::assertNotNull($found);
+
+        $this->expectException(IncompleteTeamsException::class);
+
+        $found->closeRegistration();
     }
 
     #[Test]

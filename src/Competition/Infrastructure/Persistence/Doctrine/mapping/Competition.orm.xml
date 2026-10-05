@@ -15,6 +15,7 @@
 
         <embedded name="capacity" class="App\Competition\Domain\Model\TeamCapacity" />
         <embedded name="bracketConfiguration" class="App\Competition\Domain\Model\BracketConfiguration" />
+        <embedded name="minimumRosterSize" class="App\Competition\Domain\Model\MinimumRosterSize" use-column-prefix="false" />
     </entity>
 
 </doctrine-mapping>
