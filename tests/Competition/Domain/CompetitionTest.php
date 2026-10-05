@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Competition\Domain;
 
+use App\Competition\Domain\Exception\IncompleteTeamsException;
 use App\Competition\Domain\Format\SingleElimination\SingleEliminationBracketGenerator;
 use App\Competition\Domain\Model\BracketConfiguration;
 use App\Competition\Domain\Model\Competition;
@@ -242,6 +243,25 @@ final class CompetitionTest extends TestCase
         $this->expectException(\LogicException::class);
 
         $competition->closeRegistration();
+    }
+
+    #[Test]
+    public function it_names_the_teams_below_the_minimum_roster_size_when_rejecting_the_closing(): void
+    {
+        $competition = CompetitionBuilder::aCompetition()
+            ->withMinimumRosterSize(2)
+            ->withTeam('Team A', captainId: 'a@example.com', id: 'a')
+            ->withTeam('Team B', captainId: 'b@example.com', id: 'b')
+            ->withTeamMember('b', 'b-member@example.com')
+            ->withTeam('Team C', captainId: 'c@example.com', id: 'c')
+            ->build();
+
+        try {
+            $competition->closeRegistration();
+            self::fail('Closing the registration should have been rejected.');
+        } catch (IncompleteTeamsException $exception) {
+            self::assertSame(['a' => 'Team A', 'c' => 'Team C'], $exception->teamNamesById);
+        }
     }
 
     #[Test]

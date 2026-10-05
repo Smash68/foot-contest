@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Competition\Domain\Model;
 
+use App\Competition\Domain\Exception\IncompleteTeamsException;
 use App\Competition\Domain\Service\BracketGeneratorFactory;
 
 final class Competition
@@ -114,13 +115,25 @@ final class Competition
             throw new \LogicException("Competition '{$this->id->value}' has not reached its minimum number of teams.");
         }
 
-        foreach ($this->teams as $team) {
-            if (count($team->getRoster()) < $this->minimumRosterSize->value) {
-                throw new \LogicException("Team '{$team->getName()}' has not reached the minimum roster size of competition '{$this->id->value}'.");
-            }
+        $incompleteTeamNamesById = $this->incompleteTeamNamesById();
+        if ($incompleteTeamNamesById !== []) {
+            throw new IncompleteTeamsException($this->id->value, $incompleteTeamNamesById);
         }
 
         $this->closed = true;
+    }
+
+    /** @return array<string, string> the teams below the minimum roster size, names keyed by team id */
+    private function incompleteTeamNamesById(): array
+    {
+        $incompleteTeamNamesById = [];
+        foreach ($this->teams as $team) {
+            if (count($team->getRoster()) < $this->minimumRosterSize->value) {
+                $incompleteTeamNamesById[$team->getId()->value] = $team->getName();
+            }
+        }
+
+        return $incompleteTeamNamesById;
     }
 
     public function withdraw(TeamId $teamId): void
