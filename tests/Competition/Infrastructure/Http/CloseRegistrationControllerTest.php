@@ -13,18 +13,25 @@ use App\Organization\Domain\Repository\OrganizerRepository;
 use App\Organization\Domain\Service\AccessTokenIssuer;
 use App\Tests\Support\Builder\CompetitionBuilder;
 use PHPUnit\Framework\Attributes\Test;
+use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 final class CloseRegistrationControllerTest extends WebTestCase
 {
+    private KernelBrowser $client;
+    private InMemoryCompetitionRepository $competitions;
+
+    protected function setUp(): void
+    {
+        $this->client = static::createClient();
+
+        $this->competitions = new InMemoryCompetitionRepository();
+        self::getContainer()->set(CompetitionRepository::class, $this->competitions);
+    }
+
     #[Test]
     public function it_closes_registration(): void
     {
-        $client = static::createClient();
-
-        $competitions = new InMemoryCompetitionRepository();
-        self::getContainer()->set(CompetitionRepository::class, $competitions);
-
         [$token, $organizationId] = $this->authenticatedOrganizer();
 
         $competition = CompetitionBuilder::aCompetition()
@@ -32,9 +39,9 @@ final class CloseRegistrationControllerTest extends WebTestCase
             ->withTeam('Team A', captainId: 'captain-a')
             ->withTeam('Team B', captainId: 'captain-b')
             ->build();
-        $competitions->save($competition);
+        $this->competitions->save($competition);
 
-        $client->request('POST', "/competitions/{$competition->getId()->value}/close-registration", server: [
+        $this->client->request('POST', "/competitions/{$competition->getId()->value}/close-registration", server: [
             'HTTP_AUTHORIZATION' => "Bearer {$token}",
         ]);
 
@@ -44,15 +51,10 @@ final class CloseRegistrationControllerTest extends WebTestCase
     #[Test]
     public function it_returns_401_without_a_token(): void
     {
-        $client = static::createClient();
-
-        $competitions = new InMemoryCompetitionRepository();
-        self::getContainer()->set(CompetitionRepository::class, $competitions);
-
         $competition = CompetitionBuilder::aCompetition()->build();
-        $competitions->save($competition);
+        $this->competitions->save($competition);
 
-        $client->request('POST', "/competitions/{$competition->getId()->value}/close-registration");
+        $this->client->request('POST', "/competitions/{$competition->getId()->value}/close-registration");
 
         self::assertResponseStatusCodeSame(401);
     }
@@ -60,17 +62,12 @@ final class CloseRegistrationControllerTest extends WebTestCase
     #[Test]
     public function it_returns_403_when_the_organizer_does_not_own_the_organization(): void
     {
-        $client = static::createClient();
-
-        $competitions = new InMemoryCompetitionRepository();
-        self::getContainer()->set(CompetitionRepository::class, $competitions);
-
         $competition = CompetitionBuilder::aCompetition()->ownedBy('someone-elses-organization')->build();
-        $competitions->save($competition);
+        $this->competitions->save($competition);
 
         [$token] = $this->authenticatedOrganizer();
 
-        $client->request('POST', "/competitions/{$competition->getId()->value}/close-registration", server: [
+        $this->client->request('POST', "/competitions/{$competition->getId()->value}/close-registration", server: [
             'HTTP_AUTHORIZATION' => "Bearer {$token}",
         ]);
 
