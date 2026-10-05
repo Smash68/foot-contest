@@ -1,5 +1,9 @@
 # Foot Contest
 
+[![CI](https://github.com/Smash68/foot-contest/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Smash68/foot-contest/actions/workflows/ci.yml)
+[![Licence MIT](https://img.shields.io/badge/licence-MIT-blue.svg)](LICENSE)
+![PHP 8.4](https://img.shields.io/badge/PHP-8.4-777bb4.svg)
+
 Application SaaS multi-tenant de gestion de tournois de football, destinée aux entreprises, associations et mairies.
 
 Une organisation (le client) crée ses compétitions. Les capitaines y inscrivent leur équipe, les joueurs la rejoignent, puis l'organisateur clôt les inscriptions et génère le tableau.
