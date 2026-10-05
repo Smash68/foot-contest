@@ -9,12 +9,8 @@ use App\Competition\Domain\Repository\CompetitionRepository;
 use App\Competition\Domain\Repository\PlayerRepository;
 use App\Competition\Domain\Service\AccessTokenIssuer as PlayerAccessTokenIssuer;
 use App\Competition\Infrastructure\Persistence\InMemory\InMemoryCompetitionRepository;
-use App\Organization\Domain\Model\Organization;
-use App\Organization\Domain\Model\Organizer;
-use App\Organization\Domain\Repository\OrganizationRepository;
-use App\Organization\Domain\Repository\OrganizerRepository;
-use App\Organization\Domain\Service\AccessTokenIssuer;
 use App\Tests\Support\Builder\CompetitionBuilder;
+use App\Tests\Support\Http\AuthenticatedOrganizer;
 use PHPUnit\Framework\Attributes\Test;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
@@ -35,19 +31,17 @@ final class GenerateBracketControllerTest extends WebTestCase
     #[Test]
     public function it_generates_the_bracket(): void
     {
-        [$token, $organizationId] = $this->authenticatedOrganizer();
+        $organizer = AuthenticatedOrganizer::signIn(self::getContainer());
 
         $competition = CompetitionBuilder::aCompetition()
-            ->ownedBy($organizationId)
+            ->ownedBy($organizer->organizationId)
             ->withTeam('Team A', captainId: 'captain-a')
             ->withTeam('Team B', captainId: 'captain-b')
             ->withRegistrationClosed()
             ->build();
         $this->competitions->save($competition);
 
-        $this->client->request('POST', "/competitions/{$competition->getId()->value}/generate-bracket", server: [
-            'HTTP_AUTHORIZATION' => "Bearer {$token}",
-        ]);
+        $this->client->request('POST', "/competitions/{$competition->getId()->value}/generate-bracket", server: $organizer->authorizationHeader());
 
         self::assertResponseStatusCodeSame(204);
     }
@@ -79,11 +73,9 @@ final class GenerateBracketControllerTest extends WebTestCase
             ->build();
         $this->competitions->save($competition);
 
-        [$token] = $this->authenticatedOrganizer();
+        $organizer = AuthenticatedOrganizer::signIn(self::getContainer());
 
-        $this->client->request('POST', "/competitions/{$competition->getId()->value}/generate-bracket", server: [
-            'HTTP_AUTHORIZATION' => "Bearer {$token}",
-        ]);
+        $this->client->request('POST', "/competitions/{$competition->getId()->value}/generate-bracket", server: $organizer->authorizationHeader());
 
         self::assertResponseStatusCodeSame(403);
     }
@@ -106,28 +98,6 @@ final class GenerateBracketControllerTest extends WebTestCase
 
         self::assertResponseStatusCodeSame(401);
         self::assertNull($competition->getBracket());
-    }
-
-    /**
-     * @return array{0: string, 1: string}
-     */
-    private function authenticatedOrganizer(): array
-    {
-        $organizers = self::getContainer()->get(OrganizerRepository::class);
-        assert($organizers instanceof OrganizerRepository);
-        $organizerId = $organizers->nextIdentity();
-        $organizers->save(Organizer::register($organizerId, 'organizer@example.com', 'hashed-password'));
-
-        $organizations = self::getContainer()->get(OrganizationRepository::class);
-        assert($organizations instanceof OrganizationRepository);
-        $organizationId = $organizations->nextIdentity();
-        $organizations->save(Organization::create($organizationId, 'Ligue amateur du Nord', $organizerId));
-
-        $accessTokenIssuer = self::getContainer()->get(AccessTokenIssuer::class);
-        assert($accessTokenIssuer instanceof AccessTokenIssuer);
-        $token = $accessTokenIssuer->issue($organizerId);
-
-        return [$token, $organizationId->value];
     }
 
     /**
