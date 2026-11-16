@@ -77,13 +77,7 @@ final class SingleEliminationBracket implements Bracket
             throw new \InvalidArgumentException("Encounter '{$encounterId->value}' not found in bracket.");
         }
 
-        if ($result->isDraw()) {
-            throw new \InvalidArgumentException("Encounter '{$encounterId->value}': a single elimination encounter cannot end in a draw.");
-        }
-
-        if ($result->wentStraightToPenalties()) {
-            throw new \InvalidArgumentException("Encounter '{$encounterId->value}': penalties require extra time in a single elimination encounter.");
-        }
+        SingleEliminationResultRules::assertAcceptable($encounterId, $result);
 
         $encounter->play($result);
 

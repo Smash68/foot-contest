@@ -85,6 +85,24 @@ final class BracketWithThirdPlaceMatchTest extends TestCase
     }
 
     #[Test]
+    public function it_rejects_penalties_without_extra_time_without_playing_the_third_place_encounter(): void
+    {
+        ['bracket' => $bracket] = $this->makeFourTeamBracketWithThirdPlaceMatch();
+        $bracket->recordResult(new EncounterId('semi-1'), EncounterResult::regularTime(Score::of(2, 0)));
+        $bracket->recordResult(new EncounterId('semi-2'), EncounterResult::regularTime(Score::of(0, 1)));
+        $thirdPlaceEncounter = $bracket->getThirdPlaceEncounter();
+        self::assertNotNull($thirdPlaceEncounter);
+
+        try {
+            $bracket->recordResult($thirdPlaceEncounter->id, EncounterResult::afterPenalties(Score::of(1, 1), null, Score::of(4, 3)));
+            self::fail('Penalties without extra time should have been rejected.');
+        } catch (\InvalidArgumentException) {
+        }
+
+        self::assertFalse($thirdPlaceEncounter->isCompleted());
+    }
+
+    #[Test]
     public function it_still_resolves_the_final_normally(): void
     {
         ['bracket' => $bracket, 'teamA' => $teamA] = $this->makeFourTeamBracketWithThirdPlaceMatch();
