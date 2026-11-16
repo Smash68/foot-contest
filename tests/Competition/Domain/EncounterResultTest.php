@@ -137,6 +137,22 @@ final class EncounterResultTest extends TestCase
     }
 
     #[Test]
+    public function it_went_straight_to_penalties_without_extra_time(): void
+    {
+        $result = EncounterResult::afterPenalties(Score::of(1, 1), null, Score::of(4, 3));
+
+        self::assertTrue($result->wentStraightToPenalties());
+    }
+
+    #[Test]
+    public function it_did_not_go_straight_to_penalties_after_extra_time(): void
+    {
+        $result = EncounterResult::afterPenalties(Score::of(1, 1), Score::of(2, 2), Score::of(4, 3));
+
+        self::assertFalse($result->wentStraightToPenalties());
+    }
+
+    #[Test]
     public function it_rejects_penalties_when_regular_time_was_not_a_draw(): void
     {
         $this->expectException(\InvalidArgumentException::class);
