@@ -254,5 +254,7 @@ final class Competition
         if ($this->bracket === null) {
             throw new \LogicException("Competition '{$this->id->value}' bracket must be generated before recording a result.");
         }
+
+        $this->bracket->recordResult($encounterId, $result);
     }
 }
