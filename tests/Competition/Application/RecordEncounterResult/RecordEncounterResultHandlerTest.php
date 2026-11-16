@@ -76,6 +76,27 @@ final class RecordEncounterResultHandlerTest extends TestCase
     }
 
     #[Test]
+    public function it_records_a_result_after_penalties(): void
+    {
+        ($this->handler)(new RecordEncounterResultCommand(
+            competitionId: $this->competition->getId()->value,
+            encounterId: $this->encounter->id->value,
+            organizerId: 'organizer-1',
+            regularTimeHome: 1,
+            regularTimeAway: 1,
+            extraTimeHome: 2,
+            extraTimeAway: 2,
+            penaltiesHome: 4,
+            penaltiesAway: 3,
+        ));
+
+        $penalties = $this->encounter->getResult()?->penalties;
+        self::assertNotNull($penalties);
+        self::assertSame(4, $penalties->home);
+        self::assertSame(3, $penalties->away);
+    }
+
+    #[Test]
     public function it_rejects_recording_a_result_for_an_unknown_competition(): void
     {
         $this->expectException(\InvalidArgumentException::class);

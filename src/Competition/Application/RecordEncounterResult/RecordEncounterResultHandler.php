@@ -42,7 +42,13 @@ final readonly class RecordEncounterResultHandler
         $regularTime = Score::of($command->regularTimeHome, $command->regularTimeAway);
 
         if ($command->extraTimeHome !== null && $command->extraTimeAway !== null) {
-            return EncounterResult::afterExtraTime($regularTime, Score::of($command->extraTimeHome, $command->extraTimeAway));
+            $extraTime = Score::of($command->extraTimeHome, $command->extraTimeAway);
+
+            if ($command->penaltiesHome !== null && $command->penaltiesAway !== null) {
+                return EncounterResult::afterPenalties($regularTime, $extraTime, Score::of($command->penaltiesHome, $command->penaltiesAway));
+            }
+
+            return EncounterResult::afterExtraTime($regularTime, $extraTime);
         }
 
         return EncounterResult::regularTime($regularTime);

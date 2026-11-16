@@ -14,6 +14,8 @@ final readonly class RecordEncounterResultCommand
         public int $regularTimeAway,
         public ?int $extraTimeHome = null,
         public ?int $extraTimeAway = null,
+        public ?int $penaltiesHome = null,
+        public ?int $penaltiesAway = null,
     ) {
     }
 }
