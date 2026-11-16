@@ -37,6 +37,17 @@ Alternative écartée : la garde dans le Handler, comme le prévoyait l'ADR 005.
 
 Le passage direct aux tirs au but sans prolongation, courant dans les tournois amateurs, n'est pas couvert : `EncounterResult::afterPenalties()` exige une prolongation. S'il est introduit, il suivra le même partage : `EncounterResult` accepte les deux formes, et le tableau, selon la configuration choisie par l'organisateur, décide laquelle est valide.
 
+### 5. Chaque score de la commande est un `ScoreInput`
+
+La commande `RecordEncounterResultCommand` porte chaque phase du match (temps réglementaire, puis prolongation et tirs au but, optionnels) sous forme de `ScoreInput`, un DTO de deux entiers propre au use case. Le Value Object `Score` reste construit dans le Handler.
+
+Alternatives écartées :
+
+- **Six champs nullables `home`/`away`** : ils dispersent le concept de score et rendent représentable un score à moitié rempli, que le Handler devrait détecter pour ne pas l'ignorer silencieusement.
+- **Le `Score` du domaine dans la commande** : contraire à la convention selon laquelle les Value Objects sont construits dans le Handler ; un score invalide serait en outre rejeté avant le contrôle d'autorisation.
+
+Le Handler ne garde qu'une règle de forme : des tirs au but sans prolongation sont rejetés (`\InvalidArgumentException`), plutôt que d'enregistrer un résultat différent de celui soumis.
+
 ## Conséquences
 
 - La couche Application ne porte aucune règle métier de la saisie : chargement, autorisation de l'organisateur, choix du constructeur nommé d'`EncounterResult` selon les scores fournis, persistance.
