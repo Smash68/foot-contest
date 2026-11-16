@@ -40,14 +40,13 @@ final readonly class RecordEncounterResultHandler
     private function result(RecordEncounterResultCommand $command): EncounterResult
     {
         $regularTime = self::score($command->regularTime);
+        $extraTime = $command->extraTime !== null ? self::score($command->extraTime) : null;
 
-        if ($command->extraTime !== null) {
-            $extraTime = self::score($command->extraTime);
+        if ($command->penalties !== null) {
+            return EncounterResult::afterPenalties($regularTime, $extraTime, self::score($command->penalties));
+        }
 
-            if ($command->penalties !== null) {
-                return EncounterResult::afterPenalties($regularTime, $extraTime, self::score($command->penalties));
-            }
-
+        if ($extraTime !== null) {
             return EncounterResult::afterExtraTime($regularTime, $extraTime);
         }
 

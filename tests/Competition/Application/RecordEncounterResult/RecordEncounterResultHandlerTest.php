@@ -92,6 +92,20 @@ final class RecordEncounterResultHandlerTest extends TestCase
     }
 
     #[Test]
+    public function it_never_drops_penalties_submitted_without_extra_time(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+
+        ($this->handler)(new RecordEncounterResultCommand(
+            competitionId: $this->competition->getId()->value,
+            encounterId: $this->encounter->id->value,
+            organizerId: 'organizer-1',
+            regularTime: new ScoreInput(2, 1),
+            penalties: new ScoreInput(4, 3),
+        ));
+    }
+
+    #[Test]
     public function it_rejects_recording_a_result_for_an_unknown_competition(): void
     {
         $this->expectException(\InvalidArgumentException::class);
