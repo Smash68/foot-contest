@@ -250,6 +250,62 @@ final class DoctrineCompetitionRepositoryTest extends KernelTestCase
     }
 
     #[Test]
+    public function it_persists_a_result_decided_in_extra_time(): void
+    {
+        $entityManager = self::getContainer()->get(EntityManagerInterface::class);
+        assert($entityManager instanceof EntityManagerInterface);
+        $repository = new DoctrineCompetitionRepository($entityManager);
+
+        $competition = CompetitionBuilder::aCompetition()
+            ->withTeam('Team A', captainId: 'captain-a')
+            ->withTeam('Team B', captainId: 'captain-b')
+            ->withBracketGenerated()
+            ->build();
+        $bracket = $competition->getBracket();
+        self::assertNotNull($bracket);
+        $encounterId = $bracket->getRound(1)->getEncounters()[0]->id;
+        $competition->recordResult($encounterId, EncounterResult::afterExtraTime(Score::of(1, 1), Score::of(2, 1)));
+
+        $repository->save($competition);
+        $entityManager->clear();
+
+        $found = $repository->ofId($competition->getId());
+        self::assertNotNull($found);
+        $extraTime = $found->getBracket()?->findEncounterById($encounterId)?->getResult()?->extraTime;
+        self::assertNotNull($extraTime);
+        self::assertSame(2, $extraTime->home);
+        self::assertSame(1, $extraTime->away);
+    }
+
+    #[Test]
+    public function it_persists_a_result_decided_on_penalties(): void
+    {
+        $entityManager = self::getContainer()->get(EntityManagerInterface::class);
+        assert($entityManager instanceof EntityManagerInterface);
+        $repository = new DoctrineCompetitionRepository($entityManager);
+
+        $competition = CompetitionBuilder::aCompetition()
+            ->withTeam('Team A', captainId: 'captain-a')
+            ->withTeam('Team B', captainId: 'captain-b')
+            ->withBracketGenerated()
+            ->build();
+        $bracket = $competition->getBracket();
+        self::assertNotNull($bracket);
+        $encounterId = $bracket->getRound(1)->getEncounters()[0]->id;
+        $competition->recordResult($encounterId, EncounterResult::afterPenalties(Score::of(1, 1), Score::of(2, 2), Score::of(4, 3)));
+
+        $repository->save($competition);
+        $entityManager->clear();
+
+        $found = $repository->ofId($competition->getId());
+        self::assertNotNull($found);
+        $penalties = $found->getBracket()?->findEncounterById($encounterId)?->getResult()?->penalties;
+        self::assertNotNull($penalties);
+        self::assertSame(4, $penalties->home);
+        self::assertSame(3, $penalties->away);
+    }
+
+    #[Test]
     public function it_persists_a_bracket_with_a_third_place_match_not_yet_playable(): void
     {
         $entityManager = self::getContainer()->get(EntityManagerInterface::class);
