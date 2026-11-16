@@ -66,10 +66,15 @@ final readonly class EncounterResult
             return $this->extraTime->home > $this->extraTime->away ? Side::Home : Side::Away;
         }
 
-        if ($this->regularTime->isDraw()) {
+        if ($this->isDraw()) {
             throw new \LogicException('Cannot determine a winner from a draw.');
         }
 
         return $this->regularTime->home > $this->regularTime->away ? Side::Home : Side::Away;
+    }
+
+    public function isDraw(): bool
+    {
+        return $this->extraTime === null && $this->regularTime->isDraw();
     }
 }

@@ -63,6 +63,20 @@ final class BracketProgressTest extends TestCase
         $bracket->recordResult(new EncounterId('enc-999'), EncounterResult::regularTime(Score::of(1, 0)));
     }
 
+    #[Test]
+    public function it_rejects_a_draw_without_playing_the_encounter(): void
+    {
+        ['bracket' => $bracket] = $this->makeFourTeamBracket();
+
+        try {
+            $bracket->recordResult(new EncounterId('enc-1'), EncounterResult::regularTime(Score::of(1, 1)));
+            self::fail('A draw should have been rejected.');
+        } catch (\InvalidArgumentException) {
+        }
+
+        self::assertFalse($bracket->getRound(1)->getEncounters()[0]->isCompleted());
+    }
+
     // --- helpers ---
 
     /** @return array{bracket: Bracket, teamA: TeamId, teamB: TeamId, teamC: TeamId, teamD: TeamId} */

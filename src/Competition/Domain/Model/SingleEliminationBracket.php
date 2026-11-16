@@ -77,6 +77,10 @@ final class SingleEliminationBracket implements Bracket
             throw new \InvalidArgumentException("Encounter '{$encounterId->value}' not found in bracket.");
         }
 
+        if ($result->isDraw()) {
+            throw new \InvalidArgumentException("Encounter '{$encounterId->value}': a single elimination encounter cannot end in a draw.");
+        }
+
         $encounter->play($result);
 
         foreach ($this->rounds as $round) {
