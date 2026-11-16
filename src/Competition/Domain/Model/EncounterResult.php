@@ -77,6 +77,6 @@ final readonly class EncounterResult
 
     public function isDraw(): bool
     {
-        return $this->extraTime === null && $this->regularTime->isDraw();
+        return $this->penalties === null && $this->extraTime === null && $this->regularTime->isDraw();
     }
 }
