@@ -79,4 +79,9 @@ final readonly class EncounterResult
     {
         return $this->penalties === null && $this->extraTime === null && $this->regularTime->isDraw();
     }
+
+    public function wentStraightToPenalties(): bool
+    {
+        return $this->penalties !== null && $this->extraTime === null;
+    }
 }

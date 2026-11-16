@@ -81,6 +81,10 @@ final class SingleEliminationBracket implements Bracket
             throw new \InvalidArgumentException("Encounter '{$encounterId->value}': a single elimination encounter cannot end in a draw.");
         }
 
+        if ($result->wentStraightToPenalties()) {
+            throw new \InvalidArgumentException("Encounter '{$encounterId->value}': penalties require extra time in a single elimination encounter.");
+        }
+
         $encounter->play($result);
 
         foreach ($this->rounds as $round) {
