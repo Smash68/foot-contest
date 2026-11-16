@@ -6,6 +6,7 @@ namespace App\Tests\Competition\Application\RecordEncounterResult;
 
 use App\Competition\Application\RecordEncounterResult\RecordEncounterResultCommand;
 use App\Competition\Application\RecordEncounterResult\RecordEncounterResultHandler;
+use App\Competition\Application\RecordEncounterResult\ScoreInput;
 use App\Competition\Domain\Exception\OrganizerNotAuthorizedForOrganizationException;
 use App\Competition\Domain\Model\Competition;
 use App\Competition\Domain\Model\Encounter;
@@ -46,8 +47,7 @@ final class RecordEncounterResultHandlerTest extends TestCase
             competitionId: $this->competition->getId()->value,
             encounterId: $this->encounter->id->value,
             organizerId: 'organizer-1',
-            regularTimeHome: 2,
-            regularTimeAway: 1,
+            regularTime: new ScoreInput(2, 1),
         ));
 
         $result = $this->encounter->getResult();
@@ -63,10 +63,8 @@ final class RecordEncounterResultHandlerTest extends TestCase
             competitionId: $this->competition->getId()->value,
             encounterId: $this->encounter->id->value,
             organizerId: 'organizer-1',
-            regularTimeHome: 1,
-            regularTimeAway: 1,
-            extraTimeHome: 2,
-            extraTimeAway: 1,
+            regularTime: new ScoreInput(1, 1),
+            extraTime: new ScoreInput(2, 1),
         ));
 
         $extraTime = $this->encounter->getResult()?->extraTime;
@@ -82,12 +80,9 @@ final class RecordEncounterResultHandlerTest extends TestCase
             competitionId: $this->competition->getId()->value,
             encounterId: $this->encounter->id->value,
             organizerId: 'organizer-1',
-            regularTimeHome: 1,
-            regularTimeAway: 1,
-            extraTimeHome: 2,
-            extraTimeAway: 2,
-            penaltiesHome: 4,
-            penaltiesAway: 3,
+            regularTime: new ScoreInput(1, 1),
+            extraTime: new ScoreInput(2, 2),
+            penalties: new ScoreInput(4, 3),
         ));
 
         $penalties = $this->encounter->getResult()?->penalties;
@@ -105,8 +100,7 @@ final class RecordEncounterResultHandlerTest extends TestCase
             competitionId: 'unknown',
             encounterId: $this->encounter->id->value,
             organizerId: 'organizer-1',
-            regularTimeHome: 2,
-            regularTimeAway: 1,
+            regularTime: new ScoreInput(2, 1),
         ));
     }
 
@@ -119,8 +113,7 @@ final class RecordEncounterResultHandlerTest extends TestCase
             competitionId: $this->competition->getId()->value,
             encounterId: $this->encounter->id->value,
             organizerId: 'organizer-2',
-            regularTimeHome: 2,
-            regularTimeAway: 1,
+            regularTime: new ScoreInput(2, 1),
         ));
     }
 }

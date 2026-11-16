@@ -10,12 +10,9 @@ final readonly class RecordEncounterResultCommand
         public string $competitionId,
         public string $encounterId,
         public string $organizerId,
-        public int $regularTimeHome,
-        public int $regularTimeAway,
-        public ?int $extraTimeHome = null,
-        public ?int $extraTimeAway = null,
-        public ?int $penaltiesHome = null,
-        public ?int $penaltiesAway = null,
+        public ScoreInput $regularTime,
+        public ?ScoreInput $extraTime = null,
+        public ?ScoreInput $penalties = null,
     ) {
     }
 }

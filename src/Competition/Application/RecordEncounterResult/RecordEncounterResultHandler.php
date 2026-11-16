@@ -39,18 +39,23 @@ final readonly class RecordEncounterResultHandler
 
     private function result(RecordEncounterResultCommand $command): EncounterResult
     {
-        $regularTime = Score::of($command->regularTimeHome, $command->regularTimeAway);
+        $regularTime = self::score($command->regularTime);
 
-        if ($command->extraTimeHome !== null && $command->extraTimeAway !== null) {
-            $extraTime = Score::of($command->extraTimeHome, $command->extraTimeAway);
+        if ($command->extraTime !== null) {
+            $extraTime = self::score($command->extraTime);
 
-            if ($command->penaltiesHome !== null && $command->penaltiesAway !== null) {
-                return EncounterResult::afterPenalties($regularTime, $extraTime, Score::of($command->penaltiesHome, $command->penaltiesAway));
+            if ($command->penalties !== null) {
+                return EncounterResult::afterPenalties($regularTime, $extraTime, self::score($command->penalties));
             }
 
             return EncounterResult::afterExtraTime($regularTime, $extraTime);
         }
 
         return EncounterResult::regularTime($regularTime);
+    }
+
+    private static function score(ScoreInput $input): Score
+    {
+        return Score::of($input->home, $input->away);
     }
 }
