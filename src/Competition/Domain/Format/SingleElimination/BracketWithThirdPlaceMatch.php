@@ -74,6 +74,10 @@ final class BracketWithThirdPlaceMatch implements Bracket
     public function recordResult(EncounterId $encounterId, EncounterResult $result): void
     {
         if ($this->thirdPlaceEncounter !== null && $this->thirdPlaceEncounter->id->equals($encounterId)) {
+            if ($result->isDraw()) {
+                throw new \InvalidArgumentException("Encounter '{$encounterId->value}': a single elimination encounter cannot end in a draw.");
+            }
+
             $this->thirdPlaceEncounter->play($result);
 
             return;
