@@ -35,22 +35,24 @@ final readonly class EncounterResult
         return new self($regularTime, $extraTime);
     }
 
-    public static function afterPenalties(Score $regularTime, Score $extraTime, Score $penalties): self
+    public static function afterPenalties(Score $regularTime, ?Score $extraTime, Score $penalties): self
     {
         if (!$regularTime->isDraw()) {
             throw new \InvalidArgumentException('Penalties require a draw in regular time.');
         }
 
-        if (!$extraTime->isDraw()) {
-            throw new \InvalidArgumentException('Penalties require a draw after extra time.');
+        if ($extraTime !== null) {
+            if (!$extraTime->isDraw()) {
+                throw new \InvalidArgumentException('Penalties require a draw after extra time.');
+            }
+
+            if ($extraTime->home < $regularTime->home || $extraTime->away < $regularTime->away) {
+                throw new \InvalidArgumentException('Extra time score cannot be lower than regular time score.');
+            }
         }
 
         if ($penalties->isDraw()) {
             throw new \InvalidArgumentException('A draw in a penalty shootout is not possible.');
-        }
-
-        if ($extraTime->home < $regularTime->home || $extraTime->away < $regularTime->away) {
-            throw new \InvalidArgumentException('Extra time score cannot be lower than regular time score.');
         }
 
         return new self($regularTime, $extraTime, $penalties);

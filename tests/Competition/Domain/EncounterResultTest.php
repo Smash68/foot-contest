@@ -121,6 +121,14 @@ final class EncounterResultTest extends TestCase
     }
 
     #[Test]
+    public function it_declares_the_winner_on_penalties_without_extra_time(): void
+    {
+        $result = EncounterResult::afterPenalties(Score::of(1, 1), null, Score::of(4, 3));
+
+        self::assertSame(Side::Home, $result->winner());
+    }
+
+    #[Test]
     public function it_rejects_penalties_when_regular_time_was_not_a_draw(): void
     {
         $this->expectException(\InvalidArgumentException::class);
