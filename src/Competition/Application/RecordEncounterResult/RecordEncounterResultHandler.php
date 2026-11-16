@@ -6,6 +6,9 @@ namespace App\Competition\Application\RecordEncounterResult;
 
 use App\Competition\Domain\Exception\OrganizerNotAuthorizedForOrganizationException;
 use App\Competition\Domain\Model\CompetitionId;
+use App\Competition\Domain\Model\EncounterId;
+use App\Competition\Domain\Model\EncounterResult;
+use App\Competition\Domain\Model\Score;
 use App\Competition\Domain\Repository\CompetitionRepository;
 use App\Competition\Domain\Service\OrganizerOrganizationAuthorization;
 
@@ -28,5 +31,12 @@ final readonly class RecordEncounterResultHandler
         if (!$this->authorization->authorizes($command->organizerId, $competition->getOrganizationId())) {
             throw new OrganizerNotAuthorizedForOrganizationException($command->organizerId, $competition->getOrganizationId()->value);
         }
+
+        $competition->recordResult(
+            new EncounterId($command->encounterId),
+            EncounterResult::regularTime(Score::of($command->regularTimeHome, $command->regularTimeAway)),
+        );
+
+        $this->competitions->save($competition);
     }
 }

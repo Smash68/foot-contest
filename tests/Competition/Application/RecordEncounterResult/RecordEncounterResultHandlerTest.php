@@ -16,6 +16,38 @@ use PHPUnit\Framework\TestCase;
 final class RecordEncounterResultHandlerTest extends TestCase
 {
     #[Test]
+    public function it_records_a_regular_time_result(): void
+    {
+        $competition = CompetitionBuilder::aCompetition()
+            ->withTeam('Team A', captainId: 'captain-a')
+            ->withTeam('Team B', captainId: 'captain-b')
+            ->withBracketGenerated()
+            ->build();
+        $competitions = new InMemoryCompetitionRepository();
+        $competitions->save($competition);
+        $authorization = new InMemoryOrganizerOrganizationAuthorization();
+        $authorization->grantOwnership('organizer-1', $competition->getOrganizationId());
+        $bracket = $competition->getBracket();
+        self::assertNotNull($bracket);
+        $encounter = $bracket->getRound(1)->getEncounters()[0];
+
+        $handler = new RecordEncounterResultHandler($competitions, $authorization);
+
+        $handler(new RecordEncounterResultCommand(
+            competitionId: $competition->getId()->value,
+            encounterId: $encounter->id->value,
+            organizerId: 'organizer-1',
+            regularTimeHome: 2,
+            regularTimeAway: 1,
+        ));
+
+        $result = $encounter->getResult();
+        self::assertNotNull($result);
+        self::assertSame(2, $result->regularTime->home);
+        self::assertSame(1, $result->regularTime->away);
+    }
+
+    #[Test]
     public function it_rejects_recording_a_result_for_an_unknown_competition(): void
     {
         $handler = new RecordEncounterResultHandler(new InMemoryCompetitionRepository(), new InMemoryOrganizerOrganizationAuthorization());
