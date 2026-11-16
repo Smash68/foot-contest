@@ -12,6 +12,8 @@ final readonly class RecordEncounterResultCommand
         public string $organizerId,
         public int $regularTimeHome,
         public int $regularTimeAway,
+        public ?int $extraTimeHome = null,
+        public ?int $extraTimeAway = null,
     ) {
     }
 }
