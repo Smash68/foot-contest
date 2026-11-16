@@ -19,9 +19,9 @@ La saisie passe par `Competition::recordResult(EncounterId, EncounterResult)`, q
 
 L'ADR 004 reste valable sur le fond : la progression du tableau vit dans `Bracket`, sans service dédié. Seule la racine exposée à la couche Application change.
 
-### 2. Le refus du nul est une règle du tableau, pas du use case
+### 2. Ce qu'un format accepte est une règle du tableau, pas du use case
 
-En élimination directe, une rencontre doit désigner un vainqueur. Ce refus est porté par `SingleEliminationBracket::recordResult()` et par le chemin du match pour la 3e place de `BracketWithThirdPlaceMatch`, **avant** l'appel à `Encounter::play()`, pour que l'agrégat ne soit jamais modifié par un résultat rejeté. Un résultat sans vainqueur est une donnée invalide (`\InvalidArgumentException`).
+En élimination directe, une rencontre doit désigner un vainqueur, et les tirs au but n'ont lieu qu'après une prolongation. Ces règles sont regroupées dans `SingleEliminationResultRules`, appliquées par `SingleEliminationBracket::recordResult()` et par le chemin du match pour la 3e place de `BracketWithThirdPlaceMatch`, **avant** l'appel à `Encounter::play()`, pour que l'agrégat ne soit jamais modifié par un résultat rejeté. Un résultat refusé par le format est une donnée invalide (`\InvalidArgumentException`).
 
 `EncounterResult` reste neutre vis-à-vis du format, conformément à l'ADR 005 : c'est l'implémentation de `Bracket`, qui incarne le format, qui décide des résultats acceptables. Cette décision **remplace** la phrase de l'ADR 005 qui confiait la règle au use case `RecordMatchResult` ; le use case s'appelle `RecordEncounterResult` ([glossaire](../glossary.md) : `Match` est écarté).
 
@@ -31,11 +31,16 @@ Alternative écartée : la garde dans le Handler, comme le prévoyait l'ADR 005.
 
 `Encounter::play()` exige que les deux participants soient des équipes, ce qui exclut l'exemption en plus du vainqueur encore inconnu. La règle vaut pour tous les formats : une rencontre contre une exemption n'a jamais lieu. Elle rejoint la garde existante sur les participants en attente (`\LogicException`).
 
-### 4. Les règles de forme du résultat restent dans `EncounterResult`
+### 4. `EncounterResult` ne garantit que la cohérence interne du résultat
 
-« Prolongation et tirs au but seulement en cas d'égalité » est déjà garanti par les constructeurs nommés d'`EncounterResult`. Le score après prolongation est **cumulé** (il inclut le temps réglementaire), ce que le contrat d'API devra expliciter.
+Le partage suit l'ADR 005 : `EncounterResult` porte ce qui est vrai dans tous les formats, le tableau ce que son format accepte.
 
-Le passage direct aux tirs au but sans prolongation, courant dans les tournois amateurs, n'est pas couvert : `EncounterResult::afterPenalties()` exige une prolongation. S'il est introduit, il suivra le même partage : `EncounterResult` accepte les deux formes, et le tableau, selon la configuration choisie par l'organisateur, décide laquelle est valide.
+- **`EncounterResult`** : prolongation et tirs au but seulement après une égalité, pas de nul aux tirs au but, score de prolongation **cumulé** (il inclut le temps réglementaire, ce que le contrat d'API devra expliciter).
+- **Le tableau** : le refus du nul et l'exigence d'une prolongation avant les tirs au but (§2).
+
+Aller aux tirs au but directement après le temps réglementaire est une pratique courante, notamment en tournoi amateur : ce n'est pas une contrainte du football mais un choix de format. `EncounterResult::afterPenalties()` accepte donc une prolongation absente, et `EncounterResult::wentStraightToPenalties()` permet au tableau de refuser ce résultat. Le jour où l'organisateur pourra choisir ce déroulement, seule la règle du tableau deviendra configurable.
+
+Alternative écartée : laisser l'exigence de prolongation dans la signature d'`afterPenalties()`. Elle aurait fait d'un choix de format une règle universelle, et forcé tout appelant recevant des tirs au but sans prolongation à décider lui-même de les ignorer ou de les rejeter.
 
 ### 5. Chaque score de la commande est un `ScoreInput`
 
@@ -46,10 +51,10 @@ Alternatives écartées :
 - **Six champs nullables `home`/`away`** : ils dispersent le concept de score et rendent représentable un score à moitié rempli, que le Handler devrait détecter pour ne pas l'ignorer silencieusement.
 - **Le `Score` du domaine dans la commande** : contraire à la convention selon laquelle les Value Objects sont construits dans le Handler ; un score invalide serait en outre rejeté avant le contrôle d'autorisation.
 
-Le Handler ne garde qu'une règle de forme : des tirs au but sans prolongation sont rejetés (`\InvalidArgumentException`), plutôt que d'enregistrer un résultat différent de celui soumis.
+Le Handler ne porte aucune règle de forme : il transmet chaque phase saisie au constructeur nommé correspondant à la dernière phase jouée, sans jamais en ignorer une, et laisse le domaine accepter ou rejeter le résultat.
 
 ## Conséquences
 
-- La couche Application ne porte aucune règle métier de la saisie : chargement, autorisation de l'organisateur, choix du constructeur nommé d'`EncounterResult` selon les scores fournis, persistance.
-- Toute future implémentation de `Bracket` (championnat, poules) décide elle-même si un nul est acceptable, sans toucher à `EncounterResult` ni au use case.
-- Aucun changement de persistance : les résultats, match pour la 3e place compris, sont déjà mappés ([ADR 023](023-doctrine-mapping-bracket.md)).
+- La couche Application ne porte aucune règle métier de la saisie : chargement, autorisation de l'organisateur, traduction des scores reçus en `EncounterResult`, persistance.
+- Toute future implémentation de `Bracket` (championnat, poules) décide elle-même des résultats acceptables (nul, tirs au but directs), sans toucher à `EncounterResult` ni au use case.
+- Aucun changement de persistance pour les résultats que le tableau accepte aujourd'hui, match pour la 3e place compris ([ADR 023](023-doctrine-mapping-bracket.md)). Un résultat aux tirs au but sans prolongation n'étant accepté par aucun tableau, sa relecture n'est pas encore prise en charge : la feature qui l'autorisera devra l'ajouter.
