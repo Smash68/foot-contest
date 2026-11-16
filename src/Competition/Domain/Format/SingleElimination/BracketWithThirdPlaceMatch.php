@@ -10,6 +10,7 @@ use App\Competition\Domain\Model\EncounterId;
 use App\Competition\Domain\Model\EncounterResult;
 use App\Competition\Domain\Model\Participant;
 use App\Competition\Domain\Model\Round;
+use App\Competition\Domain\Model\SingleEliminationResultRules;
 use App\Competition\Domain\Model\TeamId;
 
 final class BracketWithThirdPlaceMatch implements Bracket
@@ -74,6 +75,8 @@ final class BracketWithThirdPlaceMatch implements Bracket
     public function recordResult(EncounterId $encounterId, EncounterResult $result): void
     {
         if ($this->thirdPlaceEncounter !== null && $this->thirdPlaceEncounter->id->equals($encounterId)) {
+            SingleEliminationResultRules::assertAcceptable($encounterId, $result);
+
             $this->thirdPlaceEncounter->play($result);
 
             return;

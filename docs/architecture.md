@@ -35,7 +35,7 @@ Chaque module est découpé en `Domain/`, `Application/` et `Infrastructure/`.
 
 CQRS via `symfony/messenger` ([ADR 008](adr/008-application-cqrs-messenger.md)). **Un dossier par use case**, autonome (rien n'est partagé entre deux dossiers de use case) :
 
-- **Command / Query** : DTO immuable à **primitifs** ; les Value Objects sont construits dans le Handler.
+- **Command / Query** : DTO immuable à **primitifs** ; les Value Objects sont construits dans le Handler. Des primitifs qui vont toujours ensemble (le score d'une équipe et celui de son adversaire) se groupent dans un DTO de primitifs propre au use case, sans règle ni validation, plutôt que d'être aplatis en champs nullables indépendants qui rendraient un état partiel représentable ([ADR 044](adr/044-saisie-resultat-rencontre.md)).
 - **Handler** : nommé `*Handler.php`, déclaré handler Messenger par un tag en configuration ciblant ce suffixe ([ADR 025](adr/025-tag-messenger-handlers-par-resource.md)), jamais par `#[AsMessageHandler]` — l'Application reste du PHP sans dépendance au framework.
 - Un Handler de Command peut **retourner l'identifiant généré**, pour qu'un appelant synchrone le connaisse (ADR 008).
 - Le Handler **délègue les règles métier à l'agrégat**. Il ne porte que l'orchestration : chargement (agrégat introuvable → `\InvalidArgumentException`), existence des dépendances, autorisation, persistance.

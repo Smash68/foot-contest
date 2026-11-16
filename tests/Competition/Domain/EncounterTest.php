@@ -144,6 +144,20 @@ final class EncounterTest extends TestCase
     }
 
     #[Test]
+    public function it_throws_when_completing_against_a_bye(): void
+    {
+        $encounter = new Encounter(
+            new EncounterId('e1'),
+            Participant::bye(),
+            Participant::forTeam(new TeamId('b')),
+        );
+
+        $this->expectException(\LogicException::class);
+
+        $encounter->play(EncounterResult::regularTime(Score::of(0, 1)));
+    }
+
+    #[Test]
     public function it_can_resolve_home_participant(): void
     {
         $winner = new TeamId('w');

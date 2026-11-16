@@ -21,8 +21,8 @@ final class Encounter
 
     public function play(EncounterResult $result): void
     {
-        if ($this->home->isPending() || $this->away->isPending()) {
-            throw new \LogicException("Encounter '{$this->id->value}': participants are not yet determined.");
+        if (!$this->home->isTeam() || !$this->away->isTeam()) {
+            throw new \LogicException("Encounter '{$this->id->value}': both participants must be known teams.");
         }
 
         if ($this->result !== null) {

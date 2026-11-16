@@ -34,6 +34,22 @@ final class EncounterResultTest extends TestCase
         EncounterResult::regularTime(Score::of(1, 1))->winner();
     }
 
+    #[Test]
+    public function it_is_a_draw_when_level_in_regular_time(): void
+    {
+        $result = EncounterResult::regularTime(Score::of(1, 1));
+
+        self::assertTrue($result->isDraw());
+    }
+
+    #[Test]
+    public function it_is_not_a_draw_when_decided_in_regular_time(): void
+    {
+        $result = EncounterResult::regularTime(Score::of(2, 1));
+
+        self::assertFalse($result->isDraw());
+    }
+
     // --- afterExtraTime ---
 
     #[Test]
@@ -51,6 +67,14 @@ final class EncounterResultTest extends TestCase
         $result = EncounterResult::afterExtraTime(Score::of(0, 0), Score::of(0, 1));
 
         self::assertSame(Side::Away, $result->winner());
+    }
+
+    #[Test]
+    public function it_is_not_a_draw_when_decided_in_extra_time(): void
+    {
+        $result = EncounterResult::afterExtraTime(Score::of(1, 1), Score::of(2, 1));
+
+        self::assertFalse($result->isDraw());
     }
 
     #[Test]
@@ -97,6 +121,38 @@ final class EncounterResultTest extends TestCase
     }
 
     #[Test]
+    public function it_declares_the_winner_on_penalties_without_extra_time(): void
+    {
+        $result = EncounterResult::afterPenalties(Score::of(1, 1), null, Score::of(4, 3));
+
+        self::assertSame(Side::Home, $result->winner());
+    }
+
+    #[Test]
+    public function it_is_not_a_draw_when_decided_on_penalties_without_extra_time(): void
+    {
+        $result = EncounterResult::afterPenalties(Score::of(1, 1), null, Score::of(4, 3));
+
+        self::assertFalse($result->isDraw());
+    }
+
+    #[Test]
+    public function it_went_straight_to_penalties_without_extra_time(): void
+    {
+        $result = EncounterResult::afterPenalties(Score::of(1, 1), null, Score::of(4, 3));
+
+        self::assertTrue($result->wentStraightToPenalties());
+    }
+
+    #[Test]
+    public function it_did_not_go_straight_to_penalties_after_extra_time(): void
+    {
+        $result = EncounterResult::afterPenalties(Score::of(1, 1), Score::of(2, 2), Score::of(4, 3));
+
+        self::assertFalse($result->wentStraightToPenalties());
+    }
+
+    #[Test]
     public function it_rejects_penalties_when_regular_time_was_not_a_draw(): void
     {
         $this->expectException(\InvalidArgumentException::class);
@@ -110,6 +166,14 @@ final class EncounterResultTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
 
         EncounterResult::afterPenalties(Score::of(1, 1), Score::of(3, 2), Score::of(4, 3));
+    }
+
+    #[Test]
+    public function it_is_not_a_draw_when_decided_on_penalties(): void
+    {
+        $result = EncounterResult::afterPenalties(Score::of(1, 1), Score::of(2, 2), Score::of(4, 3));
+
+        self::assertFalse($result->isDraw());
     }
 
     #[Test]

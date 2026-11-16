@@ -77,6 +77,8 @@ final class SingleEliminationBracket implements Bracket
             throw new \InvalidArgumentException("Encounter '{$encounterId->value}' not found in bracket.");
         }
 
+        SingleEliminationResultRules::assertAcceptable($encounterId, $result);
+
         $encounter->play($result);
 
         foreach ($this->rounds as $round) {
