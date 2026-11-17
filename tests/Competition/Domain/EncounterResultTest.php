@@ -50,6 +50,18 @@ final class EncounterResultTest extends TestCase
         self::assertFalse($result->isDraw());
     }
 
+    // --- of ---
+
+    #[Test]
+    public function it_builds_a_regular_time_result_from_the_regular_time_score_alone(): void
+    {
+        $result = EncounterResult::of(Score::of(2, 1));
+
+        self::assertSame(2, $result->regularTime->home);
+        self::assertNull($result->extraTime);
+        self::assertNull($result->penalties);
+    }
+
     // --- afterExtraTime ---
 
     #[Test]

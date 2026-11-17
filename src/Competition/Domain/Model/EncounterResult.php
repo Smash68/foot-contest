@@ -13,6 +13,11 @@ final readonly class EncounterResult
     ) {
     }
 
+    public static function of(Score $regularTime, ?Score $extraTime = null, ?Score $penalties = null): self
+    {
+        return self::regularTime($regularTime);
+    }
+
     public static function regularTime(Score $score): self
     {
         return new self($score);
