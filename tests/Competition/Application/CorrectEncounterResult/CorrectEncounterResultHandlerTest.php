@@ -60,6 +60,23 @@ final class CorrectEncounterResultHandlerTest extends TestCase
     }
 
     #[Test]
+    public function it_corrects_a_result_after_extra_time(): void
+    {
+        ($this->handler)(new CorrectEncounterResultCommand(
+            competitionId: $this->competition->getId()->value,
+            encounterId: $this->encounter->id->value,
+            organizerId: 'organizer-1',
+            regularTime: new ScoreInput(1, 1),
+            extraTime: new ScoreInput(2, 1),
+        ));
+
+        $extraTime = $this->encounter->getResult()?->extraTime;
+        self::assertNotNull($extraTime);
+        self::assertSame(2, $extraTime->home);
+        self::assertSame(1, $extraTime->away);
+    }
+
+    #[Test]
     public function it_corrects_a_result_after_penalties(): void
     {
         ($this->handler)(new CorrectEncounterResultCommand(
@@ -75,6 +92,20 @@ final class CorrectEncounterResultHandlerTest extends TestCase
         self::assertNotNull($penalties);
         self::assertSame(4, $penalties->home);
         self::assertSame(3, $penalties->away);
+    }
+
+    #[Test]
+    public function it_never_drops_penalties_submitted_without_extra_time(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+
+        ($this->handler)(new CorrectEncounterResultCommand(
+            competitionId: $this->competition->getId()->value,
+            encounterId: $this->encounter->id->value,
+            organizerId: 'organizer-1',
+            regularTime: new ScoreInput(3, 1),
+            penalties: new ScoreInput(4, 3),
+        ));
     }
 
     #[Test]
