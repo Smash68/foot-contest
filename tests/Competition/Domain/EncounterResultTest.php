@@ -80,6 +80,14 @@ final class EncounterResultTest extends TestCase
         self::assertNull($result->extraTime);
     }
 
+    #[Test]
+    public function it_keeps_the_extra_time_of_a_result_after_penalties(): void
+    {
+        $result = EncounterResult::of(Score::of(1, 1), Score::of(2, 2), Score::of(4, 3));
+
+        self::assertSame(2, $result->extraTime?->home);
+    }
+
     // --- afterExtraTime ---
 
     #[Test]
