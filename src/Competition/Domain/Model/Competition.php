@@ -257,4 +257,11 @@ final class Competition
 
         $this->bracket->recordResult($encounterId, $result);
     }
+
+    public function correctResult(EncounterId $encounterId, EncounterResult $result): void
+    {
+        if ($this->bracket === null) {
+            throw new \LogicException("Competition '{$this->id->value}' bracket must be generated before correcting a result.");
+        }
+    }
 }
