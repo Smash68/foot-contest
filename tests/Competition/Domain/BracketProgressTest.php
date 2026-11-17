@@ -103,6 +103,18 @@ final class BracketProgressTest extends TestCase
         self::assertSame($corrected, $bracket->getRound(1)->getEncounters()[0]->getResult());
     }
 
+    #[Test]
+    public function the_new_winner_of_a_corrected_encounter_advances_to_next_round(): void
+    {
+        ['bracket' => $bracket, 'teamB' => $teamB] = $this->makeFourTeamBracket();
+        $bracket->recordResult(new EncounterId('enc-1'), EncounterResult::regularTime(Score::of(2, 0)));
+
+        $bracket->correctResult(new EncounterId('enc-1'), EncounterResult::regularTime(Score::of(0, 2)));
+
+        $encounter = $bracket->getRound(2)->getEncounters()[0];
+        EncounterAssert::assertThat($encounter)->homeIsForTeam($teamB);
+    }
+
     // --- helpers ---
 
     /** @return array{bracket: Bracket, teamA: TeamId, teamB: TeamId, teamC: TeamId, teamD: TeamId} */

@@ -33,6 +33,11 @@ final readonly class Participant
         return $this->teamId !== null;
     }
 
+    public function holdsTeam(TeamId $teamId): bool
+    {
+        return $this->teamId !== null && $this->teamId->equals($teamId);
+    }
+
     public function isBye(): bool
     {
         return $this->isBye;

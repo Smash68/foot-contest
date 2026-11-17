@@ -84,7 +84,28 @@ final class SingleEliminationBracket implements Bracket
 
     public function correctResult(EncounterId $encounterId, EncounterResult $result): void
     {
-        $this->getEncounter($encounterId)->correct($result);
+        $encounter = $this->getEncounter($encounterId);
+        $previousWinner = $encounter->getWinner();
+
+        $encounter->correct($result);
+
+        $newWinner = $encounter->getWinner();
+        if (!$newWinner->equals($previousWinner)) {
+            $this->roundAfter($encounterId)?->replaceTeam($previousWinner, $newWinner);
+        }
+    }
+
+    private function roundAfter(EncounterId $encounterId): ?Round
+    {
+        $rounds = array_values($this->rounds);
+
+        foreach ($rounds as $index => $round) {
+            if ($round->findEncounterById($encounterId) !== null) {
+                return $rounds[$index + 1] ?? null;
+            }
+        }
+
+        return null;
     }
 
     private function getEncounter(EncounterId $encounterId): Encounter
