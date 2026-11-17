@@ -94,17 +94,22 @@ final class BracketWithThirdPlaceMatch implements Bracket
             return;
         }
 
-        if ($this->thirdPlaceEncounter === null || !$this->fixture->isSemiFinal($encounterId)) {
-            $this->inner->correctResult($encounterId, $result);
+        if ($this->thirdPlaceEncounter !== null && $this->fixture->isSemiFinal($encounterId)) {
+            $this->correctSemiFinal($encounterId, $result, $this->thirdPlaceEncounter);
 
             return;
         }
 
+        $this->inner->correctResult($encounterId, $result);
+    }
+
+    private function correctSemiFinal(EncounterId $encounterId, EncounterResult $result, Encounter $thirdPlaceEncounter): void
+    {
         $semiFinal = $this->findEncounter($encounterId);
 
         SingleEliminationResultRules::assertAcceptable($encounterId, $result);
 
-        if ($this->thirdPlaceEncounter->isCompleted() && $semiFinal->wouldChangeWinner($result)) {
+        if ($thirdPlaceEncounter->isCompleted() && $semiFinal->wouldChangeWinner($result)) {
             throw new \LogicException("Encounter '{$encounterId->value}': the winner cannot change once the third place encounter is played.");
         }
 
@@ -112,7 +117,7 @@ final class BracketWithThirdPlaceMatch implements Bracket
 
         $this->inner->correctResult($encounterId, $result);
 
-        $this->thirdPlaceEncounter->replaceTeam($previousLoser, $semiFinal->getLoser());
+        $thirdPlaceEncounter->replaceTeam($previousLoser, $semiFinal->getLoser());
     }
 
     private function thirdPlaceEncounterWithId(EncounterId $encounterId): ?Encounter
