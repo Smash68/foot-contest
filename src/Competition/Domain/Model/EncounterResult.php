@@ -15,6 +15,10 @@ final readonly class EncounterResult
 
     public static function of(Score $regularTime, ?Score $extraTime = null, ?Score $penalties = null): self
     {
+        if ($extraTime !== null) {
+            return self::afterExtraTime($regularTime, $extraTime);
+        }
+
         return self::regularTime($regularTime);
     }
 
