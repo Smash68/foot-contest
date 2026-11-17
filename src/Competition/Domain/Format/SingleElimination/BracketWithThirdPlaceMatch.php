@@ -94,7 +94,18 @@ final class BracketWithThirdPlaceMatch implements Bracket
             return;
         }
 
+        if ($this->thirdPlaceEncounter === null || !$this->fixture->isSemiFinal($encounterId)) {
+            $this->inner->correctResult($encounterId, $result);
+
+            return;
+        }
+
+        $semiFinal = $this->findEncounter($encounterId);
+        $previousLoser = $semiFinal->getLoser();
+
         $this->inner->correctResult($encounterId, $result);
+
+        $this->thirdPlaceEncounter->replaceTeam($previousLoser, $semiFinal->getLoser());
     }
 
     private function thirdPlaceEncounterWithId(EncounterId $encounterId): ?Encounter

@@ -139,6 +139,20 @@ final class BracketWithThirdPlaceMatchTest extends TestCase
     }
 
     #[Test]
+    public function the_new_loser_of_a_corrected_semi_final_plays_the_third_place_encounter(): void
+    {
+        ['bracket' => $bracket, 'teamA' => $teamA] = $this->makeFourTeamBracketWithThirdPlaceMatch();
+        $bracket->recordResult(new EncounterId('semi-1'), EncounterResult::regularTime(Score::of(2, 0))); // A beats B
+        $bracket->recordResult(new EncounterId('semi-2'), EncounterResult::regularTime(Score::of(0, 1))); // D beats C
+
+        $bracket->correctResult(new EncounterId('semi-1'), EncounterResult::regularTime(Score::of(0, 2))); // B beats A
+
+        $thirdPlaceEncounter = $bracket->getThirdPlaceEncounter();
+        self::assertNotNull($thirdPlaceEncounter);
+        EncounterAssert::assertThat($thirdPlaceEncounter)->homeIsForTeam($teamA);
+    }
+
+    #[Test]
     public function it_still_resolves_the_final_normally(): void
     {
         ['bracket' => $bracket, 'teamA' => $teamA] = $this->makeFourTeamBracketWithThirdPlaceMatch();

@@ -50,6 +50,15 @@ final class Encounter
         return $this->result->winner() !== $result->winner();
     }
 
+    public function replaceTeam(TeamId $previous, TeamId $replacement): void
+    {
+        if ($this->home->holdsTeam($previous)) {
+            $this->home = Participant::forTeam($replacement);
+        } elseif ($this->away->holdsTeam($previous)) {
+            $this->away = Participant::forTeam($replacement);
+        }
+    }
+
     public function resolveHome(Participant $participant): void
     {
         $this->home = $participant;
