@@ -101,6 +101,13 @@ final class BracketWithThirdPlaceMatch implements Bracket
         }
 
         $semiFinal = $this->findEncounter($encounterId);
+
+        SingleEliminationResultRules::assertAcceptable($encounterId, $result);
+
+        if ($this->thirdPlaceEncounter->isCompleted() && $semiFinal->wouldChangeWinner($result)) {
+            throw new \LogicException("Encounter '{$encounterId->value}': the winner cannot change once the third place encounter is played.");
+        }
+
         $previousLoser = $semiFinal->getLoser();
 
         $this->inner->correctResult($encounterId, $result);

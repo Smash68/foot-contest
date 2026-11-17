@@ -153,6 +153,27 @@ final class BracketWithThirdPlaceMatchTest extends TestCase
     }
 
     #[Test]
+    public function it_rejects_changing_a_semi_final_winner_once_the_third_place_encounter_is_played_without_changing_anything(): void
+    {
+        ['bracket' => $bracket, 'teamA' => $teamA] = $this->makeFourTeamBracketWithThirdPlaceMatch();
+        $semiFinalResult = EncounterResult::regularTime(Score::of(2, 0)); // A beats B
+        $bracket->recordResult(new EncounterId('semi-1'), $semiFinalResult);
+        $bracket->recordResult(new EncounterId('semi-2'), EncounterResult::regularTime(Score::of(0, 1)));
+        $thirdPlaceEncounter = $bracket->getThirdPlaceEncounter();
+        self::assertNotNull($thirdPlaceEncounter);
+        $bracket->recordResult($thirdPlaceEncounter->id, EncounterResult::regularTime(Score::of(3, 1)));
+
+        try {
+            $bracket->correctResult(new EncounterId('semi-1'), EncounterResult::regularTime(Score::of(0, 2)));
+            self::fail('Changing a semi-final winner once the third place encounter is played should have been rejected.');
+        } catch (\LogicException) {
+        }
+
+        self::assertSame($semiFinalResult, $bracket->findEncounterById(new EncounterId('semi-1'))?->getResult());
+        EncounterAssert::assertThat($bracket->getRound(2)->getEncounters()[0])->homeIsForTeam($teamA);
+    }
+
+    #[Test]
     public function it_still_resolves_the_final_normally(): void
     {
         ['bracket' => $bracket, 'teamA' => $teamA] = $this->makeFourTeamBracketWithThirdPlaceMatch();
