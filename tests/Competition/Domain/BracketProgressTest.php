@@ -115,6 +115,31 @@ final class BracketProgressTest extends TestCase
         EncounterAssert::assertThat($encounter)->homeIsForTeam($teamB);
     }
 
+    #[Test]
+    public function correcting_an_encounter_leaves_the_other_qualifier_untouched(): void
+    {
+        ['bracket' => $bracket, 'teamA' => $teamA, 'teamD' => $teamD] = $this->makeFourTeamBracket();
+        $bracket->recordResult(new EncounterId('enc-1'), EncounterResult::regularTime(Score::of(2, 0)));
+        $bracket->recordResult(new EncounterId('enc-2'), EncounterResult::regularTime(Score::of(2, 0)));
+
+        $bracket->correctResult(new EncounterId('enc-2'), EncounterResult::regularTime(Score::of(0, 2)));
+
+        $encounter = $bracket->getRound(2)->getEncounters()[0];
+        EncounterAssert::assertThat($encounter)->homeIsForTeam($teamA)->awayIsForTeam($teamD);
+    }
+
+    #[Test]
+    public function a_corrected_encounter_keeps_its_participants(): void
+    {
+        ['bracket' => $bracket, 'teamA' => $teamA, 'teamB' => $teamB] = $this->makeFourTeamBracket();
+        $bracket->recordResult(new EncounterId('enc-1'), EncounterResult::regularTime(Score::of(2, 0)));
+
+        $bracket->correctResult(new EncounterId('enc-1'), EncounterResult::regularTime(Score::of(0, 2)));
+
+        $encounter = $bracket->getRound(1)->getEncounters()[0];
+        EncounterAssert::assertThat($encounter)->homeIsForTeam($teamA)->awayIsForTeam($teamB);
+    }
+
     // --- helpers ---
 
     /** @return array{bracket: Bracket, teamA: TeamId, teamB: TeamId, teamC: TeamId, teamD: TeamId} */
