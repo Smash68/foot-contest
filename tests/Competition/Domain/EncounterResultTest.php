@@ -71,6 +71,15 @@ final class EncounterResultTest extends TestCase
         self::assertNull($result->penalties);
     }
 
+    #[Test]
+    public function it_builds_a_result_after_penalties_when_penalties_are_the_last_phase(): void
+    {
+        $result = EncounterResult::of(Score::of(1, 1), null, Score::of(4, 3));
+
+        self::assertSame(4, $result->penalties?->home);
+        self::assertNull($result->extraTime);
+    }
+
     // --- afterExtraTime ---
 
     #[Test]
