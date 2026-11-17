@@ -55,11 +55,7 @@ final class BracketWithThirdPlaceMatch implements Bracket
 
     public function findEncounterById(EncounterId $encounterId): ?Encounter
     {
-        if ($this->thirdPlaceEncounter !== null && $this->thirdPlaceEncounter->id->equals($encounterId)) {
-            return $this->thirdPlaceEncounter;
-        }
-
-        return $this->inner->findEncounterById($encounterId);
+        return $this->thirdPlaceEncounterWithId($encounterId) ?? $this->inner->findEncounterById($encounterId);
     }
 
     public function getThirdPlaceEncounter(): ?Encounter
@@ -74,10 +70,11 @@ final class BracketWithThirdPlaceMatch implements Bracket
 
     public function recordResult(EncounterId $encounterId, EncounterResult $result): void
     {
-        if ($this->thirdPlaceEncounter !== null && $this->thirdPlaceEncounter->id->equals($encounterId)) {
+        $thirdPlaceEncounter = $this->thirdPlaceEncounterWithId($encounterId);
+        if ($thirdPlaceEncounter !== null) {
             SingleEliminationResultRules::assertAcceptable($encounterId, $result);
 
-            $this->thirdPlaceEncounter->play($result);
+            $thirdPlaceEncounter->play($result);
 
             return;
         }
@@ -88,7 +85,23 @@ final class BracketWithThirdPlaceMatch implements Bracket
 
     public function correctResult(EncounterId $encounterId, EncounterResult $result): void
     {
+        $thirdPlaceEncounter = $this->thirdPlaceEncounterWithId($encounterId);
+        if ($thirdPlaceEncounter !== null) {
+            $thirdPlaceEncounter->correct($result);
+
+            return;
+        }
+
         $this->inner->correctResult($encounterId, $result);
+    }
+
+    private function thirdPlaceEncounterWithId(EncounterId $encounterId): ?Encounter
+    {
+        if ($this->thirdPlaceEncounter !== null && $this->thirdPlaceEncounter->id->equals($encounterId)) {
+            return $this->thirdPlaceEncounter;
+        }
+
+        return null;
     }
 
     private function buildThirdPlaceEncounterIfReady(): void

@@ -103,6 +103,22 @@ final class BracketWithThirdPlaceMatchTest extends TestCase
     }
 
     #[Test]
+    public function the_third_place_encounter_can_be_corrected(): void
+    {
+        ['bracket' => $bracket] = $this->makeFourTeamBracketWithThirdPlaceMatch();
+        $bracket->recordResult(new EncounterId('semi-1'), EncounterResult::regularTime(Score::of(2, 0)));
+        $bracket->recordResult(new EncounterId('semi-2'), EncounterResult::regularTime(Score::of(0, 1)));
+        $thirdPlaceEncounter = $bracket->getThirdPlaceEncounter();
+        self::assertNotNull($thirdPlaceEncounter);
+        $bracket->recordResult($thirdPlaceEncounter->id, EncounterResult::regularTime(Score::of(3, 1)));
+        $corrected = EncounterResult::regularTime(Score::of(1, 3));
+
+        $bracket->correctResult($thirdPlaceEncounter->id, $corrected);
+
+        self::assertSame($corrected, $thirdPlaceEncounter->getResult());
+    }
+
+    #[Test]
     public function it_still_resolves_the_final_normally(): void
     {
         ['bracket' => $bracket, 'teamA' => $teamA] = $this->makeFourTeamBracketWithThirdPlaceMatch();
