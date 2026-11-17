@@ -158,6 +158,16 @@ final class EncounterTest extends TestCase
     }
 
     #[Test]
+    public function it_throws_when_correcting_an_encounter_not_yet_played(): void
+    {
+        $encounter = $this->makeConcreteEncounter();
+
+        $this->expectException(\LogicException::class);
+
+        $encounter->correct(EncounterResult::regularTime(Score::of(2, 1)));
+    }
+
+    #[Test]
     public function it_can_resolve_home_participant(): void
     {
         $winner = new TeamId('w');
