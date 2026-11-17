@@ -250,6 +250,37 @@ final class DoctrineCompetitionRepositoryTest extends KernelTestCase
     }
 
     #[Test]
+    public function it_persists_the_new_winner_of_a_corrected_encounter(): void
+    {
+        $entityManager = self::getContainer()->get(EntityManagerInterface::class);
+        assert($entityManager instanceof EntityManagerInterface);
+        $repository = new DoctrineCompetitionRepository($entityManager);
+
+        $competition = CompetitionBuilder::aCompetition()
+            ->withTeam('Team A', captainId: 'captain-a')
+            ->withTeam('Team B', captainId: 'captain-b')
+            ->withTeam('Team C', captainId: 'captain-c')
+            ->withTeam('Team D', captainId: 'captain-d')
+            ->withBracketGenerated()
+            ->build();
+        $bracket = $competition->getBracket();
+        self::assertNotNull($bracket);
+        $semiFinal = $bracket->getRound(1)->getEncounters()[0];
+        $competition->recordResult($semiFinal->id, EncounterResult::regularTime(Score::of(2, 0)));
+        $competition->correctResult($semiFinal->id, EncounterResult::regularTime(Score::of(0, 2)));
+        $newWinner = $semiFinal->getAway()->getTeamId();
+
+        $repository->save($competition);
+        $entityManager->clear();
+
+        $found = $repository->ofId($competition->getId());
+        self::assertNotNull($found);
+        $reloadedFinal = $found->getBracket()?->getRound(2)->encounterOf($newWinner);
+        self::assertNotNull($reloadedFinal);
+        self::assertSame(0, $found->getBracket()?->findEncounterById($semiFinal->id)?->getResult()?->regularTime->home);
+    }
+
+    #[Test]
     public function it_persists_a_result_decided_in_extra_time(): void
     {
         $entityManager = self::getContainer()->get(EntityManagerInterface::class);
