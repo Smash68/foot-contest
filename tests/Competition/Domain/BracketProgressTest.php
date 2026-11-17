@@ -91,6 +91,103 @@ final class BracketProgressTest extends TestCase
         self::assertFalse($bracket->getRound(1)->getEncounters()[0]->isCompleted());
     }
 
+    #[Test]
+    public function it_replaces_the_result_of_a_corrected_encounter(): void
+    {
+        ['bracket' => $bracket] = $this->makeFourTeamBracket();
+        $bracket->recordResult(new EncounterId('enc-1'), EncounterResult::regularTime(Score::of(2, 0)));
+        $corrected = EncounterResult::regularTime(Score::of(3, 0));
+
+        $bracket->correctResult(new EncounterId('enc-1'), $corrected);
+
+        self::assertSame($corrected, $bracket->getRound(1)->getEncounters()[0]->getResult());
+    }
+
+    #[Test]
+    public function the_new_winner_of_a_corrected_encounter_advances_to_next_round(): void
+    {
+        ['bracket' => $bracket, 'teamB' => $teamB] = $this->makeFourTeamBracket();
+        $bracket->recordResult(new EncounterId('enc-1'), EncounterResult::regularTime(Score::of(2, 0)));
+
+        $bracket->correctResult(new EncounterId('enc-1'), EncounterResult::regularTime(Score::of(0, 2)));
+
+        $encounter = $bracket->getRound(2)->getEncounters()[0];
+        EncounterAssert::assertThat($encounter)->homeIsForTeam($teamB);
+    }
+
+    #[Test]
+    public function correcting_an_encounter_leaves_the_other_qualifier_untouched(): void
+    {
+        ['bracket' => $bracket, 'teamA' => $teamA, 'teamD' => $teamD] = $this->makeFourTeamBracket();
+        $bracket->recordResult(new EncounterId('enc-1'), EncounterResult::regularTime(Score::of(2, 0)));
+        $bracket->recordResult(new EncounterId('enc-2'), EncounterResult::regularTime(Score::of(2, 0)));
+
+        $bracket->correctResult(new EncounterId('enc-2'), EncounterResult::regularTime(Score::of(0, 2)));
+
+        $encounter = $bracket->getRound(2)->getEncounters()[0];
+        EncounterAssert::assertThat($encounter)->homeIsForTeam($teamA)->awayIsForTeam($teamD);
+    }
+
+    #[Test]
+    public function a_corrected_encounter_keeps_its_participants(): void
+    {
+        ['bracket' => $bracket, 'teamA' => $teamA, 'teamB' => $teamB] = $this->makeFourTeamBracket();
+        $bracket->recordResult(new EncounterId('enc-1'), EncounterResult::regularTime(Score::of(2, 0)));
+
+        $bracket->correctResult(new EncounterId('enc-1'), EncounterResult::regularTime(Score::of(0, 2)));
+
+        $encounter = $bracket->getRound(1)->getEncounters()[0];
+        EncounterAssert::assertThat($encounter)->homeIsForTeam($teamA)->awayIsForTeam($teamB);
+    }
+
+    #[Test]
+    public function it_rejects_changing_the_winner_once_the_next_encounter_is_played_without_correcting_it(): void
+    {
+        ['bracket' => $bracket] = $this->makeFourTeamBracket();
+        $result = EncounterResult::regularTime(Score::of(2, 0));
+        $bracket->recordResult(new EncounterId('enc-1'), $result);
+        $bracket->recordResult(new EncounterId('enc-2'), EncounterResult::regularTime(Score::of(2, 0)));
+        $bracket->recordResult(new EncounterId('enc-3'), EncounterResult::regularTime(Score::of(1, 0)));
+
+        try {
+            $bracket->correctResult(new EncounterId('enc-1'), EncounterResult::regularTime(Score::of(0, 2)));
+            self::fail('Changing the winner once the next encounter is played should have been rejected.');
+        } catch (\LogicException) {
+        }
+
+        self::assertSame($result, $bracket->getRound(1)->getEncounters()[0]->getResult());
+    }
+
+    #[Test]
+    public function it_corrects_the_score_without_changing_the_winner_once_the_next_encounter_is_played(): void
+    {
+        ['bracket' => $bracket] = $this->makeFourTeamBracket();
+        $bracket->recordResult(new EncounterId('enc-1'), EncounterResult::regularTime(Score::of(2, 0)));
+        $bracket->recordResult(new EncounterId('enc-2'), EncounterResult::regularTime(Score::of(2, 0)));
+        $bracket->recordResult(new EncounterId('enc-3'), EncounterResult::regularTime(Score::of(1, 0)));
+        $corrected = EncounterResult::regularTime(Score::of(3, 0));
+
+        $bracket->correctResult(new EncounterId('enc-1'), $corrected);
+
+        self::assertSame($corrected, $bracket->getRound(1)->getEncounters()[0]->getResult());
+    }
+
+    #[Test]
+    public function it_rejects_correcting_to_a_draw_without_correcting_the_encounter(): void
+    {
+        ['bracket' => $bracket] = $this->makeFourTeamBracket();
+        $result = EncounterResult::regularTime(Score::of(2, 0));
+        $bracket->recordResult(new EncounterId('enc-1'), $result);
+
+        try {
+            $bracket->correctResult(new EncounterId('enc-1'), EncounterResult::regularTime(Score::of(1, 1)));
+            self::fail('A draw should have been rejected.');
+        } catch (\InvalidArgumentException) {
+        }
+
+        self::assertSame($result, $bracket->getRound(1)->getEncounters()[0]->getResult());
+    }
+
     // --- helpers ---
 
     /** @return array{bracket: Bracket, teamA: TeamId, teamB: TeamId, teamC: TeamId, teamD: TeamId} */

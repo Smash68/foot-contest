@@ -14,4 +14,9 @@ final readonly class ThirdPlaceFixture
         public EncounterId $semiFinalTwoId,
     ) {
     }
+
+    public function isSemiFinal(EncounterId $encounterId): bool
+    {
+        return $encounterId->equals($this->semiFinalOneId) || $encounterId->equals($this->semiFinalTwoId);
+    }
 }

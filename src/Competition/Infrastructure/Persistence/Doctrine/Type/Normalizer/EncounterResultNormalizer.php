@@ -27,16 +27,10 @@ final class EncounterResultNormalizer
     {
         assert(is_array($data));
 
-        $regularTime = $this->scores->denormalize($data['regular_time']);
-
-        if ($data['penalties'] !== null) {
-            return EncounterResult::afterPenalties($regularTime, $this->scores->denormalize($data['extra_time']), $this->scores->denormalize($data['penalties']));
-        }
-
-        if ($data['extra_time'] !== null) {
-            return EncounterResult::afterExtraTime($regularTime, $this->scores->denormalize($data['extra_time']));
-        }
-
-        return EncounterResult::regularTime($regularTime);
+        return EncounterResult::of(
+            $this->scores->denormalize($data['regular_time']),
+            $data['extra_time'] !== null ? $this->scores->denormalize($data['extra_time']) : null,
+            $data['penalties'] !== null ? $this->scores->denormalize($data['penalties']) : null,
+        );
     }
 }

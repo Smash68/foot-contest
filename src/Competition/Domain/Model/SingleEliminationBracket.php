@@ -71,11 +71,7 @@ final class SingleEliminationBracket implements Bracket
 
     public function recordResult(EncounterId $encounterId, EncounterResult $result): void
     {
-        $encounter = $this->findEncounterById($encounterId);
-
-        if ($encounter === null) {
-            throw new \InvalidArgumentException("Encounter '{$encounterId->value}' not found in bracket.");
-        }
+        $encounter = $this->getEncounter($encounterId);
 
         SingleEliminationResultRules::assertAcceptable($encounterId, $result);
 
@@ -84,5 +80,54 @@ final class SingleEliminationBracket implements Bracket
         foreach ($this->rounds as $round) {
             $round->resolveParticipant($encounterId, $encounter->getWinner());
         }
+    }
+
+    public function correctResult(EncounterId $encounterId, EncounterResult $result): void
+    {
+        $encounter = $this->getEncounter($encounterId);
+
+        SingleEliminationResultRules::assertAcceptable($encounterId, $result);
+
+        $previousWinner = $encounter->getWinner();
+        $nextRound = $this->roundAfter($encounterId);
+
+        $this->assertWinnerCanChange($encounter, $result, $nextRound);
+
+        $encounter->correct($result);
+
+        $nextRound?->replaceTeam($previousWinner, $encounter->getWinner());
+    }
+
+    private function assertWinnerCanChange(Encounter $encounter, EncounterResult $result, ?Round $nextRound): void
+    {
+        $nextEncounter = $nextRound?->encounterOf($encounter->getWinner());
+
+        if ($nextEncounter !== null && $nextEncounter->isCompleted() && $encounter->wouldChangeWinner($result)) {
+            throw new \LogicException("Encounter '{$encounter->id->value}': the winner cannot change once the next encounter is played.");
+        }
+    }
+
+    private function roundAfter(EncounterId $encounterId): ?Round
+    {
+        $rounds = array_values($this->rounds);
+
+        foreach ($rounds as $index => $round) {
+            if ($round->findEncounterById($encounterId) !== null) {
+                return $rounds[$index + 1] ?? null;
+            }
+        }
+
+        return null;
+    }
+
+    private function getEncounter(EncounterId $encounterId): Encounter
+    {
+        $encounter = $this->findEncounterById($encounterId);
+
+        if ($encounter === null) {
+            throw new \InvalidArgumentException("Encounter '{$encounterId->value}' not found in bracket.");
+        }
+
+        return $encounter;
     }
 }

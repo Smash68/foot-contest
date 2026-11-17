@@ -32,6 +32,33 @@ final class Encounter
         $this->result = $result;
     }
 
+    public function correct(EncounterResult $result): void
+    {
+        if ($this->result === null) {
+            throw new \LogicException("Encounter '{$this->id->value}' has not been played yet.");
+        }
+
+        $this->result = $result;
+    }
+
+    public function wouldChangeWinner(EncounterResult $result): bool
+    {
+        if ($this->result === null) {
+            throw new \LogicException("Encounter '{$this->id->value}' has no result yet.");
+        }
+
+        return $this->result->winner() !== $result->winner();
+    }
+
+    public function replaceTeam(TeamId $previous, TeamId $replacement): void
+    {
+        if ($this->home->holdsTeam($previous)) {
+            $this->home = Participant::forTeam($replacement);
+        } elseif ($this->away->holdsTeam($previous)) {
+            $this->away = Participant::forTeam($replacement);
+        }
+    }
+
     public function resolveHome(Participant $participant): void
     {
         $this->home = $participant;

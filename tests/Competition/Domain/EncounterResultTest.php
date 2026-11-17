@@ -50,6 +50,44 @@ final class EncounterResultTest extends TestCase
         self::assertFalse($result->isDraw());
     }
 
+    // --- of ---
+
+    #[Test]
+    public function it_builds_a_regular_time_result_from_the_regular_time_score_alone(): void
+    {
+        $result = EncounterResult::of(Score::of(2, 1));
+
+        self::assertSame(2, $result->regularTime->home);
+        self::assertNull($result->extraTime);
+        self::assertNull($result->penalties);
+    }
+
+    #[Test]
+    public function it_builds_a_result_after_extra_time_when_extra_time_is_the_last_phase(): void
+    {
+        $result = EncounterResult::of(Score::of(1, 1), Score::of(2, 1));
+
+        self::assertSame(2, $result->extraTime?->home);
+        self::assertNull($result->penalties);
+    }
+
+    #[Test]
+    public function it_builds_a_result_after_penalties_when_penalties_are_the_last_phase(): void
+    {
+        $result = EncounterResult::of(Score::of(1, 1), null, Score::of(4, 3));
+
+        self::assertSame(4, $result->penalties?->home);
+        self::assertNull($result->extraTime);
+    }
+
+    #[Test]
+    public function it_keeps_the_extra_time_of_a_result_after_penalties(): void
+    {
+        $result = EncounterResult::of(Score::of(1, 1), Score::of(2, 2), Score::of(4, 3));
+
+        self::assertSame(2, $result->extraTime?->home);
+    }
+
     // --- afterExtraTime ---
 
     #[Test]

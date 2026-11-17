@@ -55,11 +55,7 @@ final class BracketWithThirdPlaceMatch implements Bracket
 
     public function findEncounterById(EncounterId $encounterId): ?Encounter
     {
-        if ($this->thirdPlaceEncounter !== null && $this->thirdPlaceEncounter->id->equals($encounterId)) {
-            return $this->thirdPlaceEncounter;
-        }
-
-        return $this->inner->findEncounterById($encounterId);
+        return $this->thirdPlaceEncounterWithId($encounterId) ?? $this->inner->findEncounterById($encounterId);
     }
 
     public function getThirdPlaceEncounter(): ?Encounter
@@ -74,16 +70,63 @@ final class BracketWithThirdPlaceMatch implements Bracket
 
     public function recordResult(EncounterId $encounterId, EncounterResult $result): void
     {
-        if ($this->thirdPlaceEncounter !== null && $this->thirdPlaceEncounter->id->equals($encounterId)) {
+        $thirdPlaceEncounter = $this->thirdPlaceEncounterWithId($encounterId);
+        if ($thirdPlaceEncounter !== null) {
             SingleEliminationResultRules::assertAcceptable($encounterId, $result);
 
-            $this->thirdPlaceEncounter->play($result);
+            $thirdPlaceEncounter->play($result);
 
             return;
         }
 
         $this->inner->recordResult($encounterId, $result);
         $this->buildThirdPlaceEncounterIfReady();
+    }
+
+    public function correctResult(EncounterId $encounterId, EncounterResult $result): void
+    {
+        $thirdPlaceEncounter = $this->thirdPlaceEncounterWithId($encounterId);
+        if ($thirdPlaceEncounter !== null) {
+            SingleEliminationResultRules::assertAcceptable($encounterId, $result);
+
+            $thirdPlaceEncounter->correct($result);
+
+            return;
+        }
+
+        if ($this->thirdPlaceEncounter !== null && $this->fixture->isSemiFinal($encounterId)) {
+            $this->correctSemiFinal($encounterId, $result, $this->thirdPlaceEncounter);
+
+            return;
+        }
+
+        $this->inner->correctResult($encounterId, $result);
+    }
+
+    private function correctSemiFinal(EncounterId $encounterId, EncounterResult $result, Encounter $thirdPlaceEncounter): void
+    {
+        $semiFinal = $this->findEncounter($encounterId);
+
+        SingleEliminationResultRules::assertAcceptable($encounterId, $result);
+
+        if ($thirdPlaceEncounter->isCompleted() && $semiFinal->wouldChangeWinner($result)) {
+            throw new \LogicException("Encounter '{$encounterId->value}': the winner cannot change once the third place encounter is played.");
+        }
+
+        $previousLoser = $semiFinal->getLoser();
+
+        $this->inner->correctResult($encounterId, $result);
+
+        $thirdPlaceEncounter->replaceTeam($previousLoser, $semiFinal->getLoser());
+    }
+
+    private function thirdPlaceEncounterWithId(EncounterId $encounterId): ?Encounter
+    {
+        if ($this->thirdPlaceEncounter !== null && $this->thirdPlaceEncounter->id->equals($encounterId)) {
+            return $this->thirdPlaceEncounter;
+        }
+
+        return null;
     }
 
     private function buildThirdPlaceEncounterIfReady(): void

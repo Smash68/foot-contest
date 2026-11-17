@@ -342,6 +342,39 @@ final class CompetitionTest extends TestCase
     }
 
     #[Test]
+    public function it_rejects_correcting_a_result_before_the_bracket_is_generated(): void
+    {
+        $competition = CompetitionBuilder::aCompetition()
+            ->withTeam('Team A', captainId: 'a@example.com', id: 'a')
+            ->withTeam('Team B', captainId: 'b@example.com', id: 'b')
+            ->withRegistrationClosed()
+            ->build();
+
+        $this->expectException(\LogicException::class);
+
+        $competition->correctResult(new EncounterId('encounter-1'), EncounterResult::regularTime(Score::of(1, 0)));
+    }
+
+    #[Test]
+    public function it_corrects_a_result_in_its_bracket(): void
+    {
+        $competition = CompetitionBuilder::aCompetition()
+            ->withTeam('Team A', captainId: 'a@example.com', id: 'a')
+            ->withTeam('Team B', captainId: 'b@example.com', id: 'b')
+            ->withBracketGenerated()
+            ->build();
+        $bracket = $competition->getBracket();
+        self::assertNotNull($bracket);
+        $encounter = $bracket->getRound(1)->getEncounters()[0];
+        $competition->recordResult($encounter->id, EncounterResult::regularTime(Score::of(1, 0)));
+        $corrected = EncounterResult::regularTime(Score::of(2, 0));
+
+        $competition->correctResult($encounter->id, $corrected);
+
+        self::assertSame($corrected, $encounter->getResult());
+    }
+
+    #[Test]
     public function it_records_a_join_request_for_a_registered_team(): void
     {
         $competition = CompetitionBuilder::aCompetition()

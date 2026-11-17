@@ -13,6 +13,19 @@ final readonly class EncounterResult
     ) {
     }
 
+    public static function of(Score $regularTime, ?Score $extraTime = null, ?Score $penalties = null): self
+    {
+        if ($penalties !== null) {
+            return self::afterPenalties($regularTime, $extraTime, $penalties);
+        }
+
+        if ($extraTime !== null) {
+            return self::afterExtraTime($regularTime, $extraTime);
+        }
+
+        return self::regularTime($regularTime);
+    }
+
     public static function regularTime(Score $score): self
     {
         return new self($score);

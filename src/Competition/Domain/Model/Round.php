@@ -40,6 +40,22 @@ final class Round
         return null;
     }
 
+    public function encounterOf(TeamId $teamId): ?Encounter
+    {
+        foreach ($this->encounters as $encounter) {
+            if ($encounter->getHome()->holdsTeam($teamId) || $encounter->getAway()->holdsTeam($teamId)) {
+                return $encounter;
+            }
+        }
+
+        return null;
+    }
+
+    public function replaceTeam(TeamId $previous, TeamId $replacement): void
+    {
+        $this->encounterOf($previous)?->replaceTeam($previous, $replacement);
+    }
+
     public function resolveParticipant(EncounterId $sourceId, TeamId $winner): void
     {
         foreach ($this->encounters as $encounter) {
