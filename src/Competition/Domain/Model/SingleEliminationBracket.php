@@ -85,9 +85,13 @@ final class SingleEliminationBracket implements Bracket
     public function correctResult(EncounterId $encounterId, EncounterResult $result): void
     {
         $encounter = $this->getEncounter($encounterId);
-        $previousWinner = $encounter->getWinner();
 
-        $nextEncounter = $this->roundAfter($encounterId)?->encounterOf($previousWinner);
+        SingleEliminationResultRules::assertAcceptable($encounterId, $result);
+
+        $previousWinner = $encounter->getWinner();
+        $nextRound = $this->roundAfter($encounterId);
+
+        $nextEncounter = $nextRound?->encounterOf($previousWinner);
         if ($nextEncounter !== null && $nextEncounter->isCompleted() && $encounter->wouldChangeWinner($result)) {
             throw new \LogicException("Encounter '{$encounterId->value}': the winner cannot change once the next encounter is played.");
         }
@@ -96,7 +100,7 @@ final class SingleEliminationBracket implements Bracket
 
         $newWinner = $encounter->getWinner();
         if (!$newWinner->equals($previousWinner)) {
-            $this->roundAfter($encounterId)?->replaceTeam($previousWinner, $newWinner);
+            $nextRound?->replaceTeam($previousWinner, $newWinner);
         }
     }
 

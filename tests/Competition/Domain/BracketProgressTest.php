@@ -172,6 +172,22 @@ final class BracketProgressTest extends TestCase
         self::assertSame($corrected, $bracket->getRound(1)->getEncounters()[0]->getResult());
     }
 
+    #[Test]
+    public function it_rejects_correcting_to_a_draw_without_correcting_the_encounter(): void
+    {
+        ['bracket' => $bracket] = $this->makeFourTeamBracket();
+        $result = EncounterResult::regularTime(Score::of(2, 0));
+        $bracket->recordResult(new EncounterId('enc-1'), $result);
+
+        try {
+            $bracket->correctResult(new EncounterId('enc-1'), EncounterResult::regularTime(Score::of(1, 1)));
+            self::fail('A draw should have been rejected.');
+        } catch (\InvalidArgumentException) {
+        }
+
+        self::assertSame($result, $bracket->getRound(1)->getEncounters()[0]->getResult());
+    }
+
     // --- helpers ---
 
     /** @return array{bracket: Bracket, teamA: TeamId, teamB: TeamId, teamC: TeamId, teamD: TeamId} */
