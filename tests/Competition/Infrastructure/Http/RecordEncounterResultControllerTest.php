@@ -78,6 +78,19 @@ final class RecordEncounterResultControllerTest extends WebTestCase
         self::assertFalse($encounter->isCompleted());
     }
 
+    #[Test]
+    public function it_returns_401_without_a_token(): void
+    {
+        [$competition, $encounter] = $this->aCompetitionWithItsBracketOwnedBy('org-1');
+
+        $this->postResult($competition, $encounter, [
+            'regularTime' => ['home' => 2, 'away' => 1],
+        ]);
+
+        self::assertResponseStatusCodeSame(401);
+        self::assertFalse($encounter->isCompleted());
+    }
+
     /** @return array{Competition, Encounter} */
     private function aCompetitionWithItsBracketOwnedBy(string $organizationId): array
     {
