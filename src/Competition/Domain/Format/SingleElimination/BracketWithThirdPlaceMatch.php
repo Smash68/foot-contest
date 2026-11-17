@@ -87,6 +87,8 @@ final class BracketWithThirdPlaceMatch implements Bracket
     {
         $thirdPlaceEncounter = $this->thirdPlaceEncounterWithId($encounterId);
         if ($thirdPlaceEncounter !== null) {
+            SingleEliminationResultRules::assertAcceptable($encounterId, $result);
+
             $thirdPlaceEncounter->correct($result);
 
             return;

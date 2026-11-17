@@ -119,6 +119,26 @@ final class BracketWithThirdPlaceMatchTest extends TestCase
     }
 
     #[Test]
+    public function it_rejects_correcting_the_third_place_encounter_to_a_draw(): void
+    {
+        ['bracket' => $bracket] = $this->makeFourTeamBracketWithThirdPlaceMatch();
+        $bracket->recordResult(new EncounterId('semi-1'), EncounterResult::regularTime(Score::of(2, 0)));
+        $bracket->recordResult(new EncounterId('semi-2'), EncounterResult::regularTime(Score::of(0, 1)));
+        $thirdPlaceEncounter = $bracket->getThirdPlaceEncounter();
+        self::assertNotNull($thirdPlaceEncounter);
+        $result = EncounterResult::regularTime(Score::of(3, 1));
+        $bracket->recordResult($thirdPlaceEncounter->id, $result);
+
+        try {
+            $bracket->correctResult($thirdPlaceEncounter->id, EncounterResult::regularTime(Score::of(1, 1)));
+            self::fail('A draw should have been rejected.');
+        } catch (\InvalidArgumentException) {
+        }
+
+        self::assertSame($result, $thirdPlaceEncounter->getResult());
+    }
+
+    #[Test]
     public function it_still_resolves_the_final_normally(): void
     {
         ['bracket' => $bracket, 'teamA' => $teamA] = $this->makeFourTeamBracketWithThirdPlaceMatch();
