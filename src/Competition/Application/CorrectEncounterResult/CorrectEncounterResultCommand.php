@@ -11,6 +11,8 @@ final readonly class CorrectEncounterResultCommand
         public string $encounterId,
         public string $organizerId,
         public ScoreInput $regularTime,
+        public ?ScoreInput $extraTime = null,
+        public ?ScoreInput $penalties = null,
     ) {
     }
 }

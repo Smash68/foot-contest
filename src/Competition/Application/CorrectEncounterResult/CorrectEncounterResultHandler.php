@@ -32,11 +32,29 @@ final readonly class CorrectEncounterResultHandler
             throw new OrganizerNotAuthorizedForOrganizationException($command->organizerId, $competition->getOrganizationId()->value);
         }
 
-        $competition->correctResult(
-            new EncounterId($command->encounterId),
-            EncounterResult::regularTime(Score::of($command->regularTime->home, $command->regularTime->away)),
-        );
+        $competition->correctResult(new EncounterId($command->encounterId), $this->result($command));
 
         $this->competitions->save($competition);
+    }
+
+    private function result(CorrectEncounterResultCommand $command): EncounterResult
+    {
+        $regularTime = self::score($command->regularTime);
+        $extraTime = $command->extraTime !== null ? self::score($command->extraTime) : null;
+
+        if ($command->penalties !== null) {
+            return EncounterResult::afterPenalties($regularTime, $extraTime, self::score($command->penalties));
+        }
+
+        if ($extraTime !== null) {
+            return EncounterResult::afterExtraTime($regularTime, $extraTime);
+        }
+
+        return EncounterResult::regularTime($regularTime);
+    }
+
+    private static function score(ScoreInput $input): Score
+    {
+        return Score::of($input->home, $input->away);
     }
 }
