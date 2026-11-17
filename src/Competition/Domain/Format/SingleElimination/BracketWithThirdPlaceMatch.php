@@ -86,6 +86,11 @@ final class BracketWithThirdPlaceMatch implements Bracket
         $this->buildThirdPlaceEncounterIfReady();
     }
 
+    public function correctResult(EncounterId $encounterId, EncounterResult $result): void
+    {
+        $this->inner->correctResult($encounterId, $result);
+    }
+
     private function buildThirdPlaceEncounterIfReady(): void
     {
         if ($this->thirdPlaceEncounter !== null) {

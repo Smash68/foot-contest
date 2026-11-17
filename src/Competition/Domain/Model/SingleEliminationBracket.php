@@ -71,11 +71,7 @@ final class SingleEliminationBracket implements Bracket
 
     public function recordResult(EncounterId $encounterId, EncounterResult $result): void
     {
-        $encounter = $this->findEncounterById($encounterId);
-
-        if ($encounter === null) {
-            throw new \InvalidArgumentException("Encounter '{$encounterId->value}' not found in bracket.");
-        }
+        $encounter = $this->getEncounter($encounterId);
 
         SingleEliminationResultRules::assertAcceptable($encounterId, $result);
 
@@ -84,5 +80,21 @@ final class SingleEliminationBracket implements Bracket
         foreach ($this->rounds as $round) {
             $round->resolveParticipant($encounterId, $encounter->getWinner());
         }
+    }
+
+    public function correctResult(EncounterId $encounterId, EncounterResult $result): void
+    {
+        $this->getEncounter($encounterId)->correct($result);
+    }
+
+    private function getEncounter(EncounterId $encounterId): Encounter
+    {
+        $encounter = $this->findEncounterById($encounterId);
+
+        if ($encounter === null) {
+            throw new \InvalidArgumentException("Encounter '{$encounterId->value}' not found in bracket.");
+        }
+
+        return $encounter;
     }
 }
