@@ -8,6 +8,9 @@ final readonly class RecordEncounterResultRequest
 {
     public function __construct(
         public ScoreRequest $regularTime,
+        /** Cumulative score at the end of extra time, regular time goals included. */
+        public ?ScoreRequest $extraTime = null,
+        public ?ScoreRequest $penalties = null,
     ) {
     }
 }
