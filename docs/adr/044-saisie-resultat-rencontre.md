@@ -1,7 +1,7 @@
 # 044. Saisie du résultat d'une rencontre : point d'entrée Competition, règles du format portées par le tableau
 
 Date: 2026-11-16
-Status: Accepted
+Status: Accepted — traduction des phases saisies et relecture des tirs au but directs remplacées par ADR 046
 
 ## Contexte
 
