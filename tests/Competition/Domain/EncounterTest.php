@@ -168,6 +168,18 @@ final class EncounterTest extends TestCase
     }
 
     #[Test]
+    public function it_replaces_the_result_when_corrected(): void
+    {
+        $encounter = $this->makeConcreteEncounter();
+        $encounter->play(EncounterResult::regularTime(Score::of(2, 1)));
+        $corrected = EncounterResult::regularTime(Score::of(3, 1));
+
+        $encounter->correct($corrected);
+
+        self::assertSame($corrected, $encounter->getResult());
+    }
+
+    #[Test]
     public function it_can_resolve_home_participant(): void
     {
         $winner = new TeamId('w');

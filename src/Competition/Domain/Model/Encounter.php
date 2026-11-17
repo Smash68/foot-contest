@@ -37,6 +37,8 @@ final class Encounter
         if ($this->result === null) {
             throw new \LogicException("Encounter '{$this->id->value}' has not been played yet.");
         }
+
+        $this->result = $result;
     }
 
     public function resolveHome(Participant $participant): void
