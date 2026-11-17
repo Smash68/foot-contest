@@ -55,12 +55,19 @@ security:
             stateless: true
             provider: organizers
             jwt: ~
-        # JWT-authenticated firewall for the one Competition endpoint that needs to know the
-        # current organizer (POST /competitions/{id}/generate-bracket, only the organizer
-        # owning the competition may generate its bracket). Every other Competition route
-        # falls through to "main" untouched.
+        # JWT-authenticated firewall for generating the bracket
+        # (POST /competitions/{id}/generate-bracket) : only the organizer owning the
+        # competition may generate its bracket.
         generate_bracket:
             pattern: ^/competitions/[^/]+/generate-bracket$
+            stateless: true
+            provider: organizers
+            jwt: ~
+        # JWT-authenticated firewall for recording an encounter result
+        # (POST /competitions/{id}/encounters/{encounterId}/result) : only the organizer
+        # owning the competition may record a result.
+        record_encounter_result:
+            pattern: ^/competitions/[^/]+/encounters/[^/]+/result$
             stateless: true
             provider: organizers
             jwt: ~
@@ -125,6 +132,7 @@ security:
         - { path: ^/competitions/[^/]+/teams$, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/competitions/[^/]+/close-registration$, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/competitions/[^/]+/generate-bracket$, roles: IS_AUTHENTICATED_FULLY }
+        - { path: ^/competitions/[^/]+/encounters/[^/]+/result$, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/competitions/[^/]+/teams/[^/]+/join-requests$, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/competitions/[^/]+/teams/[^/]+/join-requests/[^/]+/approve$, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/competitions/[^/]+/teams/[^/]+/join-requests/[^/]+/reject$, roles: IS_AUTHENTICATED_FULLY }
