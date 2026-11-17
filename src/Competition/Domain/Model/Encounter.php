@@ -41,6 +41,15 @@ final class Encounter
         $this->result = $result;
     }
 
+    public function wouldChangeWinner(EncounterResult $result): bool
+    {
+        if ($this->result === null) {
+            throw new \LogicException("Encounter '{$this->id->value}' has no result yet.");
+        }
+
+        return $this->result->winner() !== $result->winner();
+    }
+
     public function resolveHome(Participant $participant): void
     {
         $this->home = $participant;

@@ -87,6 +87,11 @@ final class SingleEliminationBracket implements Bracket
         $encounter = $this->getEncounter($encounterId);
         $previousWinner = $encounter->getWinner();
 
+        $nextEncounter = $this->roundAfter($encounterId)?->encounterOf($previousWinner);
+        if ($nextEncounter !== null && $nextEncounter->isCompleted() && $encounter->wouldChangeWinner($result)) {
+            throw new \LogicException("Encounter '{$encounterId->value}': the winner cannot change once the next encounter is played.");
+        }
+
         $encounter->correct($result);
 
         $newWinner = $encounter->getWinner();

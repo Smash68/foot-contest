@@ -140,6 +140,24 @@ final class BracketProgressTest extends TestCase
         EncounterAssert::assertThat($encounter)->homeIsForTeam($teamA)->awayIsForTeam($teamB);
     }
 
+    #[Test]
+    public function it_rejects_changing_the_winner_once_the_next_encounter_is_played_without_correcting_it(): void
+    {
+        ['bracket' => $bracket] = $this->makeFourTeamBracket();
+        $result = EncounterResult::regularTime(Score::of(2, 0));
+        $bracket->recordResult(new EncounterId('enc-1'), $result);
+        $bracket->recordResult(new EncounterId('enc-2'), EncounterResult::regularTime(Score::of(2, 0)));
+        $bracket->recordResult(new EncounterId('enc-3'), EncounterResult::regularTime(Score::of(1, 0)));
+
+        try {
+            $bracket->correctResult(new EncounterId('enc-1'), EncounterResult::regularTime(Score::of(0, 2)));
+            self::fail('Changing the winner once the next encounter is played should have been rejected.');
+        } catch (\LogicException) {
+        }
+
+        self::assertSame($result, $bracket->getRound(1)->getEncounters()[0]->getResult());
+    }
+
     // --- helpers ---
 
     /** @return array{bracket: Bracket, teamA: TeamId, teamB: TeamId, teamC: TeamId, teamD: TeamId} */
