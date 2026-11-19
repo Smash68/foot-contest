@@ -53,4 +53,40 @@ final class CorrectEncounterResultControllerTest extends WebTestCase
         self::assertResponseStatusCodeSame(204);
         self::assertSame(3, $encounter->getResult()?->regularTime->home);
     }
+
+    #[Test]
+    public function it_transmits_every_phase_of_the_corrected_result(): void
+    {
+        $organizer = AuthenticatedOrganizer::signIn(self::getContainer());
+
+        $competition = CompetitionBuilder::aCompetition()
+            ->ownedBy($organizer->organizationId)
+            ->withTeam('Team A', captainId: 'captain-a')
+            ->withTeam('Team B', captainId: 'captain-b')
+            ->withBracketGenerated()
+            ->build();
+        $encounter = $competition->getBracket()?->getRound(1)->getEncounters()[0];
+        self::assertNotNull($encounter);
+        $competition->recordResult($encounter->id, EncounterResult::regularTime(Score::of(2, 1)));
+        $this->competitions->save($competition);
+
+        $this->client->request('PUT', "/competitions/{$competition->getId()->value}/encounters/{$encounter->id->value}/result", server: [
+            'CONTENT_TYPE' => 'application/json',
+            ...$organizer->authorizationHeader(),
+        ], content: json_encode([
+            'regularTime' => ['home' => 1, 'away' => 1],
+            'extraTime' => ['home' => 2, 'away' => 2],
+            'penalties' => ['home' => 4, 'away' => 3],
+        ], JSON_THROW_ON_ERROR));
+
+        self::assertResponseStatusCodeSame(204);
+        $extraTime = $encounter->getResult()?->extraTime;
+        $penalties = $encounter->getResult()?->penalties;
+        self::assertNotNull($extraTime);
+        self::assertNotNull($penalties);
+        self::assertSame(2, $extraTime->home);
+        self::assertSame(2, $extraTime->away);
+        self::assertSame(4, $penalties->home);
+        self::assertSame(3, $penalties->away);
+    }
 }

@@ -30,9 +30,16 @@ final class CorrectEncounterResultController
             competitionId: $competitionId,
             encounterId: $encounterId,
             organizerId: $organizer->getUserIdentifier(),
-            regularTime: new ScoreInput($request->regularTime->home, $request->regularTime->away),
+            regularTime: self::scoreInput($request->regularTime),
+            extraTime: $request->extraTime !== null ? self::scoreInput($request->extraTime) : null,
+            penalties: $request->penalties !== null ? self::scoreInput($request->penalties) : null,
         ));
 
         return new Response(status: 204);
+    }
+
+    private static function scoreInput(ScoreRequest $score): ScoreInput
+    {
+        return new ScoreInput($score->home, $score->away);
     }
 }
