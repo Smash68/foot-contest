@@ -275,6 +275,10 @@ final class Competition
             throw new \LogicException("Competition '{$this->id->value}' cannot be finished before all its encounters are played.");
         }
 
+        if ($this->finished) {
+            throw new \LogicException("Competition '{$this->id->value}' is already finished.");
+        }
+
         $this->finished = true;
     }
 
