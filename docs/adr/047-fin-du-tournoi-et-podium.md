@@ -37,7 +37,9 @@ Le contrat `Bracket` expose `getPodium(): Podium`, un Value Object portant le ch
 
 Sans match pour la 3e place, le podium ne compte pas de troisième : les deux perdants des demi-finales ne sont pas départagés.
 
-Le podium n'est consultable qu'une fois le tournoi terminé : c'est la proclamation des résultats, pas une lecture provisoire du tableau.
+Le podium n'est consultable qu'une fois le tournoi terminé : c'est la proclamation des résultats, pas une lecture provisoire du tableau. Cette règle étant un état du tournoi, la consultation passe par `Competition::getPodium()`, qui délègue au tableau. La couche Application n'appelle jamais `getBracket()->getPodium()` : le tableau est propre à l'élimination directe ([ADR 007](007-inscription-competition-agregat.md)), et un futur championnat calculera son podium à partir d'une autre structure sans changer ce point d'entrée.
+
+Le champion, le deuxième et le troisième désignent des places, pas des issues de rencontre : en élimination directe, le deuxième est le finaliste ; en championnat, ce sera le deuxième du classement.
 
 Alternative écartée : calculer le podium dans le use case de consultation. Il devrait connaître la structure de chaque format, ce que l'ADR 044 réserve au tableau.
 
