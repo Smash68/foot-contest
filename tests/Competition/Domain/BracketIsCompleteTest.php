@@ -79,6 +79,17 @@ final class BracketIsCompleteTest extends TestCase
         $bracket->getChampion();
     }
 
+    #[Test]
+    public function the_podium_crowns_the_winner_of_the_final_as_champion(): void
+    {
+        ['bracket' => $bracket, 'teamA' => $teamA] = $this->makeFourTeamBracket();
+        $bracket->recordResult(new EncounterId('enc-1'), EncounterResult::regularTime(Score::of(1, 0))); // A gagne
+        $bracket->recordResult(new EncounterId('enc-2'), EncounterResult::regularTime(Score::of(0, 1))); // D gagne
+        $bracket->recordResult(new EncounterId('enc-3'), EncounterResult::regularTime(Score::of(2, 0))); // A gagne la finale
+
+        self::assertSame($teamA, $bracket->getPodium()->champion);
+    }
+
     // --- helpers ---
 
     /** @return array{bracket: Bracket, teamA: TeamId, teamB: TeamId, teamC: TeamId, teamD: TeamId} */

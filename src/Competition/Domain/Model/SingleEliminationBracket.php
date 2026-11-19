@@ -69,6 +69,11 @@ final class SingleEliminationBracket implements Bracket
         return $this->rounds[array_key_last($this->rounds)]->getEncounters()[0]->getWinner();
     }
 
+    public function getPodium(): Podium
+    {
+        return new Podium($this->getChampion());
+    }
+
     public function recordResult(EncounterId $encounterId, EncounterResult $result): void
     {
         $encounter = $this->getEncounter($encounterId);
