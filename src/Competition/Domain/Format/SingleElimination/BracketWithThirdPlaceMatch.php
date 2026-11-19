@@ -56,7 +56,12 @@ final class BracketWithThirdPlaceMatch implements Bracket
 
     public function getPodium(): Podium
     {
-        return $this->inner->getPodium();
+        $thirdPlaceEncounter = $this->thirdPlaceEncounter;
+        if ($thirdPlaceEncounter === null || !$this->isComplete()) {
+            throw new \LogicException('Competition is not complete yet.');
+        }
+
+        return $this->inner->getPodium()->withThird($thirdPlaceEncounter->getWinner());
     }
 
     public function findEncounterById(EncounterId $encounterId): ?Encounter
