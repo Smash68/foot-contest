@@ -182,7 +182,6 @@ final class BracketWithThirdPlaceMatchTest extends TestCase
 
         $bracket->recordResult(new EncounterId('final'), EncounterResult::regularTime(Score::of(1, 0)));
 
-        self::assertTrue($bracket->isComplete());
         self::assertSame($teamA, $bracket->getChampion());
     }
 
@@ -198,6 +197,18 @@ final class BracketWithThirdPlaceMatchTest extends TestCase
         $bracket->recordResult($thirdPlaceEncounter->id, EncounterResult::regularTime(Score::of(3, 1)));
 
         self::assertFalse($bracket->isComplete()); // final not played yet
+    }
+
+    #[Test]
+    public function it_is_not_complete_while_the_third_place_encounter_remains_to_be_played(): void
+    {
+        ['bracket' => $bracket] = $this->makeFourTeamBracketWithThirdPlaceMatch();
+        $bracket->recordResult(new EncounterId('semi-1'), EncounterResult::regularTime(Score::of(2, 0)));
+        $bracket->recordResult(new EncounterId('semi-2'), EncounterResult::regularTime(Score::of(0, 1)));
+
+        $bracket->recordResult(new EncounterId('final'), EncounterResult::regularTime(Score::of(1, 0)));
+
+        self::assertFalse($bracket->isComplete());
     }
 
     #[Test]

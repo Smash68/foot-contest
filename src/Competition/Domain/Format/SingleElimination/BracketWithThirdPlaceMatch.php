@@ -45,7 +45,7 @@ final class BracketWithThirdPlaceMatch implements Bracket
 
     public function isComplete(): bool
     {
-        return $this->inner->isComplete();
+        return $this->inner->isComplete() && $this->thirdPlaceEncounter?->isCompleted() === true;
     }
 
     public function getChampion(): TeamId
