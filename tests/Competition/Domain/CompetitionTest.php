@@ -389,6 +389,21 @@ final class CompetitionTest extends TestCase
     }
 
     #[Test]
+    public function it_finishes_once_all_its_encounters_are_played(): void
+    {
+        $competition = CompetitionBuilder::aCompetition()
+            ->withTeam('Team A', captainId: 'a@example.com', id: 'a')
+            ->withTeam('Team B', captainId: 'b@example.com', id: 'b')
+            ->withBracketGenerated()
+            ->build();
+        $this->playTheFinal($competition);
+
+        $competition->finish();
+
+        self::assertTrue($competition->isFinished());
+    }
+
+    #[Test]
     public function it_records_a_join_request_for_a_registered_team(): void
     {
         $competition = CompetitionBuilder::aCompetition()
@@ -586,5 +601,14 @@ final class CompetitionTest extends TestCase
         return new BracketGeneratorFactory([
             CompetitionFormat::SingleElimination->value => new SingleEliminationBracketGenerator(),
         ]);
+    }
+
+    /** Plays the only encounter of a two-team bracket, won by the home team. */
+    private function playTheFinal(Competition $competition): void
+    {
+        $bracket = $competition->getBracket();
+        self::assertNotNull($bracket);
+
+        $competition->recordResult($bracket->getRound(1)->getEncounters()[0]->id, EncounterResult::regularTime(Score::of(1, 0)));
     }
 }

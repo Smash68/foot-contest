@@ -16,6 +16,8 @@ final class Competition
 
     private ?Bracket $bracket = null;
 
+    private bool $finished = false;
+
     private function __construct(
         private readonly CompetitionId $id,
         private readonly string $name,
@@ -272,5 +274,12 @@ final class Competition
         if ($this->bracket === null || !$this->bracket->isComplete()) {
             throw new \LogicException("Competition '{$this->id->value}' cannot be finished before all its encounters are played.");
         }
+
+        $this->finished = true;
+    }
+
+    public function isFinished(): bool
+    {
+        return $this->finished;
     }
 }
