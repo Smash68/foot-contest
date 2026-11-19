@@ -63,10 +63,10 @@ security:
             stateless: true
             provider: organizers
             jwt: ~
-        # JWT-authenticated firewall for recording an encounter result
-        # (POST /competitions/{id}/encounters/{encounterId}/result) : only the organizer
-        # owning the competition may record a result.
-        record_encounter_result:
+        # JWT-authenticated firewall for an encounter result, recorded (POST) or corrected
+        # (PUT) at /competitions/{id}/encounters/{encounterId}/result : only the organizer
+        # owning the competition may record or correct a result.
+        encounter_result:
             pattern: ^/competitions/[^/]+/encounters/[^/]+/result$
             stateless: true
             provider: organizers

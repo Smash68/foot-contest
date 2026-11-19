@@ -23,7 +23,7 @@ final class RecordEncounterResultController
     public function __invoke(
         string $competitionId,
         string $encounterId,
-        #[MapRequestPayload] RecordEncounterResultRequest $request,
+        #[MapRequestPayload] EncounterResultRequest $request,
         #[CurrentUser] SecurityOrganizer $organizer,
     ): Response {
         $this->bus->dispatch(new RecordEncounterResultCommand(
