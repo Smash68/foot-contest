@@ -266,6 +266,10 @@ final class Competition
             throw new \LogicException("Competition '{$this->id->value}' bracket must be generated before correcting a result.");
         }
 
+        if ($this->finished) {
+            throw new \LogicException("Competition '{$this->id->value}' is finished: its results can no longer be corrected.");
+        }
+
         $this->bracket->correctResult($encounterId, $result);
     }
 
