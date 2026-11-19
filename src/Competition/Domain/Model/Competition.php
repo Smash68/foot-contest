@@ -266,4 +266,11 @@ final class Competition
 
         $this->bracket->correctResult($encounterId, $result);
     }
+
+    public function finish(): void
+    {
+        if ($this->bracket === null || !$this->bracket->isComplete()) {
+            throw new \LogicException("Competition '{$this->id->value}' cannot be finished before all its encounters are played.");
+        }
+    }
 }

@@ -375,6 +375,20 @@ final class CompetitionTest extends TestCase
     }
 
     #[Test]
+    public function it_rejects_finishing_while_its_bracket_is_not_complete(): void
+    {
+        $competition = CompetitionBuilder::aCompetition()
+            ->withTeam('Team A', captainId: 'a@example.com', id: 'a')
+            ->withTeam('Team B', captainId: 'b@example.com', id: 'b')
+            ->withBracketGenerated()
+            ->build();
+
+        $this->expectException(\LogicException::class);
+
+        $competition->finish();
+    }
+
+    #[Test]
     public function it_records_a_join_request_for_a_registered_team(): void
     {
         $competition = CompetitionBuilder::aCompetition()
