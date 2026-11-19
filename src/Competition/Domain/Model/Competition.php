@@ -293,6 +293,10 @@ final class Competition
 
     public function getPodium(): Podium
     {
-        throw new \LogicException("Competition '{$this->id->value}' must be finished before exposing its podium.");
+        if (!$this->finished || $this->bracket === null) {
+            throw new \LogicException("Competition '{$this->id->value}' must be finished before exposing its podium.");
+        }
+
+        return $this->bracket->getPodium();
     }
 }

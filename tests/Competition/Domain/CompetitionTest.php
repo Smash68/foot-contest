@@ -453,6 +453,22 @@ final class CompetitionTest extends TestCase
     }
 
     #[Test]
+    public function it_exposes_the_podium_of_its_bracket_once_finished(): void
+    {
+        $competition = CompetitionBuilder::aCompetition()
+            ->withTeam('Team A', captainId: 'a@example.com', id: 'a')
+            ->withTeam('Team B', captainId: 'b@example.com', id: 'b')
+            ->withBracketGenerated()
+            ->build();
+        $this->playTheFinal($competition);
+        $competition->finish();
+        $bracket = $competition->getBracket();
+        self::assertNotNull($bracket);
+
+        self::assertEquals($bracket->getPodium(), $competition->getPodium());
+    }
+
+    #[Test]
     public function it_records_a_join_request_for_a_registered_team(): void
     {
         $competition = CompetitionBuilder::aCompetition()
