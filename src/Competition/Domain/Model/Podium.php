@@ -8,6 +8,7 @@ final readonly class Podium
 {
     public function __construct(
         public TeamId $champion,
+        public TeamId $runnerUp,
     ) {
     }
 }
