@@ -290,4 +290,9 @@ final class Competition
     {
         return $this->finished;
     }
+
+    public function getPodium(): Podium
+    {
+        throw new \LogicException("Competition '{$this->id->value}' must be finished before exposing its podium.");
+    }
 }
