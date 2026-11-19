@@ -81,6 +81,20 @@ final class CorrectEncounterResultControllerTest extends WebTestCase
         self::assertSame($result, $encounter->getResult());
     }
 
+    #[Test]
+    public function it_returns_401_without_a_token(): void
+    {
+        [$competition, $encounter] = $this->aCompetitionWithAPlayedEncounterOwnedBy('org-1');
+        $result = $encounter->getResult();
+
+        $this->putResult($competition, $encounter, [
+            'regularTime' => ['home' => 3, 'away' => 1],
+        ]);
+
+        self::assertResponseStatusCodeSame(401);
+        self::assertSame($result, $encounter->getResult());
+    }
+
     /** @return array{Competition, Encounter} */
     private function aCompetitionWithAPlayedEncounterOwnedBy(string $organizationId): array
     {
