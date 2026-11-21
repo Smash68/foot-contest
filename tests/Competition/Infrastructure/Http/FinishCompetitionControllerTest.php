@@ -42,4 +42,19 @@ final class FinishCompetitionControllerTest extends WebTestCase
 
         self::assertResponseStatusCodeSame(204);
     }
+
+    #[Test]
+    public function it_returns_401_without_a_token(): void
+    {
+        $competition = CompetitionBuilder::aCompetition()
+            ->withTeam('Team A', captainId: 'captain-a')
+            ->withTeam('Team B', captainId: 'captain-b')
+            ->withAllEncountersPlayed()
+            ->build();
+        $this->competitions->save($competition);
+
+        $this->client->request('POST', "/competitions/{$competition->getId()->value}/finish");
+
+        self::assertResponseStatusCodeSame(401);
+    }
 }
