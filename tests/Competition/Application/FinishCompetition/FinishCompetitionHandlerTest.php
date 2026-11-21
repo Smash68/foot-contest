@@ -30,4 +30,14 @@ final class FinishCompetitionHandlerTest extends TestCase
 
         self::assertTrue($competition->isFinished());
     }
+
+    #[Test]
+    public function it_rejects_finishing_an_unknown_competition(): void
+    {
+        $handler = new FinishCompetitionHandler(new InMemoryCompetitionRepository());
+
+        $this->expectException(\InvalidArgumentException::class);
+
+        $handler(new FinishCompetitionCommand('unknown', 'organizer-1'));
+    }
 }
