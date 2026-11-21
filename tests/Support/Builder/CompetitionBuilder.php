@@ -40,6 +40,7 @@ final class CompetitionBuilder
     private bool $registrationClosed = false;
     private bool $bracketGenerated = false;
     private bool $allEncountersPlayed = false;
+    private bool $finished = false;
 
     public static function aCompetition(): self
     {
@@ -138,6 +139,15 @@ final class CompetitionBuilder
         return $clone;
     }
 
+    /** Plays every encounter, each won by the home team, then finishes the competition. */
+    public function finished(): self
+    {
+        $clone = $this->withAllEncountersPlayed();
+        $clone->finished = true;
+
+        return $clone;
+    }
+
     public function build(): Competition
     {
         $competition = Competition::create(
@@ -174,6 +184,10 @@ final class CompetitionBuilder
 
         if ($this->allEncountersPlayed) {
             $this->playAllEncounters($competition);
+        }
+
+        if ($this->finished) {
+            $competition->finish();
         }
 
         return $competition;
