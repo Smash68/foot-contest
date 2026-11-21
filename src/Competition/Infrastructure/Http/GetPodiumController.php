@@ -26,7 +26,11 @@ final class GetPodiumController
         assert($handledStamp instanceof HandledStamp);
 
         $view = $handledStamp->getResult();
-        assert($view instanceof PodiumView);
+        assert($view === null || $view instanceof PodiumView);
+
+        if ($view === null) {
+            return new JsonResponse(['error' => "Competition '{$competitionId}' is not finished yet."], 404);
+        }
 
         return new JsonResponse($view);
     }

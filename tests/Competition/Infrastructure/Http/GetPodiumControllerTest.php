@@ -44,4 +44,19 @@ final class GetPodiumControllerTest extends WebTestCase
             json_decode((string) $this->client->getResponse()->getContent(), true),
         );
     }
+
+    #[Test]
+    public function it_returns_404_while_the_competition_is_not_finished(): void
+    {
+        $competition = CompetitionBuilder::aCompetition()
+            ->withTeam('Team A', captainId: 'captain-a')
+            ->withTeam('Team B', captainId: 'captain-b')
+            ->withAllEncountersPlayed()
+            ->build();
+        $this->competitions->save($competition);
+
+        $this->client->request('GET', "/competitions/{$competition->getId()->value}/podium");
+
+        self::assertResponseStatusCodeSame(404);
+    }
 }
