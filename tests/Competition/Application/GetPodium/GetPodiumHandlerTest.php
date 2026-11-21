@@ -49,4 +49,14 @@ final class GetPodiumHandlerTest extends TestCase
 
         self::assertNull($handler(new GetPodiumQuery($competition->getId()->value)));
     }
+
+    #[Test]
+    public function it_rejects_getting_the_podium_of_an_unknown_competition(): void
+    {
+        $handler = new GetPodiumHandler(new InMemoryCompetitionRepository());
+
+        $this->expectException(\InvalidArgumentException::class);
+
+        $handler(new GetPodiumQuery('unknown'));
+    }
 }
