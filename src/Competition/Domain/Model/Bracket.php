@@ -19,8 +19,6 @@ interface Bracket
 
     public function isComplete(): bool;
 
-    public function getChampion(): TeamId;
-
     public function getPodium(): Podium;
 
     public function recordResult(EncounterId $encounterId, EncounterResult $result): void;

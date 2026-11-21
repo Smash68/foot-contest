@@ -59,24 +59,13 @@ final class BracketIsCompleteTest extends TestCase
     }
 
     #[Test]
-    public function it_exposes_the_champion(): void
-    {
-        ['bracket' => $bracket, 'teamA' => $teamA] = $this->makeFourTeamBracket();
-        $bracket->recordResult(new EncounterId('enc-1'), EncounterResult::regularTime(Score::of(1, 0))); // A gagne
-        $bracket->recordResult(new EncounterId('enc-2'), EncounterResult::regularTime(Score::of(0, 1))); // D gagne
-        $bracket->recordResult(new EncounterId('enc-3'), EncounterResult::regularTime(Score::of(2, 0))); // A gagne la finale
-
-        self::assertSame($teamA, $bracket->getChampion());
-    }
-
-    #[Test]
-    public function it_throws_when_getting_champion_before_completion(): void
+    public function it_rejects_exposing_the_podium_before_completion(): void
     {
         ['bracket' => $bracket] = $this->makeFourTeamBracket();
 
         $this->expectException(\LogicException::class);
 
-        $bracket->getChampion();
+        $bracket->getPodium();
     }
 
     #[Test]

@@ -60,11 +60,6 @@ final class SingleEliminationBracket implements Bracket
         return $this->getFinal()->isCompleted();
     }
 
-    public function getChampion(): TeamId
-    {
-        return $this->getPodium()->champion;
-    }
-
     public function getPodium(): Podium
     {
         if (!$this->isComplete()) {
