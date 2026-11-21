@@ -10,17 +10,15 @@ final readonly class BracketView implements \JsonSerializable
     public function __construct(
         public array $rounds,
         public bool $isComplete,
-        public ?string $champion = null,
     ) {
     }
 
-    /** @return array{rounds: RoundView[], isComplete: bool, champion: ?string} */
+    /** @return array{rounds: RoundView[], isComplete: bool} */
     public function jsonSerialize(): array
     {
         return [
             'rounds' => $this->rounds,
             'isComplete' => $this->isComplete,
-            'champion' => $this->champion,
         ];
     }
 }

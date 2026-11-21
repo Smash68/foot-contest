@@ -22,12 +22,9 @@ final class BracketViewAssembler
 {
     public function toView(Bracket $bracket): BracketView
     {
-        $isComplete = $bracket->isComplete();
-
         return new BracketView(
             array_map($this->roundToView(...), $bracket->getRounds()),
-            $isComplete,
-            $isComplete ? $bracket->getChampion()->value : null,
+            $bracket->isComplete(),
         );
     }
 
