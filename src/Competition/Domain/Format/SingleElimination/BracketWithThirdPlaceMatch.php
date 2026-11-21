@@ -12,7 +12,6 @@ use App\Competition\Domain\Model\Participant;
 use App\Competition\Domain\Model\Podium;
 use App\Competition\Domain\Model\Round;
 use App\Competition\Domain\Model\SingleEliminationResultRules;
-use App\Competition\Domain\Model\TeamId;
 
 final class BracketWithThirdPlaceMatch implements Bracket
 {
@@ -47,11 +46,6 @@ final class BracketWithThirdPlaceMatch implements Bracket
     public function isComplete(): bool
     {
         return $this->inner->isComplete() && $this->thirdPlaceEncounter?->isCompleted() === true;
-    }
-
-    public function getChampion(): TeamId
-    {
-        return $this->inner->getChampion();
     }
 
     public function getPodium(): Podium

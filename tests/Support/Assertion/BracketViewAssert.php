@@ -63,13 +63,6 @@ final class BracketViewAssert
         return $this;
     }
 
-    public function hasNoChampion(): self
-    {
-        Assert::assertNull($this->bracket->champion);
-
-        return $this;
-    }
-
     private function encounter(int $roundNumber, int $index): EncounterView
     {
         return $this->round($roundNumber)->encounters[$index];

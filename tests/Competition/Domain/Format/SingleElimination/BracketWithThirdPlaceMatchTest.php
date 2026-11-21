@@ -182,7 +182,7 @@ final class BracketWithThirdPlaceMatchTest extends TestCase
 
         $bracket->recordResult(new EncounterId('final'), EncounterResult::regularTime(Score::of(1, 0)));
 
-        self::assertSame($teamA, $bracket->getChampion());
+        self::assertSame($teamA, $bracket->findEncounterById(new EncounterId('final'))?->getWinner());
     }
 
     #[Test]

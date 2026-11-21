@@ -36,8 +36,7 @@ final class GetBracketHandlerTest extends TestCase
             ->roundHasEncountersCount(roundNumber: 1, count: 1)
             ->encounterOpposes(roundNumber: 1, encounterIndex: 0, teamIdA: 'team-a', teamIdB: 'team-b')
             ->encounterHasNoResult(roundNumber: 1, encounterIndex: 0)
-            ->isNotComplete()
-            ->hasNoChampion();
+            ->isNotComplete();
     }
 
     #[Test]

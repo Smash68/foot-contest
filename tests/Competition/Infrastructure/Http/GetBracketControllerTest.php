@@ -43,7 +43,7 @@ final class GetBracketControllerTest extends WebTestCase
         self::assertIsArray($data);
         self::assertArrayHasKey('rounds', $data);
         self::assertArrayHasKey('isComplete', $data);
-        self::assertArrayHasKey('champion', $data);
+        self::assertArrayNotHasKey('champion', $data);
     }
 
     #[Test]

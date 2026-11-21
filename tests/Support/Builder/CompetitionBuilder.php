@@ -4,14 +4,18 @@ declare(strict_types=1);
 
 namespace App\Tests\Support\Builder;
 
+use App\Competition\Domain\Format\SingleElimination\BracketWithThirdPlaceMatch;
 use App\Competition\Domain\Format\SingleElimination\SingleEliminationBracketGenerator;
 use App\Competition\Domain\Model\BracketConfiguration;
 use App\Competition\Domain\Model\Competition;
 use App\Competition\Domain\Model\CompetitionFormat;
 use App\Competition\Domain\Model\CompetitionId;
+use App\Competition\Domain\Model\Encounter;
+use App\Competition\Domain\Model\EncounterResult;
 use App\Competition\Domain\Model\MinimumRosterSize;
 use App\Competition\Domain\Model\OrganizationId;
 use App\Competition\Domain\Model\PlayerId;
+use App\Competition\Domain\Model\Score;
 use App\Competition\Domain\Model\Team;
 use App\Competition\Domain\Model\TeamCapacity;
 use App\Competition\Domain\Model\TeamId;
@@ -35,6 +39,8 @@ final class CompetitionBuilder
     private bool $thirdPlaceMatch = false;
     private bool $registrationClosed = false;
     private bool $bracketGenerated = false;
+    private bool $allEncountersPlayed = false;
+    private bool $finished = false;
 
     public static function aCompetition(): self
     {
@@ -123,6 +129,25 @@ final class CompetitionBuilder
         return $clone;
     }
 
+    /** Generates the bracket, then plays every encounter, each won by the home team, without finishing the competition. */
+    public function withAllEncountersPlayed(): self
+    {
+        $clone = clone $this;
+        $clone->bracketGenerated = true;
+        $clone->allEncountersPlayed = true;
+
+        return $clone;
+    }
+
+    /** Plays every encounter, each won by the home team, then finishes the competition. */
+    public function finished(): self
+    {
+        $clone = $this->withAllEncountersPlayed();
+        $clone->finished = true;
+
+        return $clone;
+    }
+
     public function build(): Competition
     {
         $competition = Competition::create(
@@ -157,6 +182,41 @@ final class CompetitionBuilder
             ]));
         }
 
+        if ($this->allEncountersPlayed) {
+            $this->playAllEncounters($competition);
+        }
+
+        if ($this->finished) {
+            $competition->finish();
+        }
+
         return $competition;
+    }
+
+    private function playAllEncounters(Competition $competition): void
+    {
+        $bracket = $competition->getBracket();
+        assert($bracket !== null);
+
+        foreach ($bracket->getRounds() as $round) {
+            foreach ($round->getEncounters() as $encounter) {
+                $this->playIfBetweenTwoTeams($competition, $encounter);
+            }
+        }
+
+        if ($bracket instanceof BracketWithThirdPlaceMatch) {
+            $thirdPlaceEncounter = $bracket->getThirdPlaceEncounter();
+            assert($thirdPlaceEncounter !== null);
+            $this->playIfBetweenTwoTeams($competition, $thirdPlaceEncounter);
+        }
+    }
+
+    private function playIfBetweenTwoTeams(Competition $competition, Encounter $encounter): void
+    {
+        if ($encounter->isCompleted() || !$encounter->getHome()->isTeam() || !$encounter->getAway()->isTeam()) {
+            return;
+        }
+
+        $competition->recordResult($encounter->id, EncounterResult::regularTime(Score::of(1, 0)));
     }
 }
