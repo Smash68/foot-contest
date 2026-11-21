@@ -57,16 +57,28 @@ final class SingleEliminationBracket implements Bracket
             return false;
         }
 
-        return $this->rounds[array_key_last($this->rounds)]->getEncounters()[0]->isCompleted();
+        return $this->getFinal()->isCompleted();
     }
 
     public function getChampion(): TeamId
+    {
+        return $this->getPodium()->champion;
+    }
+
+    public function getPodium(): Podium
     {
         if (!$this->isComplete()) {
             throw new \LogicException('Competition is not complete yet.');
         }
 
-        return $this->rounds[array_key_last($this->rounds)]->getEncounters()[0]->getWinner();
+        $final = $this->getFinal();
+
+        return new Podium($final->getWinner(), $final->getLoser());
+    }
+
+    private function getFinal(): Encounter
+    {
+        return $this->rounds[array_key_last($this->rounds)]->getEncounters()[0];
     }
 
     public function recordResult(EncounterId $encounterId, EncounterResult $result): void

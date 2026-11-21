@@ -21,6 +21,8 @@ interface Bracket
 
     public function getChampion(): TeamId;
 
+    public function getPodium(): Podium;
+
     public function recordResult(EncounterId $encounterId, EncounterResult $result): void;
 
     public function correctResult(EncounterId $encounterId, EncounterResult $result): void;

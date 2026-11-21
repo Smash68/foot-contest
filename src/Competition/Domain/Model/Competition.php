@@ -16,6 +16,8 @@ final class Competition
 
     private ?Bracket $bracket = null;
 
+    private bool $finished = false;
+
     private function __construct(
         private readonly CompetitionId $id,
         private readonly string $name,
@@ -264,6 +266,37 @@ final class Competition
             throw new \LogicException("Competition '{$this->id->value}' bracket must be generated before correcting a result.");
         }
 
+        if ($this->finished) {
+            throw new \LogicException("Competition '{$this->id->value}' is finished: its results can no longer be corrected.");
+        }
+
         $this->bracket->correctResult($encounterId, $result);
+    }
+
+    public function finish(): void
+    {
+        if ($this->bracket === null || !$this->bracket->isComplete()) {
+            throw new \LogicException("Competition '{$this->id->value}' cannot be finished before all its encounters are played.");
+        }
+
+        if ($this->finished) {
+            throw new \LogicException("Competition '{$this->id->value}' is already finished.");
+        }
+
+        $this->finished = true;
+    }
+
+    public function isFinished(): bool
+    {
+        return $this->finished;
+    }
+
+    public function getPodium(): Podium
+    {
+        if (!$this->finished || $this->bracket === null) {
+            throw new \LogicException("Competition '{$this->id->value}' must be finished before exposing its podium.");
+        }
+
+        return $this->bracket->getPodium();
     }
 }

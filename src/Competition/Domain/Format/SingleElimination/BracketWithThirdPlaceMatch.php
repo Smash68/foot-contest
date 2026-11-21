@@ -9,6 +9,7 @@ use App\Competition\Domain\Model\Encounter;
 use App\Competition\Domain\Model\EncounterId;
 use App\Competition\Domain\Model\EncounterResult;
 use App\Competition\Domain\Model\Participant;
+use App\Competition\Domain\Model\Podium;
 use App\Competition\Domain\Model\Round;
 use App\Competition\Domain\Model\SingleEliminationResultRules;
 use App\Competition\Domain\Model\TeamId;
@@ -45,12 +46,22 @@ final class BracketWithThirdPlaceMatch implements Bracket
 
     public function isComplete(): bool
     {
-        return $this->inner->isComplete();
+        return $this->inner->isComplete() && $this->thirdPlaceEncounter?->isCompleted() === true;
     }
 
     public function getChampion(): TeamId
     {
         return $this->inner->getChampion();
+    }
+
+    public function getPodium(): Podium
+    {
+        $thirdPlaceEncounter = $this->thirdPlaceEncounter;
+        if ($thirdPlaceEncounter === null || !$this->isComplete()) {
+            throw new \LogicException('Competition is not complete yet.');
+        }
+
+        return $this->inner->getPodium()->withThird($thirdPlaceEncounter->getWinner());
     }
 
     public function findEncounterById(EncounterId $encounterId): ?Encounter

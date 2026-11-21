@@ -375,6 +375,100 @@ final class CompetitionTest extends TestCase
     }
 
     #[Test]
+    public function it_rejects_finishing_while_its_bracket_is_not_complete(): void
+    {
+        $competition = CompetitionBuilder::aCompetition()
+            ->withTeam('Team A', captainId: 'a@example.com', id: 'a')
+            ->withTeam('Team B', captainId: 'b@example.com', id: 'b')
+            ->withBracketGenerated()
+            ->build();
+
+        $this->expectException(\LogicException::class);
+
+        $competition->finish();
+    }
+
+    #[Test]
+    public function it_finishes_once_all_its_encounters_are_played(): void
+    {
+        $competition = CompetitionBuilder::aCompetition()
+            ->withTeam('Team A', captainId: 'a@example.com', id: 'a')
+            ->withTeam('Team B', captainId: 'b@example.com', id: 'b')
+            ->withBracketGenerated()
+            ->build();
+        $this->playTheFinal($competition);
+
+        $competition->finish();
+
+        self::assertTrue($competition->isFinished());
+    }
+
+    #[Test]
+    public function it_rejects_finishing_twice(): void
+    {
+        $competition = CompetitionBuilder::aCompetition()
+            ->withTeam('Team A', captainId: 'a@example.com', id: 'a')
+            ->withTeam('Team B', captainId: 'b@example.com', id: 'b')
+            ->withBracketGenerated()
+            ->build();
+        $this->playTheFinal($competition);
+        $competition->finish();
+
+        $this->expectException(\LogicException::class);
+
+        $competition->finish();
+    }
+
+    #[Test]
+    public function it_rejects_correcting_a_result_once_finished(): void
+    {
+        $competition = CompetitionBuilder::aCompetition()
+            ->withTeam('Team A', captainId: 'a@example.com', id: 'a')
+            ->withTeam('Team B', captainId: 'b@example.com', id: 'b')
+            ->withBracketGenerated()
+            ->build();
+        $this->playTheFinal($competition);
+        $competition->finish();
+        $bracket = $competition->getBracket();
+        self::assertNotNull($bracket);
+
+        $this->expectException(\LogicException::class);
+
+        $competition->correctResult($bracket->getRound(1)->getEncounters()[0]->id, EncounterResult::regularTime(Score::of(2, 0)));
+    }
+
+    #[Test]
+    public function it_rejects_exposing_its_podium_before_being_finished(): void
+    {
+        $competition = CompetitionBuilder::aCompetition()
+            ->withTeam('Team A', captainId: 'a@example.com', id: 'a')
+            ->withTeam('Team B', captainId: 'b@example.com', id: 'b')
+            ->withBracketGenerated()
+            ->build();
+        $this->playTheFinal($competition);
+
+        $this->expectException(\LogicException::class);
+
+        $competition->getPodium();
+    }
+
+    #[Test]
+    public function it_exposes_the_podium_of_its_bracket_once_finished(): void
+    {
+        $competition = CompetitionBuilder::aCompetition()
+            ->withTeam('Team A', captainId: 'a@example.com', id: 'a')
+            ->withTeam('Team B', captainId: 'b@example.com', id: 'b')
+            ->withBracketGenerated()
+            ->build();
+        $this->playTheFinal($competition);
+        $competition->finish();
+        $bracket = $competition->getBracket();
+        self::assertNotNull($bracket);
+
+        self::assertEquals($bracket->getPodium(), $competition->getPodium());
+    }
+
+    #[Test]
     public function it_records_a_join_request_for_a_registered_team(): void
     {
         $competition = CompetitionBuilder::aCompetition()
@@ -572,5 +666,14 @@ final class CompetitionTest extends TestCase
         return new BracketGeneratorFactory([
             CompetitionFormat::SingleElimination->value => new SingleEliminationBracketGenerator(),
         ]);
+    }
+
+    /** Plays the only encounter of a two-team bracket, won by the home team. */
+    private function playTheFinal(Competition $competition): void
+    {
+        $bracket = $competition->getBracket();
+        self::assertNotNull($bracket);
+
+        $competition->recordResult($bracket->getRound(1)->getEncounters()[0]->id, EncounterResult::regularTime(Score::of(1, 0)));
     }
 }
