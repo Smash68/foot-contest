@@ -54,4 +54,6 @@ Alternative écartée : calculer le podium dans le use case de consultation. Il 
 - `Competition` gagne un état « terminé », persisté : une migration ajoute la colonne correspondante.
 - Le podium n'est pas persisté : il se recalcule à partir du tableau, figé une fois le tournoi terminé.
 - La consultation du tableau (`GetBracket`) ne signale plus un tableau complet tant que le match pour la 3e place reste à jouer.
+- Le podium devient la seule source des résultats proclamés : `GET /competitions/{id}/bracket` n'expose plus de champion, et `getChampion()` quitte le contrat `Bracket`. Un champion lu sur le tableau avant la fin du tournoi serait une lecture provisoire, ce que le podium exclut.
+- La consultation du podium est publique, comme celle du tableau : ce sont des résultats proclamés. Pour un tournoi non terminé, elle ne renvoie aucun podium plutôt qu'une erreur, comme un tableau non généré ([ADR 034](034-get-bracket-query-read-model.md)).
 - Un futur format (championnat) calculera son podium à partir de son classement, sans toucher aux use cases.
