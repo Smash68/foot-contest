@@ -57,4 +57,22 @@ final class FinishCompetitionControllerTest extends WebTestCase
 
         self::assertResponseStatusCodeSame(401);
     }
+
+    #[Test]
+    public function it_returns_403_when_the_organizer_does_not_own_the_organization(): void
+    {
+        $competition = CompetitionBuilder::aCompetition()
+            ->ownedBy('someone-elses-organization')
+            ->withTeam('Team A', captainId: 'captain-a')
+            ->withTeam('Team B', captainId: 'captain-b')
+            ->withAllEncountersPlayed()
+            ->build();
+        $this->competitions->save($competition);
+
+        $organizer = AuthenticatedOrganizer::signIn(self::getContainer());
+
+        $this->client->request('POST', "/competitions/{$competition->getId()->value}/finish", server: $organizer->authorizationHeader());
+
+        self::assertResponseStatusCodeSame(403);
+    }
 }
