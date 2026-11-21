@@ -26,7 +26,9 @@ Alternative écartée : une fin automatique à la saisie de la dernière rencont
 
 ### 2. Un tournoi terminé n'accepte ni saisie ni correction
 
-`Competition::recordResult()` et `Competition::correctResult()` refusent d'agir sur un tournoi terminé (`\LogicException`). La règle est portée par `Competition`, point d'entrée de la saisie et de la correction ([ADR 044](044-saisie-resultat-rencontre.md)), et non par le tableau : être terminé est un état du tournoi, pas du tableau.
+`Competition::correctResult()` refuse d'agir sur un tournoi terminé (`\LogicException`). La règle est portée par `Competition`, point d'entrée de la correction ([ADR 044](044-saisie-resultat-rencontre.md)), et non par le tableau : être terminé est un état du tournoi, pas du tableau.
+
+La saisie ne demande aucune garde dédiée : un tournoi ne se termine qu'une fois toutes ses rencontres jouées, et une rencontre déjà jouée refuse toute nouvelle saisie. Si une feature future permet de terminer un tournoi dont des rencontres restent à jouer, elle devra ajouter cette garde.
 
 ### 3. Le podium est calculé par le tableau
 
