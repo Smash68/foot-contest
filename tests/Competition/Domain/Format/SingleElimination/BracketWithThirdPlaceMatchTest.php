@@ -226,6 +226,19 @@ final class BracketWithThirdPlaceMatchTest extends TestCase
     }
 
     #[Test]
+    public function it_rejects_exposing_the_podium_while_the_third_place_encounter_remains_to_be_played(): void
+    {
+        ['bracket' => $bracket] = $this->makeFourTeamBracketWithThirdPlaceMatch();
+        $bracket->recordResult(new EncounterId('semi-1'), EncounterResult::regularTime(Score::of(2, 0)));
+        $bracket->recordResult(new EncounterId('semi-2'), EncounterResult::regularTime(Score::of(0, 1)));
+        $bracket->recordResult(new EncounterId('final'), EncounterResult::regularTime(Score::of(1, 0)));
+
+        $this->expectException(\LogicException::class);
+
+        $bracket->getPodium();
+    }
+
+    #[Test]
     public function it_exposes_the_fixture_it_was_wired_with(): void
     {
         $innerBracket = new SingleEliminationBracket([]);

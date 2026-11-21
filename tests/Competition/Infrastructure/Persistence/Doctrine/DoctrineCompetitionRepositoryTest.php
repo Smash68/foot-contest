@@ -83,6 +83,32 @@ final class DoctrineCompetitionRepositoryTest extends KernelTestCase
     }
 
     #[Test]
+    public function it_persists_that_the_competition_has_been_finished(): void
+    {
+        $entityManager = self::getContainer()->get(EntityManagerInterface::class);
+        assert($entityManager instanceof EntityManagerInterface);
+        $repository = new DoctrineCompetitionRepository($entityManager);
+
+        $competition = CompetitionBuilder::aCompetition()
+            ->withTeam('Team A', captainId: 'captain-a')
+            ->withTeam('Team B', captainId: 'captain-b')
+            ->withBracketGenerated()
+            ->build();
+        $bracket = $competition->getBracket();
+        self::assertNotNull($bracket);
+        $competition->recordResult($bracket->getRound(1)->getEncounters()[0]->id, EncounterResult::regularTime(Score::of(1, 0)));
+        $competition->finish();
+
+        $repository->save($competition);
+        $entityManager->clear();
+
+        $found = $repository->ofId($competition->getId());
+
+        self::assertNotNull($found);
+        self::assertTrue($found->isFinished());
+    }
+
+    #[Test]
     public function it_persists_registered_teams(): void
     {
         $entityManager = self::getContainer()->get(EntityManagerInterface::class);

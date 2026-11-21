@@ -101,6 +101,17 @@ final class BracketIsCompleteTest extends TestCase
         self::assertSame($teamD, $bracket->getPodium()->runnerUp);
     }
 
+    #[Test]
+    public function the_podium_has_no_third_without_a_third_place_encounter(): void
+    {
+        ['bracket' => $bracket] = $this->makeFourTeamBracket();
+        $bracket->recordResult(new EncounterId('enc-1'), EncounterResult::regularTime(Score::of(1, 0)));
+        $bracket->recordResult(new EncounterId('enc-2'), EncounterResult::regularTime(Score::of(0, 1)));
+        $bracket->recordResult(new EncounterId('enc-3'), EncounterResult::regularTime(Score::of(2, 0)));
+
+        self::assertNull($bracket->getPodium()->third);
+    }
+
     // --- helpers ---
 
     /** @return array{bracket: Bracket, teamA: TeamId, teamB: TeamId, teamC: TeamId, teamD: TeamId} */
