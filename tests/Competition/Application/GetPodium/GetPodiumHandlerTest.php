@@ -33,4 +33,20 @@ final class GetPodiumHandlerTest extends TestCase
 
         self::assertEquals(new PodiumView(champion: $final->getWinner()->value, runnerUp: $final->getLoser()->value, third: null), $view);
     }
+
+    #[Test]
+    public function it_returns_no_podium_while_the_competition_is_not_finished(): void
+    {
+        $competition = CompetitionBuilder::aCompetition()
+            ->withTeam('Team A', captainId: 'captain-a')
+            ->withTeam('Team B', captainId: 'captain-b')
+            ->withAllEncountersPlayed()
+            ->build();
+        $competitions = new InMemoryCompetitionRepository();
+        $competitions->save($competition);
+
+        $handler = new GetPodiumHandler($competitions);
+
+        self::assertNull($handler(new GetPodiumQuery($competition->getId()->value)));
+    }
 }

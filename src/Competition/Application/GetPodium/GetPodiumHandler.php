@@ -15,12 +15,16 @@ final readonly class GetPodiumHandler
     ) {
     }
 
-    public function __invoke(GetPodiumQuery $query): PodiumView
+    public function __invoke(GetPodiumQuery $query): ?PodiumView
     {
         $competition = $this->competitions->ofId(new CompetitionId($query->competitionId));
 
         if ($competition === null) {
             throw new \InvalidArgumentException("Competition '{$query->competitionId}' does not exist.");
+        }
+
+        if (!$competition->isFinished()) {
+            return null;
         }
 
         $podium = $competition->getPodium();
