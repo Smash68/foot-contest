@@ -63,6 +63,14 @@ security:
             stateless: true
             provider: organizers
             jwt: ~
+        # JWT-authenticated firewall for finishing the competition
+        # (POST /competitions/{id}/finish) : only the organizer owning the competition
+        # may finish it.
+        finish_competition:
+            pattern: ^/competitions/[^/]+/finish$
+            stateless: true
+            provider: organizers
+            jwt: ~
         # JWT-authenticated firewall for an encounter result, recorded (POST) or corrected
         # (PUT) at /competitions/{id}/encounters/{encounterId}/result : only the organizer
         # owning the competition may record or correct a result.
@@ -132,6 +140,7 @@ security:
         - { path: ^/competitions/[^/]+/teams$, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/competitions/[^/]+/close-registration$, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/competitions/[^/]+/generate-bracket$, roles: IS_AUTHENTICATED_FULLY }
+        - { path: ^/competitions/[^/]+/finish$, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/competitions/[^/]+/encounters/[^/]+/result$, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/competitions/[^/]+/teams/[^/]+/join-requests$, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/competitions/[^/]+/teams/[^/]+/join-requests/[^/]+/approve$, roles: IS_AUTHENTICATED_FULLY }
