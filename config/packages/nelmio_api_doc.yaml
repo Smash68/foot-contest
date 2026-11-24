@@ -1,0 +1,83 @@
+nelmio_api_doc:
+    documentation:
+        info:
+            title: Foot Contest
+            description: API de gestion de tournois de football.
+            version: 1.0.0
+        components:
+            securitySchemes:
+                Bearer:
+                    type: http
+                    scheme: bearer
+                    bearerFormat: JWT
+            schemas:
+                Error:
+                    type: object
+                    required: [error]
+                    properties:
+                        error: { type: string }
+                AuthenticationError:
+                    type: object
+                    required: [code, message]
+                    properties:
+                        code: { type: integer }
+                        message: { type: string }
+                Problem:
+                    type: object
+                    required: [type, title, status, detail]
+                    properties:
+                        type: { type: string }
+                        title: { type: string }
+                        status: { type: integer }
+                        detail: { type: string }
+                ValidationProblem:
+                    allOf:
+                        - $ref: '#/components/schemas/Problem'
+                        - type: object
+                          required: [violations]
+                          properties:
+                              violations:
+                                  type: array
+                                  items:
+                                      type: object
+                                      required: [propertyPath, title]
+                                      properties:
+                                          propertyPath: { type: string }
+                                          title: { type: string }
+                                          template: { type: string }
+                                          parameters: { type: object }
+            responses:
+                BusinessRuleViolation:
+                    description: Donnée invalide ou ressource ciblée inexistante.
+                    content: &error_content
+                        application/json:
+                            schema: { $ref: '#/components/schemas/Error' }
+                Conflict:
+                    description: Opération en conflit avec l'état courant de la ressource.
+                    content: *error_content
+                Forbidden:
+                    description: L'acteur authentifié n'est pas autorisé à effectuer cette opération.
+                    content: *error_content
+                NotFound:
+                    description: Sous-ressource pas encore créée.
+                    content: *error_content
+                InvalidCredentials:
+                    description: Email ou mot de passe incorrect.
+                    content: *error_content
+                Unauthenticated:
+                    description: Token JWT absent, invalide ou expiré.
+                    content:
+                        application/json:
+                            schema: { $ref: '#/components/schemas/AuthenticationError' }
+                MalformedPayload:
+                    description: Corps de requête qui n'est pas du JSON valide. Rendu en JSON uniquement si la requête envoie Accept application/json.
+                    content:
+                        application/json:
+                            schema: { $ref: '#/components/schemas/Problem' }
+                InvalidPayload:
+                    description: Champ du corps de requête manquant ou mal typé. Rendu en JSON uniquement si la requête envoie Accept application/json.
+                    content:
+                        application/json:
+                            schema: { $ref: '#/components/schemas/ValidationProblem' }
+    html_config:
+        assets_mode: bundle

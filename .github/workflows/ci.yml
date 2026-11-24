@@ -36,8 +36,10 @@ jobs:
       - name: Start the environment
         run: docker compose up -d app
 
+      # L'entrypoint lance composer install, dont les auto-scripts (cache:clear, assets:install) tournent
+      # après la génération de vendor/autoload.php : on attend qu'il ait cédé la place (exec) à la commande.
       - name: Wait for dependencies to be installed
-        run: timeout 120 sh -c 'until docker compose exec -T app test -f vendor/autoload.php; do sleep 2; done'
+        run: timeout 120 sh -c 'until docker compose exec -T app sh -c "test \"\$(cat /proc/1/comm)\" != entrypoint.sh"; do sleep 2; done'
 
       - name: Run static analysis
         run: docker compose exec -T app composer stan
