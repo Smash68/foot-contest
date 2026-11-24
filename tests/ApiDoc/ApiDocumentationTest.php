@@ -13,15 +13,22 @@ final class ApiDocumentationTest extends WebTestCase
     #[Test]
     public function it_serves_the_openapi_specification(): void
     {
-        $client = static::createClient();
+        $specification = $this->fetchSpecification();
 
-        $client->request('GET', '/api/doc.json');
-
-        self::assertResponseIsSuccessful();
-
-        $specification = json_decode((string) $client->getResponse()->getContent(), true);
-        self::assertIsArray($specification);
         self::assertArrayHasKey('openapi', $specification);
+    }
+
+    #[Test]
+    public function it_declares_jwt_bearer_authentication(): void
+    {
+        $specification = $this->fetchSpecification();
+
+        self::assertIsArray($specification['components'] ?? null);
+        self::assertIsArray($specification['components']['securitySchemes'] ?? null);
+        self::assertEquals(
+            ['type' => 'http', 'scheme' => 'bearer', 'bearerFormat' => 'JWT'],
+            $specification['components']['securitySchemes']['Bearer'] ?? null,
+        );
     }
 
     #[Test]
@@ -55,5 +62,22 @@ final class ApiDocumentationTest extends WebTestCase
             self::assertStringStartsNotWith('//', $assetUrl);
             self::assertFileExists($projectDir.'/public'.$assetUrl);
         }
+    }
+
+    /**
+     * @return array<mixed>
+     */
+    private function fetchSpecification(): array
+    {
+        $client = static::createClient();
+
+        $client->request('GET', '/api/doc.json');
+
+        self::assertResponseIsSuccessful();
+
+        $specification = json_decode((string) $client->getResponse()->getContent(), true);
+        self::assertIsArray($specification);
+
+        return $specification;
     }
 }

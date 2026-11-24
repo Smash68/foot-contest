@@ -4,5 +4,11 @@ nelmio_api_doc:
             title: Foot Contest
             description: API de gestion de tournois de football.
             version: 1.0.0
+        components:
+            securitySchemes:
+                Bearer:
+                    type: http
+                    scheme: bearer
+                    bearerFormat: JWT
     html_config:
         assets_mode: bundle
