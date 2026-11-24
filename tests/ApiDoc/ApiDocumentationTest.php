@@ -22,4 +22,15 @@ final class ApiDocumentationTest extends WebTestCase
         self::assertIsArray($specification);
         self::assertArrayHasKey('openapi', $specification);
     }
+
+    #[Test]
+    public function it_serves_a_browsable_interface_for_the_specification(): void
+    {
+        $client = static::createClient();
+
+        $client->request('GET', '/api/doc');
+
+        self::assertResponseIsSuccessful();
+        self::assertResponseHeaderSame('Content-Type', 'text/html; charset=UTF-8');
+    }
 }
