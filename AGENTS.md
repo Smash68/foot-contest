@@ -40,7 +40,7 @@ docker compose exec -d app php -S 0.0.0.0:8000 -t public
 
 ## Architecture
 
-SaaS multi-tenant de gestion de tournois de football. PHP 8.4 / Symfony, architecture **hexagonale** (DDD), approche TDD. Deux modules (bounded contexts), `Competition` et `Organization`, chacun en trois couches : `Domain/`, `Application/` (use cases) et `Infrastructure/` (adapters). Dépendance à sens unique imposée en CI par `deptrac` : `Competition` peut dépendre d'`Organization`, jamais l'inverse.
+SaaS multi-tenant de gestion de tournois de football. PHP 8.4 / Symfony, architecture **hexagonale** (DDD), approche TDD. Deux modules (bounded contexts), `Competition` et `Organization`, chacun en trois couches : `Domain/`, `Application/` (use cases) et `Infrastructure/` (adapters). Dépendances imposées en CI par `deptrac` : vers l'intérieur entre couches (`Infrastructure` → `Application` → `Domain`), à sens unique entre modules (`Competition` peut dépendre d'`Organization`, jamais l'inverse).
 
 - [`docs/architecture.md`](docs/architecture.md) — conventions à suivre par couche (identifiants, exceptions, structure d'un use case, lecture, autorisation, persistance, sécurité, erreurs HTTP, tests). À lire avant d'ajouter un use case ou de toucher une couche.
 - [`docs/glossary.md`](docs/glossary.md) — langage métier et termes écartés (`Encounter`, jamais `Match`). À lire avant de nommer un concept.
