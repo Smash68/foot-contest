@@ -18,6 +18,11 @@ final class OpenApiContractTest extends TestCase
             "openapi": "3.0.0",
             "info": {"title": "Fixture", "version": "1.0.0"},
             "paths": {
+                "/teams": {
+                    "post": {
+                        "responses": {"default": {"description": ""}}
+                    }
+                },
                 "/teams/{teamId}": {
                     "get": {
                         "parameters": [{"name": "teamId", "in": "path", "required": true, "schema": {"type": "string"}}],
@@ -77,6 +82,19 @@ final class OpenApiContractTest extends TestCase
         $contract->assertSatisfiedBy(
             Request::create('/teams/42'),
             new JsonResponse(['label' => 'Les Bleus']),
+        );
+    }
+
+    #[Test]
+    public function it_rejects_a_response_status_that_is_not_explicitly_documented(): void
+    {
+        $contract = OpenApiContract::fromSpecification(self::SPECIFICATION);
+
+        $this->expectException(AssertionFailedError::class);
+
+        $contract->assertSatisfiedBy(
+            Request::create('/teams', 'POST'),
+            new JsonResponse(['id' => '42'], 201),
         );
     }
 }
