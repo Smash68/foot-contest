@@ -13,13 +13,13 @@ Deux bounded contexts, chacun sous `src/<Module>/` :
 
 Dépendance **à sens unique**, imposée en CI par `deptrac` : `Competition` peut dépendre d'`Organization`, jamais l'inverse. Et même dans ce sens :
 
-- `Competition` ne référence jamais `Organization/Domain`. Un appel inter-modules passe par une Query de la couche Application d'`Organization`, à primitifs en entrée et en sortie, dispatchée sur le bus Messenger ([ADR 029](adr/029-competition-organization-id.md)).
+- Seule l'Infrastructure de `Competition` référence `Organization`, et jamais `Organization/Domain`. Un appel inter-modules passe par une Query de la couche Application d'`Organization`, à primitifs en entrée et en sortie, dispatchée sur le bus Messenger ([ADR 029](adr/029-competition-organization-id.md)). Seule exception : les contrôleurs lisent l'organisateur authentifié via l'utilisateur Symfony Security d'`Organization` ([ADR 048](adr/048-direction-des-dependances-entre-couches.md)).
 - Chaque module a ses propres identifiants (`OrganizationId` existe dans les deux) : anti-corruption layer, pas de Shared Kernel.
 - Les ports techniques (`PasswordHasher`, `AccessTokenIssuer`) sont dupliqués par module plutôt que partagés ([ADR 028](adr/028-login-player-playerid-genere.md)).
 
 ## Couches
 
-Chaque module est découpé en `Domain/`, `Application/` et `Infrastructure/`.
+Chaque module est découpé en `Domain/`, `Application/` et `Infrastructure/`. Les dépendances vont vers l'intérieur uniquement (`Infrastructure` → `Application` → `Domain`), et seule l'`Infrastructure` dépend du framework ou d'une bibliothèque : règles imposées en CI par `deptrac` ([ADR 048](adr/048-direction-des-dependances-entre-couches.md)).
 
 ### Domain
 
