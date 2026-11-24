@@ -42,6 +42,19 @@ final class OpenApiContractTest extends TestCase
         JSON;
 
     #[Test]
+    public function it_accepts_an_exchange_that_matches_the_documented_operation(): void
+    {
+        $contract = OpenApiContract::fromSpecification(self::SPECIFICATION);
+
+        $contract->assertSatisfiedBy(
+            Request::create('/teams/42'),
+            new JsonResponse(['name' => 'Les Bleus']),
+        );
+
+        $this->addToAssertionCount(1);
+    }
+
+    #[Test]
     public function it_rejects_an_exchange_on_an_undocumented_operation(): void
     {
         $contract = OpenApiContract::fromSpecification(self::SPECIFICATION);
