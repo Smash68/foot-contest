@@ -53,4 +53,17 @@ final class OpenApiContractTest extends TestCase
             new JsonResponse(['name' => 'Jane']),
         );
     }
+
+    #[Test]
+    public function it_rejects_a_response_body_that_does_not_match_the_documented_schema(): void
+    {
+        $contract = OpenApiContract::fromSpecification(self::SPECIFICATION);
+
+        $this->expectException(AssertionFailedError::class);
+
+        $contract->assertSatisfiedBy(
+            Request::create('/teams/42'),
+            new JsonResponse(['label' => 'Les Bleus']),
+        );
+    }
 }
