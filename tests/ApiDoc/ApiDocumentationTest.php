@@ -46,6 +46,22 @@ final class ApiDocumentationTest extends WebTestCase
     }
 
     #[Test]
+    public function it_documents_the_authentication_error_response(): void
+    {
+        $specification = $this->fetchSpecification();
+
+        self::assertEquals(
+            [
+                'type' => 'object',
+                'required' => ['code', 'message'],
+                'properties' => ['code' => ['type' => 'integer'], 'message' => ['type' => 'string']],
+            ],
+            self::component($specification, 'schemas', 'AuthenticationError'),
+        );
+        self::assertResponseComponentUsesSchema($specification, 'Unauthenticated', 'AuthenticationError');
+    }
+
+    #[Test]
     public function it_serves_a_browsable_interface_for_the_specification(): void
     {
         $client = static::createClient();

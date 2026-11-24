@@ -16,6 +16,12 @@ nelmio_api_doc:
                     required: [error]
                     properties:
                         error: { type: string }
+                AuthenticationError:
+                    type: object
+                    required: [code, message]
+                    properties:
+                        code: { type: integer }
+                        message: { type: string }
             responses:
                 BusinessRuleViolation:
                     description: Donnée invalide ou ressource ciblée inexistante.
@@ -34,5 +40,10 @@ nelmio_api_doc:
                 InvalidCredentials:
                     description: Email ou mot de passe incorrect.
                     content: *error_content
+                Unauthenticated:
+                    description: Token JWT absent, invalide ou expiré.
+                    content:
+                        application/json:
+                            schema: { $ref: '#/components/schemas/AuthenticationError' }
     html_config:
         assets_mode: bundle
