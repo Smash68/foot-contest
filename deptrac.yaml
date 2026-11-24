@@ -3,17 +3,61 @@ deptrac:
         - ./src
 
     layers:
-        - name: Competition
+        - name: Competition_Domain
           collectors:
               - type: directory
-                value: src/Competition/.*
+                value: src/Competition/Domain/.*
 
-        - name: Organization
+        - name: Competition_Application
           collectors:
               - type: directory
-                value: src/Organization/.*
+                value: src/Competition/Application/.*
+
+        - name: Competition_Infrastructure
+          collectors:
+              - type: directory
+                value: src/Competition/Infrastructure/.*
+
+        - name: Organization_Domain
+          collectors:
+              - type: directory
+                value: src/Organization/Domain/.*
+
+        - name: Organization_Application
+          collectors:
+              - type: directory
+                value: src/Organization/Application/.*
+
+        - name: Organization_Infrastructure
+          collectors:
+              - type: directory
+                value: src/Organization/Infrastructure/.*
+
+        # Toute classe hors de l'application et hors du cœur de PHP : framework et bibliothèques.
+        - name: Vendor
+          collectors:
+              - type: bool
+                must:
+                    - type: classNameRegex
+                      value: '#^(?!App\\).+#'
+                must_not:
+                    - type: php_internal
+                      value: '.*'
 
     ruleset:
-        Competition:
-            - Organization
-        Organization: []
+        Competition_Domain: []
+        Competition_Application:
+            - Competition_Domain
+        Competition_Infrastructure:
+            - Competition_Application
+            - Competition_Domain
+            - Organization_Application
+            - Organization_Infrastructure
+            - Vendor
+        Organization_Domain: []
+        Organization_Application:
+            - Organization_Domain
+        Organization_Infrastructure:
+            - Organization_Application
+            - Organization_Domain
+            - Vendor
