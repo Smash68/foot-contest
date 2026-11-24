@@ -65,6 +65,9 @@
             "config/packages/lexik_jwt_authentication.yaml"
         ]
     },
+    "nelmio/api-doc-bundle": {
+        "version": "v5.14.0"
+    },
     "phpstan/phpstan": {
         "version": "2.2.5"
     },
