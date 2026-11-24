@@ -62,6 +62,55 @@ final class ApiDocumentationTest extends WebTestCase
     }
 
     #[Test]
+    public function it_documents_the_request_payload_error_responses(): void
+    {
+        $specification = $this->fetchSpecification();
+
+        self::assertEquals(
+            [
+                'type' => 'object',
+                'required' => ['type', 'title', 'status', 'detail'],
+                'properties' => [
+                    'type' => ['type' => 'string'],
+                    'title' => ['type' => 'string'],
+                    'status' => ['type' => 'integer'],
+                    'detail' => ['type' => 'string'],
+                ],
+            ],
+            self::component($specification, 'schemas', 'Problem'),
+        );
+        self::assertEquals(
+            [
+                'allOf' => [
+                    ['$ref' => '#/components/schemas/Problem'],
+                    [
+                        'type' => 'object',
+                        'required' => ['violations'],
+                        'properties' => [
+                            'violations' => [
+                                'type' => 'array',
+                                'items' => [
+                                    'type' => 'object',
+                                    'required' => ['propertyPath', 'title'],
+                                    'properties' => [
+                                        'propertyPath' => ['type' => 'string'],
+                                        'title' => ['type' => 'string'],
+                                        'template' => ['type' => 'string'],
+                                        'parameters' => ['type' => 'object'],
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+            self::component($specification, 'schemas', 'ValidationProblem'),
+        );
+        self::assertResponseComponentUsesSchema($specification, 'MalformedPayload', 'Problem');
+        self::assertResponseComponentUsesSchema($specification, 'InvalidPayload', 'ValidationProblem');
+    }
+
+    #[Test]
     public function it_serves_a_browsable_interface_for_the_specification(): void
     {
         $client = static::createClient();

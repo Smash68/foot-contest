@@ -22,6 +22,30 @@ nelmio_api_doc:
                     properties:
                         code: { type: integer }
                         message: { type: string }
+                Problem:
+                    type: object
+                    required: [type, title, status, detail]
+                    properties:
+                        type: { type: string }
+                        title: { type: string }
+                        status: { type: integer }
+                        detail: { type: string }
+                ValidationProblem:
+                    allOf:
+                        - $ref: '#/components/schemas/Problem'
+                        - type: object
+                          required: [violations]
+                          properties:
+                              violations:
+                                  type: array
+                                  items:
+                                      type: object
+                                      required: [propertyPath, title]
+                                      properties:
+                                          propertyPath: { type: string }
+                                          title: { type: string }
+                                          template: { type: string }
+                                          parameters: { type: object }
             responses:
                 BusinessRuleViolation:
                     description: Donnée invalide ou ressource ciblée inexistante.
@@ -45,5 +69,15 @@ nelmio_api_doc:
                     content:
                         application/json:
                             schema: { $ref: '#/components/schemas/AuthenticationError' }
+                MalformedPayload:
+                    description: Corps de requête qui n'est pas du JSON valide. Rendu en JSON uniquement si la requête envoie Accept application/json.
+                    content:
+                        application/json:
+                            schema: { $ref: '#/components/schemas/Problem' }
+                InvalidPayload:
+                    description: Champ du corps de requête manquant ou mal typé. Rendu en JSON uniquement si la requête envoie Accept application/json.
+                    content:
+                        application/json:
+                            schema: { $ref: '#/components/schemas/ValidationProblem' }
     html_config:
         assets_mode: bundle
