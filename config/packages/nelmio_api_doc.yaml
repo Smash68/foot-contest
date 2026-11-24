@@ -10,5 +10,29 @@ nelmio_api_doc:
                     type: http
                     scheme: bearer
                     bearerFormat: JWT
+            schemas:
+                Error:
+                    type: object
+                    required: [error]
+                    properties:
+                        error: { type: string }
+            responses:
+                BusinessRuleViolation:
+                    description: Donnée invalide ou ressource ciblée inexistante.
+                    content: &error_content
+                        application/json:
+                            schema: { $ref: '#/components/schemas/Error' }
+                Conflict:
+                    description: Opération en conflit avec l'état courant de la ressource.
+                    content: *error_content
+                Forbidden:
+                    description: L'acteur authentifié n'est pas autorisé à effectuer cette opération.
+                    content: *error_content
+                NotFound:
+                    description: Sous-ressource pas encore créée.
+                    content: *error_content
+                InvalidCredentials:
+                    description: Email ou mot de passe incorrect.
+                    content: *error_content
     html_config:
         assets_mode: bundle

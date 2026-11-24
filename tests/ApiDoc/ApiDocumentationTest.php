@@ -32,6 +32,20 @@ final class ApiDocumentationTest extends WebTestCase
     }
 
     #[Test]
+    public function it_documents_the_business_error_responses(): void
+    {
+        $specification = $this->fetchSpecification();
+
+        self::assertEquals(
+            ['type' => 'object', 'required' => ['error'], 'properties' => ['error' => ['type' => 'string']]],
+            self::component($specification, 'schemas', 'Error'),
+        );
+        foreach (['BusinessRuleViolation', 'Conflict', 'Forbidden', 'NotFound', 'InvalidCredentials'] as $response) {
+            self::assertResponseComponentUsesSchema($specification, $response, 'Error');
+        }
+    }
+
+    #[Test]
     public function it_serves_a_browsable_interface_for_the_specification(): void
     {
         $client = static::createClient();
@@ -79,5 +93,31 @@ final class ApiDocumentationTest extends WebTestCase
         self::assertIsArray($specification);
 
         return $specification;
+    }
+
+    /**
+     * @param array<mixed> $specification
+     */
+    private static function component(array $specification, string $type, string $name): mixed
+    {
+        self::assertIsArray($specification['components'] ?? null);
+        self::assertIsArray($specification['components'][$type] ?? null);
+        self::assertArrayHasKey($name, $specification['components'][$type]);
+
+        return $specification['components'][$type][$name];
+    }
+
+    /**
+     * @param array<mixed> $specification
+     */
+    private static function assertResponseComponentUsesSchema(array $specification, string $response, string $schema): void
+    {
+        $component = self::component($specification, 'responses', $response);
+        self::assertIsArray($component);
+        self::assertArrayHasKey('description', $component);
+        self::assertEquals(
+            ['application/json' => ['schema' => ['$ref' => '#/components/schemas/'.$schema]]],
+            $component['content'] ?? null,
+        );
     }
 }
