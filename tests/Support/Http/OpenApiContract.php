@@ -9,8 +9,10 @@ use League\OpenAPIValidation\PSR7\OperationAddress;
 use League\OpenAPIValidation\PSR7\ResponseValidator;
 use League\OpenAPIValidation\PSR7\ServerRequestValidator;
 use League\OpenAPIValidation\PSR7\ValidatorBuilder;
+use Nelmio\ApiDocBundle\ApiDocGenerator;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use PHPUnit\Framework\Assert;
+use Psr\Container\ContainerInterface;
 use Symfony\Bridge\PsrHttpMessage\Factory\PsrHttpFactory;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -39,6 +41,14 @@ final readonly class OpenApiContract
             $validatorBuilder->getResponseValidator(),
             new PsrHttpFactory($psr17Factory, $psr17Factory, $psr17Factory, $psr17Factory),
         );
+    }
+
+    public static function ofApplication(ContainerInterface $container): self
+    {
+        $generator = $container->get('nelmio_api_doc.generator.default');
+        assert($generator instanceof ApiDocGenerator);
+
+        return self::fromSpecification($generator->generate()->toJson());
     }
 
     public function assertSatisfiedBy(Request $request, Response $response): void
